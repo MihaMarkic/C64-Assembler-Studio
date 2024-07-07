@@ -6,18 +6,68 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.10" />
-    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.10" />
+    <AvaloniaXaml Remove="Resources\**" />
+    <Compile Remove="Resources\**" />
+    <EmbeddedResource Remove="Resources\**" />
+    <None Remove="Resources\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="System.Globalization"/>
+    <Using Include="System.Collections.Immutable"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\Fonts\C64_Pro_Mono-STYLE.ttf" />
+    <EmbeddedResource Include="Assets\Fonts\FiraCode-Bold.ttf" />
+    <EmbeddedResource Include="Assets\Fonts\FiraCode-Regular.ttf" />
+    <AvaloniaResource Include="Assets\Icons\cog.svg" />
+    <AvaloniaResource Include="Assets\Icons\disabled_link.svg" />
+    <AvaloniaResource Include="Assets\Icons\follow.svg" />
+    <AvaloniaResource Include="Assets\Icons\link.svg" />
+    <AvaloniaResource Include="Assets\Icons\pause_disabled.svg" />
+    <AvaloniaResource Include="Assets\Icons\pause.svg" />
+    <AvaloniaResource Include="Assets\Icons\play.svg" />
+    <AvaloniaResource Include="Assets\Icons\play_disabled.svg" />
+    <AvaloniaResource Include="Assets\Icons\stop_disabled.svg" />
+    <AvaloniaResource Include="Assets\Icons\stop.svg" />
+    <AvaloniaResource Include="Assets\Icons\disabled_sync.svg" />
+    <AvaloniaResource Include="Assets\Icons\sync_disabled.svg" />
+    <AvaloniaResource Include="Assets\Icons\sync.svg" />
+    <AvaloniaResource Include="Assets\Icons\times.svg" />
+    <AvaloniaResource Include="Assets\Icons\trash.svg" />
+    <AvaloniaResource Include="Assets\Icons\xmark.svg" />
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>$(AssemblyName).Test</_Parameter1>
+      <!-- We use the value of AssemblyName to declare the value of the attribute -->
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.0.7" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.7" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Svg.Skia" Version="11.0.0.12" />
+    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.6" />
+    <PackageReference Include="AvaloniaEdit.TextMate" Version="11.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
+    <PackageReference Include="Righthand.Vice.Bridge" Version="1.0.0-beta.18" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\C64AssemblerStudio.Core\C64AssemblerStudio.Core.csproj" />
+    <ProjectReference Include="..\C64AssemblerStudio.Engine\C64AssemblerStudio.Engine.csproj" />
   </ItemGroup>
 </Project>

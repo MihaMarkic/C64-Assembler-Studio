@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:m="clr-namespace:C64AssemblerStudio.Engine.Models;assembly=C64AssemblerStudio.Engine"
+             xmlns:msg="clr-namespace:C64AssemblerStudio.Engine.Messages;assembly=C64AssemblerStudio.Engine"
+             xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
+             xmlns:v="clr-namespace:C64AssemblerStudio.Views"
+             xmlns:b="clr-namespace:C64AssemblerStudio.Behaviors"
+             xmlns:c="clr-namespace:C64AssemblerStudio.Converters"
+             x:DataType="msg:ShowModalDialogMessageCore"
+             x:Class="C64AssemblerStudio.Views.ModalDialog">
+  <UserControl.DataTemplates>
+    <!--<DataTemplate DataType="{x:Type vm:BreakpointDetailViewModel}">
+      <v:BreakpointDetail />
+    </DataTemplate>-->
+  </UserControl.DataTemplates>
+  <ContentControl Content="{Binding ViewModel, Mode=OneTime}" />
+</UserControl>

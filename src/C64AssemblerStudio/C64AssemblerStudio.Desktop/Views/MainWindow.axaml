@@ -1,0 +1,138 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia"
+        xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
+        xmlns:v="clr-namespace:C64AssemblerStudio.Views"
+        xmlns:c="clr-namespace:C64AssemblerStudio.Converters"
+        xmlns:ctl="clr-namespace:C64AssemblerStudio.Controls"
+        xmlns:cmn="clr-namespace:C64AssemblerStudio.Engine.Common;assembly=C64AssemblerStudio.Engine"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        MinWidth="600" Width="800"
+        MinHeight="300" Height="600"
+        x:Class="C64AssemblerStudio.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="{Binding Caption}">
+  <Window.Resources>
+    <SolidColorBrush x:Key="DisabledBrush">#c6c6c6</SolidColorBrush>
+    <c:FirstNonNullConverter x:Key="FirstNonNullConverter" />
+    <c:BoolToColorConverter x:Key="IsConnectedToForegroundConverter" OnTrue="Black" OnFalse="{StaticResource DisabledBrush}" />
+    <c:BoolToSvgImageConverter x:Key="IsConnectedToSvgImageConverter">
+      <c:BoolToSvgImageConverter.OnTrue>
+        <svg:SvgImage Source="/Assets/Icons/link.svg" />
+      </c:BoolToSvgImageConverter.OnTrue>
+      <c:BoolToSvgImageConverter.OnFalse>
+        <svg:SvgImage Source="/Assets/Icons/disabled_link.svg" />
+      </c:BoolToSvgImageConverter.OnFalse>
+    </c:BoolToSvgImageConverter>
+    <c:BoolToSvgImageConverter x:Key="IsUpdatedPdbAvailableConverter">
+      <c:BoolToSvgImageConverter.OnTrue>
+        <svg:SvgImage Source="/Assets/Icons/sync.svg" />
+      </c:BoolToSvgImageConverter.OnTrue>
+      <c:BoolToSvgImageConverter.OnFalse>
+        <svg:SvgImage Source="/Assets/Icons/disabled_sync.svg" />
+      </c:BoolToSvgImageConverter.OnFalse>
+    </c:BoolToSvgImageConverter>
+    <c:BoolToStringConverter x:Key="StepModeConverter" OnTrue="ASM" OnFalse="HIGH" />
+  </Window.Resources>
+  <Window.DataTemplates>
+    <DataTemplate DataType="vm:SettingsViewModel">
+      <v:Settings />
+    </DataTemplate>
+    <!--<DataTemplate DataType="vm:ProjectViewModel">
+      <v:Project />
+    </DataTemplate>
+    <DataTemplate DataType="vm:DebuggerViewModel">
+      <v:Debugger />
+    </DataTemplate>-->
+  </Window.DataTemplates>
+  <DockPanel x:Name="Source" LastChildFill="True" Margin="4">
+    <Menu x:Name="Menu" DockPanel.Dock="Top">
+      <MenuItem Header="_File">
+        <MenuItem Header="_New...">
+          <!--<MenuItem Header="New Kick Assembler project" Command="{Binding CreateProjectCommand}">
+            <MenuItem.CommandParameter>
+              <cmn:CompilerType>KickAssembler</cmn:CompilerType>
+            </MenuItem.CommandParameter>
+          </MenuItem>-->
+
+        </MenuItem>
+        <!--<MenuItem Header="_Open..." Command="{Binding OpenProjectCommand}" />
+        <Separator/>
+        <MenuItem Header="_Close" Command="{Binding CloseProjectCommand}" />
+        <Separator/>-->
+        <MenuItem Header="Settings..." Command="{Binding ShowSettingsCommand}" />
+        <!--<MenuItem Header="Project Settings..." Command="{Binding ShowProjectCommand}" />
+        <Separator/>
+        <MenuItem Classes="parent" Header="Recent" ItemsSource="{Binding RecentProjects}">
+          <MenuItem.Styles>
+            <Style Selector="MenuItem:not(.parent)">
+              <Setter Property="Header" Value="{Binding}" />
+              <Setter Property="Command" Value="{Binding DataContext.OpenProjectFromPathCommand, ElementName=Menu}" />
+              <Setter Property="CommandParameter" Value="{Binding}" />
+            </Style>
+          </MenuItem.Styles>
+        </MenuItem>-->
+        <Separator/>
+        <MenuItem Header="_Exit" Command="{Binding ExitCommand}" />
+      </MenuItem>
+      <!--<MenuItem Header="_Debug">
+        <MenuItem Header="{Binding RunMenuCommandTitle}" Command="{Binding RunCommand}">
+          <MenuItem.Icon>
+            <Image>
+              <Image.Source>
+                <svg:SvgImage Source="/Assets/Icons/play.svg"/>
+              </Image.Source>
+            </Image>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="_Pause" Command="{Binding PauseCommand}">
+          <MenuItem.Icon>
+            <Image>
+              <Image.Source>
+                <svg:SvgImage Source="/Assets/Icons/pause.svg"/>
+              </Image.Source>
+            </Image>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="_Stop" Command="{Binding StopCommand}">
+          <MenuItem.Icon>
+            <Image>
+              <Image.Source>
+                <svg:SvgImage Source="/Assets/Icons/stop.svg"/>
+              </Image.Source>
+            </Image>
+          </MenuItem.Icon>
+        </MenuItem>
+        <Separator />
+        <MenuItem Header="Step Into" Command="{Binding StepIntoCommand}" CommandParameter="{Binding IsShiftDown}" />
+        <MenuItem Header="Step Over" Command="{Binding StepOverCommand}" CommandParameter="{Binding IsShiftDown}" />
+      </MenuItem>
+      <MenuItem Header="_Project">
+        <MenuItem Header="_Update" Command="{Binding UpdatePdbCommand}">
+          <MenuItem.Icon>
+            <Image>
+              <Image.Source>
+                <svg:SvgImage Source="/Assets/Icons/sync.svg"/>
+              </Image.Source>
+            </Image>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="_Auto Update" Command="{Binding ToggleIsAutoUpdateEnabledCommand}">
+          <MenuItem.Icon>
+            <CheckBox BorderThickness="0" IsHitTestVisible="False" IsChecked="{Binding IsAutoUpdateEnabled, Mode=OneWay}" />
+          </MenuItem.Icon>
+        </MenuItem>
+      </MenuItem>
+      <MenuItem Header="Diagnostics">
+        <MenuItem Header="Messages History" Command="{Binding ShowMessagesHistoryCommand}" />
+      </MenuItem>-->
+    </Menu>
+    <Grid>
+      <DockPanel IsVisible="{Binding OverlayContent, Converter={x:Static ObjectConverters.IsNull}}">
+      </DockPanel>
+      <ContentControl Content="{Binding OverlayContent}" />
+    </Grid>
+  </DockPanel>
+</Window>

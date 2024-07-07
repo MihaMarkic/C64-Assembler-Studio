@@ -1,5 +1,5 @@
 ﻿//using System.Collections.Immutable;
-//using Modern.Vice.PdbMonitor.Core.Common.Compiler;
+//using C64AssemblerStudio.Core.Common.Compiler;
 
 //namespace C64AssemblerStudio.Core.Services.Abstract;
 

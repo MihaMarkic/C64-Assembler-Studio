@@ -1,7 +1,7 @@
 ﻿using C64AssemblerStudio.Core.Extensions;
 using NUnit.Framework;
 
-namespace Modern.Vice.PdbMonitor.Core.Test.Extensions;
+namespace C64AssemblerStudio.Core.Test.Extensions;
 internal class MathExtensionTest
 {
     [TestFixture]

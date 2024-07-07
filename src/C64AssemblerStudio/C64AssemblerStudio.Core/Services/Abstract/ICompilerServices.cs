@@ -1,6 +1,6 @@
 ﻿//using System.Threading;
 //using System.Threading.Tasks;
-//using Modern.Vice.PdbMonitor.Core.Common;
+//using C64AssemblerStudio.Core.Common;
 
 //namespace C64AssemblerStudio.Core.Services.Abstract;
 

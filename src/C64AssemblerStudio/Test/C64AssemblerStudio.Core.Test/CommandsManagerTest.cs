@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Modern.Vice.PdbMonitor.Core.Test;
+namespace C64AssemblerStudio.Core.Test;
 
 public class CommandsManagerTest
 {

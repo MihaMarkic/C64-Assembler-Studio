@@ -1,7 +1,7 @@
-﻿//using Modern.Vice.PdbMonitor.Core.Common;
+﻿//using C64AssemblerStudio.Core.Common;
 //using NUnit.Framework;
 
-//namespace Modern.Vice.PdbMonitor.Core.Test.Common;
+//namespace C64AssemblerStudio.Core.Test.Common;
 //internal class PdbTest
 //{
 //    internal class PdbPathTest: PdbTest
