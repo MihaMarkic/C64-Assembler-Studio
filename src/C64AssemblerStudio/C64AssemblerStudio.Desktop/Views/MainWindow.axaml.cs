@@ -2,21 +2,16 @@
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
-using Microsoft.Extensions.DependencyInjection;
-using C64AssemblerStudio.Core;
-using C64AssemblerStudio.Engine;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace C64AssemblerStudio.Views;
 
 partial class MainWindow : Window
 {
-    readonly IServiceScope scope;
     //ToolWindow? messagesHistoryWindow;
     public MainWindow()
     {
@@ -24,15 +19,24 @@ partial class MainWindow : Window
 #if DEBUG
         this.AttachDevTools();
 #endif
-        scope = IoC.Host.Services.CreateScope();
-        //Bootstrap.Init(scope);
-        var viewModel = scope.ServiceProvider.GetService<MainViewModel>()!;
-        DataContext = viewModel;
-        //viewModel.ShowCreateProjectFileDialogAsync = ShowCreateProjectFileDialogAsync;
-        //viewModel.ShowOpenProjectFileDialogAsync = ShowOpenProjectFileDialogAsync;
-        //ViewModel.ShowMessagesHistoryContent = ShowMessagesHistory;
-        viewModel.CloseApp = Close;
-        viewModel.ShowModalDialog = ShowModalDialog;
+    }
+    public new MainViewModel? DataContext
+    {
+        get => (MainViewModel?)base.DataContext;
+        set => base.DataContext = value;
+    }
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        var viewModel = DataContext as MainViewModel;
+        if (viewModel is not null)
+        {
+            //viewModel.ShowCreateProjectFileDialogAsync = ShowCreateProjectFileDialogAsync;
+            //viewModel.ShowOpenProjectFileDialogAsync = ShowOpenProjectFileDialogAsync;
+            //ViewModel.ShowMessagesHistoryContent = ShowMessagesHistory;
+            viewModel.CloseApp = Close;
+            viewModel.ShowModalDialog = ShowModalDialog;
+        }
+        base.OnDataContextChanged(e);
     }
     internal void ShowModalDialog(ShowModalDialogMessageCore message)
     {
@@ -139,7 +143,6 @@ partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         //messagesHistoryWindow?.Close();
-        scope.Dispose();
         //Bootstrap.Close();
         base.OnClosed(e);
     }

@@ -11,6 +11,12 @@ public abstract class OverlayContentViewModel : ScopedViewModel
     public OverlayContentViewModel(IDispatcher dispatcher)
     {
         this.dispatcher = dispatcher;
-        CloseCommand = new(() => dispatcher.Dispatch(new CloseOverlayMessage()));
+        CloseCommand = new(() =>
+        {
+            Closing();
+            dispatcher.Dispatch(new CloseOverlayMessage());
+        });
     }
+    protected virtual void Closing()
+    { }
 }

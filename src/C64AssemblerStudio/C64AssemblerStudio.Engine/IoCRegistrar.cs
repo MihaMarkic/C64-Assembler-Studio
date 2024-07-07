@@ -1,4 +1,6 @@
-﻿using C64AssemblerStudio.Engine.ViewModels;
+﻿using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.Services.Implementation;
+using C64AssemblerStudio.Engine.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Righthand.MessageBus;
 
@@ -10,9 +12,12 @@ public static class IoCRegistrar
     {
         services
             .AddSingleton<Globals>()
+            .AddSingleton<ISettingsManager, SettingsManager>()
+            // ViewModels
             .AddSingleton<MainViewModel>()
             .AddScoped<SettingsViewModel>()
             .AddSingleton<EmptyProjectViewModel>()
+            // System
             .AddTransient(sp => sp.CreateScope())
             .AddSingleton<IDispatcher>(
             // uses dispatching from within same thread to all subscriptions by default as most subscribers are running on UI thread

@@ -1,7 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Views;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace C64AssemblerStudio.Desktop;
 
@@ -16,9 +19,19 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
+            using (var globalsScope = IoC.Host.Services.CreateScope())
+            {
+                var globals = globalsScope.ServiceProvider.GetRequiredService<Globals>();
+                globals.Load();
+            }
+            var scope = IoC.Host.Services.CreateScope();
+            
+            var viewModel = scope.ServiceProvider.GetRequiredService<MainViewModel>()!;
+            desktop.MainWindow = new MainWindow
+            {
+                DataContext = viewModel,
+            };
         }
-
         base.OnFrameworkInitializationCompleted();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models.Configuration;
+using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using System.ComponentModel;
@@ -8,15 +9,18 @@ namespace C64AssemblerStudio.Engine.ViewModels;
 
 public sealed class SettingsViewModel : OverlayContentViewModel
 {
-    readonly ILogger<SettingsViewModel> logger;
-    readonly Globals globals;
-    public Settings Settings => globals.Settings;
+    readonly ILogger<SettingsViewModel> _logger;
+    readonly Globals _globals;
+    readonly ISettingsManager _settingsManager;
+    public Settings Settings => _globals.Settings;
     public bool IsVicePathGood { get; private set; }
     public RelayCommand VerifyValuesCommand { get; }
-    public SettingsViewModel(ILogger<SettingsViewModel> logger, Globals globals, IDispatcher dispatcher) : base(dispatcher)
+    public SettingsViewModel(ILogger<SettingsViewModel> logger, Globals globals, IDispatcher dispatcher,
+        ISettingsManager settingsManager) : base(dispatcher)
     {
-        this.logger = logger;
-        this.globals = globals;
+        _logger = logger;
+        _globals = globals;
+        _settingsManager = settingsManager;
         globals.Settings.PropertyChanged += Settings_PropertyChanged;
         VerifyValues();
         VerifyValuesCommand = new RelayCommand(VerifyValues);
@@ -51,15 +55,20 @@ public sealed class SettingsViewModel : OverlayContentViewModel
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed checking VICE directory validity");
+            _logger.LogError(ex, "Failed checking VICE directory validity");
             IsVicePathGood = false;
         }
+    }
+    protected override void Closing()
+    {
+        _settingsManager.Save(Settings);
+        base.Closing();
     }
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            globals.Settings.PropertyChanged -= Settings_PropertyChanged;
+            _globals.Settings.PropertyChanged -= Settings_PropertyChanged;
         }
         base.Dispose(disposing);
     }

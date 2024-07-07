@@ -45,12 +45,16 @@ public class MainViewModel : ViewModel
         commandsManager = new CommandsManager(this, uiFactory);
         ShowSettingsCommand = commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
         ExitCommand = new RelayCommand(() => CloseApp?.Invoke());
+        if (!Directory.Exists(globals.Settings.VicePath))
+        {
+            SwitchOverlayContent<SettingsViewModel>();
+        }
     }
     void OnShowModalDialog(ShowModalDialogMessageCore message)
     {
         ShowModalDialog?.Invoke(message);
     }
-    protected override void OnPropertyChanged([CallerMemberName] string name = null)
+    protected override void OnPropertyChanged([CallerMemberName] string name = default!)
     {
         base.OnPropertyChanged(name);
     }
