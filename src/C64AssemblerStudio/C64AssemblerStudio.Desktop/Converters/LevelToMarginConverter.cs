@@ -1,6 +1,6 @@
 ﻿using Avalonia;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 public class LevelToMarginConverter : ValueConverter<int, Thickness, double?>
 {
     public override Thickness Convert(int value, Type targetType, double? parameter, CultureInfo culture)

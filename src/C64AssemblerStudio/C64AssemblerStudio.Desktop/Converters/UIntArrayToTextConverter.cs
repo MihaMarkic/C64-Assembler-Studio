@@ -1,4 +1,4 @@
-﻿namespace C64AssemblerStudio.Converters;
+﻿namespace C64AssemblerStudio.Desktop.Converters;
 public class UIntArrayToTextConverter : ParameterlessValueConverter<IEnumerable<uint>, string>
 {
     public override string? Convert(IEnumerable<uint>? data, Type targetType, CultureInfo culture)

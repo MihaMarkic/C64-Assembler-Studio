@@ -1,6 +1,6 @@
 ﻿using C64AssemblerStudio.Engine.ViewModels;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 //public class BreakpointAddressRangesToStringConverter : ParameterlessValueConverter<IReadOnlyCollection<BreakpointAddressRange>, string>
 //{
 //    public override string? Convert(IReadOnlyCollection<BreakpointAddressRange>? value, Type targetType, CultureInfo culture)

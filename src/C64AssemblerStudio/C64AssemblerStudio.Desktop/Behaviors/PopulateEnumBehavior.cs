@@ -1,12 +1,9 @@
 ﻿using Avalonia.Controls;
-using Microsoft.Extensions.DependencyInjection;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
-using System;
-using System.Linq;
-using System.Collections.Immutable;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace C64AssemblerStudio.Behaviors;
+namespace C64AssemblerStudio.Desktop.Behaviors;
 
 public class PopulateEnumBehavior : ClassicBehavior<ComboBox>
 {

@@ -1,4 +1,4 @@
-﻿namespace C64AssemblerStudio.Converters;
+﻿namespace C64AssemblerStudio.Desktop.Converters;
 
 /// <summary>
 /// Converts byte to flag

@@ -1,6 +1,6 @@
 ﻿using Righthand.ViceMonitor.Bridge.Responses;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 
 public class ViceResponseTypeToTextConverter : ParameterlessValueConverter<ViceResponse?, string>
 {

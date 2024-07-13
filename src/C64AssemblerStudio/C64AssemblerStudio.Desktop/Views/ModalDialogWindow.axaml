@@ -5,12 +5,12 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         xmlns:m="clr-namespace:C64AssemblerStudio.Engine.Models;assembly=C64AssemblerStudio.Engine"
         xmlns:msg="clr-namespace:C64AssemblerStudio.Engine.Messages;assembly=C64AssemblerStudio.Engine"
-        xmlns:v="clr-namespace:C64AssemblerStudio.Views"
-        xmlns:b="clr-namespace:C64AssemblerStudio.Behaviors"
-        xmlns:c="clr-namespace:C64AssemblerStudio.Converters"
+        xmlns:v="clr-namespace:C64AssemblerStudio.Desktop.Views"
+        xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+        xmlns:views="clr-namespace:C64AssemblerStudio.Desktop.Views"
         x:DataType="msg:ShowModalDialogMessageCore"
-        x:Class="C64AssemblerStudio.Views.ModalDialogWindow"
+        x:Class="C64AssemblerStudio.Desktop.Views.ModalDialogWindow"
         Title="{Binding Caption, Mode=OneTime}"
         SizeToContent="WidthAndHeight">
-  <v:ModalDialog />
+  <views:ModalDialog />
 </Window>

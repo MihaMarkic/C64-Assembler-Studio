@@ -1,5 +1,5 @@
 ﻿
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 public class TickToTextConverter : ParameterlessValueConverter<long?, string>
 {
     public override string? Convert(long? value, Type targetType, CultureInfo culture)

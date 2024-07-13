@@ -1,6 +1,6 @@
 ﻿using C64AssemblerStudio.Core.Common;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 //public class PdbVariableAddressRangeToStringConverter : ParameterlessValueConverter<PdbVariable, string>
 //{
 //    public override string? Convert(PdbVariable? value, Type targetType, CultureInfo culture)

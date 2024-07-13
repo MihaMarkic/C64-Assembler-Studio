@@ -4,7 +4,7 @@ using Avalonia.Data;
 using Avalonia.Data.Converters;
 using C64AssemblerStudio.Engine.ViewModels;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 //public class BreakpointContextConverter : AvaloniaObject, IMultiValueConverter
 //{
 //    public static readonly DirectProperty<BreakpointContextConverter, DataGridColumn?> BindingColumnProperty =

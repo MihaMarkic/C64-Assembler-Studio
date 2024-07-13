@@ -1,6 +1,6 @@
 ﻿using Righthand.ViceMonitor.Bridge.Commands;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 public class ViceCommandTypeToTextConverter : ParameterlessValueConverter<IViceCommand?, string>
 {
     public override string? Convert(IViceCommand? value, Type targetType, CultureInfo culture)

@@ -2,7 +2,7 @@
 using Avalonia;
 using Righthand.ViceMonitor.Bridge.Responses;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 public class ViceResponseContentToTextConverter : ParameterlessValueConverter<ViceResponse?, string>
 {
     public static readonly DirectProperty<ViceResponseContentToTextConverter, byte?> PCRegisterIdProperty

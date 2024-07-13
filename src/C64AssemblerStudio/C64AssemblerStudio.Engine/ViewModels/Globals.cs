@@ -14,7 +14,7 @@ public class Globals: NotifiableObject
     /// <summary>
     /// Holds active project, when no project is defined it contains <see cref="EmptyProjectViewModel"/>.
     /// </summary>
-    public ProjectViewModel Project { get; set; }
+    public IProjectViewModel Project { get; set; }
     public Settings Settings { get; set; } = new Settings();
     public Globals(ILogger<Globals> logger, EmptyProjectViewModel emptyProject, ISettingsManager settingsManager)
     {
@@ -39,5 +39,10 @@ public class Globals: NotifiableObject
         {
             _logger.LogError(ex, "Failed saving settings");
         }
+    }
+
+    public void ResetProject()
+    {
+        Project = _emptyProject;    
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Avalonia.Data.Converters;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 
 public abstract class OrMultiConverter<T> : IMultiValueConverter
 {

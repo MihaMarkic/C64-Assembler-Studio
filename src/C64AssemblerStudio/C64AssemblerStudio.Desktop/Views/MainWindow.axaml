@@ -4,14 +4,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia"
         xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
-        xmlns:v="clr-namespace:C64AssemblerStudio.Views"
-        xmlns:c="clr-namespace:C64AssemblerStudio.Converters"
-        xmlns:ctl="clr-namespace:C64AssemblerStudio.Controls"
+        xmlns:v="clr-namespace:C64AssemblerStudio.Desktop.Views"
+        xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
         xmlns:cmn="clr-namespace:C64AssemblerStudio.Engine.Common;assembly=C64AssemblerStudio.Engine"
+        xmlns:views="clr-namespace:C64AssemblerStudio.Desktop.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         MinWidth="600" Width="800"
         MinHeight="300" Height="600"
-        x:Class="C64AssemblerStudio.Views.MainWindow"
+        x:Class="C64AssemblerStudio.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="{Binding Caption}">
   <Window.Resources>
@@ -38,7 +38,7 @@
   </Window.Resources>
   <Window.DataTemplates>
     <DataTemplate DataType="vm:SettingsViewModel">
-      <v:Settings />
+      <views:Settings />
     </DataTemplate>
     <!--<DataTemplate DataType="vm:ProjectViewModel">
       <v:Project />
@@ -50,7 +50,7 @@
   <DockPanel x:Name="Source" LastChildFill="True" Margin="4">
     <Menu x:Name="Menu" DockPanel.Dock="Top">
       <MenuItem Header="_File">
-        <MenuItem Header="_New...">
+        <MenuItem Header="_New..." Command="{Binding NewProjectCommand}">
           <!--<MenuItem Header="New Kick Assembler project" Command="{Binding CreateProjectCommand}">
             <MenuItem.CommandParameter>
               <cmn:CompilerType>KickAssembler</cmn:CompilerType>
@@ -58,22 +58,21 @@
           </MenuItem>-->
 
         </MenuItem>
-        <!--<MenuItem Header="_Open..." Command="{Binding OpenProjectCommand}" />
+        <MenuItem Header="_Open..." Command="{Binding OpenProjectCommand}" />
         <Separator/>
         <MenuItem Header="_Close" Command="{Binding CloseProjectCommand}" />
-        <Separator/>-->
+        <Separator/>
         <MenuItem Header="Settings..." Command="{Binding ShowSettingsCommand}" />
-        <!--<MenuItem Header="Project Settings..." Command="{Binding ShowProjectCommand}" />
         <Separator/>
         <MenuItem Classes="parent" Header="Recent" ItemsSource="{Binding RecentProjects}">
           <MenuItem.Styles>
             <Style Selector="MenuItem:not(.parent)">
               <Setter Property="Header" Value="{Binding}" />
-              <Setter Property="Command" Value="{Binding DataContext.OpenProjectFromPathCommand, ElementName=Menu}" />
+              <Setter Property="Command" Value="{Binding ((vm:MainViewModel)DataContext).OpenProjectFromPathCommand, ElementName=Menu}" />
               <Setter Property="CommandParameter" Value="{Binding}" />
             </Style>
           </MenuItem.Styles>
-        </MenuItem>-->
+        </MenuItem>
         <Separator/>
         <MenuItem Header="_Exit" Command="{Binding ExitCommand}" />
       </MenuItem>

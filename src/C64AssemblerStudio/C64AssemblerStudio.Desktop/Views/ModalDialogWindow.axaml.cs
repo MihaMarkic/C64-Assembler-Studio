@@ -2,7 +2,7 @@
 using Avalonia.Controls;
 using C64AssemblerStudio.Engine.Messages;
 
-namespace C64AssemblerStudio.Views;
+namespace C64AssemblerStudio.Desktop.Views;
 
 public partial class ModalDialogWindow : Window
 {

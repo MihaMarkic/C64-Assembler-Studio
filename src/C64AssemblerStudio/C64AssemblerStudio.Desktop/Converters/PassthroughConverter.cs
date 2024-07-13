@@ -1,6 +1,6 @@
 ﻿using Avalonia.Data.Converters;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 public class PassthroughConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

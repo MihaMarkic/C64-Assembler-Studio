@@ -4,7 +4,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-namespace C64AssemblerStudio.Behaviors;
+namespace C64AssemblerStudio.Desktop.Behaviors;
 
 /// <summary>
 /// Container class for attached properties. Must inherit from <see cref="AvaloniaObject"/>.

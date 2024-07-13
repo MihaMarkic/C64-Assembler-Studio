@@ -6,9 +6,8 @@ using Avalonia.Platform.Storage;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace C64AssemblerStudio.Views;
+namespace C64AssemblerStudio.Desktop.Views;
 
 partial class MainWindow : Window
 {
@@ -27,11 +26,11 @@ partial class MainWindow : Window
     }
     protected override void OnDataContextChanged(EventArgs e)
     {
-        var viewModel = DataContext as MainViewModel;
+        var viewModel = DataContext;
         if (viewModel is not null)
         {
-            //viewModel.ShowCreateProjectFileDialogAsync = ShowCreateProjectFileDialogAsync;
-            //viewModel.ShowOpenProjectFileDialogAsync = ShowOpenProjectFileDialogAsync;
+            viewModel.ShowCreateProjectFileDialogAsync = ShowCreateProjectFileDialogAsync;
+            viewModel.ShowOpenProjectFileDialogAsync = ShowOpenProjectFileDialogAsync;
             //ViewModel.ShowMessagesHistoryContent = ShowMessagesHistory;
             viewModel.CloseApp = Close;
             viewModel.ShowModalDialog = ShowModalDialog;

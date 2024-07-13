@@ -2,7 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 
-namespace C64AssemblerStudio.Controls;
+namespace C64AssemblerStudio.Desktop.Controls;
 public class DockSizer : Panel
 {
     public static readonly DirectProperty<DockSizer, DockSizerOrientation> OrientationProperty

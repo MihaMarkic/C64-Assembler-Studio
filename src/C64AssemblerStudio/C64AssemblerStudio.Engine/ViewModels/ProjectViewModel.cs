@@ -1,27 +1,39 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using C64AssemblerStudio.Engine.Models.Projects;
+using Microsoft.Extensions.Logging;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
-public abstract class ProjectViewModel : ViewModel
+public interface IProjectViewModel
 {
-    readonly ILogger<ProjectViewModel> _logger;
+    string? Path { get; set; }
+}
+public abstract class ProjectViewModel<TConfiguration>: ViewModel, IProjectViewModel
+    where TConfiguration : Project
+{
+    private readonly ILogger<ProjectViewModel<TConfiguration>> _logger;
+    public TConfiguration? Configuration { get; private set; }
     public string? Path { get; set; }
-    public string Name { get; set; }
-    public ProjectViewModel(ILogger<ProjectViewModel> logger)
+
+    public ProjectViewModel(ILogger<ProjectViewModel<TConfiguration>> logger)
     {
         _logger = logger;
-        Name = string.Empty;
     }
-}
 
-public  class EmptyProjectViewModel : ProjectViewModel
-{
-    public EmptyProjectViewModel(ILogger<ProjectViewModel> logger) : base(logger)
+    public void Init(TConfiguration configuration, string? path)
     {
-        Name = "Empty";
+        Configuration = configuration;
+        Path = path;
     }
 }
 
-public class KickAssProjectViewModel(ILogger<KickAssProjectViewModel> _logger): ProjectViewModel(_logger)
+public class EmptyProjectViewModel : ProjectViewModel<EmptyProject>
+{
+    public EmptyProjectViewModel(ILogger<ProjectViewModel<EmptyProject>> logger) : base(logger)
+    {
+    }
+}
+
+public class KickAssProjectViewModel(ILogger<KickAssProjectViewModel> logger) :
+    ProjectViewModel<KickAssProject>(logger)
 {
 }

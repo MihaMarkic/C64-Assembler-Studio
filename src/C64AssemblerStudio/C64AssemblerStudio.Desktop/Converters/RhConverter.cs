@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 
 public static class RhConverter
 {

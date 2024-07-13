@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 
-namespace C64AssemblerStudio.Controls;
+namespace C64AssemblerStudio.Desktop.Controls;
 public class DockTool: ContentControl
 {
     public static readonly StyledProperty<string?> TitleProperty =

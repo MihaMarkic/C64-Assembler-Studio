@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 
 public abstract class BoolToConverter<T> : ParameterlessValueConverter<bool, T>
 {

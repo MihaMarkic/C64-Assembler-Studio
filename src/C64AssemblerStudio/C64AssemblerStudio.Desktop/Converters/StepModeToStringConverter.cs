@@ -1,6 +1,6 @@
 ﻿using C64AssemblerStudio.Engine.ViewModels;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 //public class StepModeToStringConverter : ParameterlessValueConverter<DebuggerStepMode, string>
 //{
 //    public override string? Convert(DebuggerStepMode value, Type targetType, CultureInfo culture)

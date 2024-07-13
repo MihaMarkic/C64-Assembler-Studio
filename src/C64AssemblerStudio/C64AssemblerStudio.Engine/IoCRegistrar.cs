@@ -16,6 +16,7 @@ public static class IoCRegistrar
             // ViewModels
             .AddSingleton<MainViewModel>()
             .AddScoped<SettingsViewModel>()
+            .AddTransient<KickAssProjectViewModel>()
             .AddSingleton<EmptyProjectViewModel>()
             // System
             .AddTransient(sp => sp.CreateScope())

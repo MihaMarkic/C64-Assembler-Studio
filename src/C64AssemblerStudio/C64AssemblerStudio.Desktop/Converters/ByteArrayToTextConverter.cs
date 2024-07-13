@@ -1,4 +1,4 @@
-﻿namespace C64AssemblerStudio.Converters;
+﻿namespace C64AssemblerStudio.Desktop.Converters;
 public class ByteArrayToTextConverter : ParameterlessValueConverter<IEnumerable<byte>, string>
 {
     public override string? Convert(IEnumerable<byte>? data, Type targetType, CultureInfo culture)

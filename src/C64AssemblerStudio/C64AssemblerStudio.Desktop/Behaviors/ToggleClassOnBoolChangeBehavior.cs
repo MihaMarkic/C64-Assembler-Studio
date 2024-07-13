@@ -2,7 +2,7 @@
 using Avalonia.Data;
 using Avalonia.Interactivity;
 
-namespace C64AssemblerStudio.Behaviors;
+namespace C64AssemblerStudio.Desktop.Behaviors;
 
 public class ToggleClassOnBoolChangeBehavior : AvaloniaObject
 {

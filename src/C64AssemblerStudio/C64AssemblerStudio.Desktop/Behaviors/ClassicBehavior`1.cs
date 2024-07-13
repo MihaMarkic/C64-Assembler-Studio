@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Xaml.Interactivity;
 
-namespace C64AssemblerStudio.Behaviors;
+namespace C64AssemblerStudio.Desktop.Behaviors;
 
 public abstract class ClassicBehavior<T> : Behavior<T>
           where T : AvaloniaObject

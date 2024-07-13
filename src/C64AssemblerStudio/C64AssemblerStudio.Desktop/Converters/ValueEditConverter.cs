@@ -1,4 +1,4 @@
-﻿namespace C64AssemblerStudio.Converters;
+﻿namespace C64AssemblerStudio.Desktop.Converters;
 
 public abstract class ValueEditConverter<TValue> : ParameterlessValueConverter<TValue, string>
     where TValue : struct

@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using AvaloniaEdit;
 
-namespace C64AssemblerStudio.Behaviors;
+namespace C64AssemblerStudio.Desktop.Behaviors;
 
 public class DocumentTextBindingBehavior : ClassicBehavior<TextEditor>
 {

@@ -7,25 +7,24 @@ namespace C64AssemblerStudio.Engine.Services.Implementation;
 
 public class SettingsManager : ISettingsManager
 {
-    readonly ILogger<SettingsManager> logger;
-    readonly string directory;
-    readonly string settingsPath;
+    readonly ILogger<SettingsManager> _logger;
+    readonly string _settingsPath;
     public SettingsManager(ILogger<SettingsManager> logger)
     {
-        this.logger = logger;
-        directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "C64AssemblerStudio");
-        settingsPath = Path.Combine(directory, "settings.json");
+        this._logger = logger;
+        var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "C64AssemblerStudio");
+        _settingsPath = Path.Combine(directory, "settings.json");
     }
     public Settings LoadSettings()
     {
         Settings? result;
         try
         {
-            result = Load<Settings>(settingsPath);
+            result = Load<Settings>(_settingsPath);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"Failed to load settings, will fallback to default");
+            _logger.LogError(ex, $"Failed to load settings, will fallback to default");
             result = null;
         }
         return result ?? new Settings();
@@ -43,13 +42,13 @@ public class SettingsManager : ISettingsManager
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Failed to load {typeof(T).Name}");
+                _logger.LogError(ex, $"Failed to load {typeof(T).Name}");
                 throw;
             }
         }
         return result;
     }
-    public void Save(Settings settings) => Save(settings, settingsPath, true);
+    public void Save(Settings settings) => Save(settings, _settingsPath, true);
     public void Save<T>(T settings, string path, bool createDirectory)
     {
         var data = JsonSerializer.Serialize(settings);
@@ -67,7 +66,7 @@ public class SettingsManager : ISettingsManager
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"Failed saving settings:{ex.Message}");
+            _logger.LogError(ex, $"Failed saving settings:{ex.Message}");
             throw new Exception($"Failed saving settings:{ex.Message}", ex);
         }
     }

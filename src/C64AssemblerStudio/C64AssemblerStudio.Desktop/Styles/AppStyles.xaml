@@ -1,6 +1,6 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ctl="clr-namespace:C64AssemblerStudio.Controls">
+        xmlns:ctl="clr-namespace:C64AssemblerStudio.Desktop.Desktop.Controls">
   <Style Selector="TextBlock.h1">
     <Setter Property="FontSize" Value="24"/>
     <Setter Property="FontWeight" Value="Bold"/>

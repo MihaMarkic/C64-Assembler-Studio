@@ -3,7 +3,7 @@ using Avalonia.Data.Converters;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace C64AssemblerStudio.Converters;
+namespace C64AssemblerStudio.Desktop.Converters;
 
 public abstract class ParameterlessValueConverter<TSource, TDest> : AvaloniaObject, IValueConverter
 {
