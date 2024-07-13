@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Core;
+﻿using System.ComponentModel;
+using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Messages;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,7 @@ public class MainViewModel : ViewModel
     public RelayCommand<string> OpenProjectFromPathCommand { get; }
     public RelayCommand CloseProjectCommand { get; }
     public RelayCommand ShowSettingsCommand { get; }
+    public RelayCommand ShowProjectSettingsCommand { get; }
     public RelayCommand ExitCommand { get; }
     public IProjectViewModel Project => _globals.Project;
     // TODO implement
@@ -65,7 +67,7 @@ public class MainViewModel : ViewModel
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
         OpenProjectFromPathCommand = _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);
         OpenProjectCommand = _commandsManager.CreateRelayCommand(OpenProject, () => !IsBusy && !IsDebugging);
-        //globals.PropertyChanged += Globals_PropertyChanged;
+        ShowProjectSettingsCommand = _commandsManager.CreateRelayCommand(ShowProjectSettings, () => !IsShowingProject && IsProjectOpen);
         CloseProjectCommand = _commandsManager.CreateRelayCommand(CloseProject, () => IsProjectOpen && !IsDebugging);
         ShowSettingsCommand = _commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
         ExitCommand = new RelayCommand(() => CloseApp?.Invoke());
@@ -73,6 +75,7 @@ public class MainViewModel : ViewModel
         {
             SwitchOverlayContent<SettingsViewModel>();
         }
+        globals.PropertyChanged += Globals_PropertyChanged;
     }
     public async Task CreateProjectAsync()
     {
@@ -113,7 +116,7 @@ public class MainViewModel : ViewModel
                 project.Init(kickAssConfiguration, projectPath);
                 _settingsManager.Save<Project>(kickAssConfiguration, projectPath, false);
                 _globals.Project = project;
-                ShowProject();
+                ShowProjectSettings();
                 return true;
             }
             catch (Exception ex)
@@ -123,7 +126,7 @@ public class MainViewModel : ViewModel
         }
         return false;
     }
-    internal void ShowProject()
+    internal void ShowProjectSettings()
     {
         if (!IsShowingProject)
         {
@@ -167,7 +170,7 @@ public class MainViewModel : ViewModel
                 _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, ErrorTitle, $"Project file {path} does not exist."));
                 return false;
             }
-            var projectConfiguration = _settingsManager.Load<Project>(path);
+            var projectConfiguration = await _settingsManager.LoadAsync<Project>(path, ct);
             if (projectConfiguration is null)
             {
                 return false;
@@ -214,7 +217,18 @@ public class MainViewModel : ViewModel
             SwitchOverlayContent<SettingsViewModel>();
         }
     }
-
+    void Globals_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(Globals.Project):
+                OnPropertyChanged(nameof(IsProjectOpen));
+                break;
+            // case Globals.ProjectDirectory:
+            //     UpdateDirectoryChangesTracker();
+            //     break;
+        }
+    }
     private bool _shouldDisposeOverlay;
     internal void SwitchOverlayContent<T>(T overlayContent)
         where T: ViewModel

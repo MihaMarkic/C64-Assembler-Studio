@@ -7,7 +7,7 @@ using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.ViewModels;
 
-namespace C64AssemblerStudio.Desktop.Views;
+namespace C64AssemblerStudio.Desktop.Views.Main;
 
 partial class MainWindow : Window
 {
@@ -29,6 +29,7 @@ partial class MainWindow : Window
         var viewModel = DataContext;
         if (viewModel is not null)
         {
+            MainContent.IsVisible = true;
             viewModel.ShowCreateProjectFileDialogAsync = ShowCreateProjectFileDialogAsync;
             viewModel.ShowOpenProjectFileDialogAsync = ShowOpenProjectFileDialogAsync;
             //ViewModel.ShowMessagesHistoryContent = ShowMessagesHistory;

@@ -13,6 +13,18 @@
     <Compile Remove="Resources\**" />
     <EmbeddedResource Remove="Resources\**" />
     <None Remove="Resources\**" />
+    <None Remove="Styles\AppStyles.xaml" />
+    <AvaloniaXaml Include="Styles\AppStyles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </AvaloniaXaml>
+    <Compile Update="Views\Main\MainContent.axaml.cs">
+      <DependentUpon>MainContent.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Main\MainWindow.axaml.cs">
+      <DependentUpon>MainWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Globalization"/>

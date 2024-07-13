@@ -15,12 +15,12 @@ public class SettingsManager : ISettingsManager
         var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "C64AssemblerStudio");
         _settingsPath = Path.Combine(directory, "settings.json");
     }
-    public Settings LoadSettings()
+    public async Task<Settings> LoadSettingsAsync(CancellationToken ct)
     {
         Settings? result;
         try
         {
-            result = Load<Settings>(_settingsPath);
+            result = await LoadAsync<Settings>(_settingsPath, ct);
         }
         catch (Exception ex)
         {
@@ -29,7 +29,7 @@ public class SettingsManager : ISettingsManager
         }
         return result ?? new Settings();
     }
-    public T? Load<T>(string path)
+    public async Task<T?> LoadAsync<T>(string path, CancellationToken ct)
         where T : class
     {
         T? result = null;
@@ -37,7 +37,7 @@ public class SettingsManager : ISettingsManager
         {
             try
             {
-                string content = File.ReadAllText(path);
+                string content = await File.ReadAllTextAsync(path, ct);
                 result = JsonSerializer.Deserialize<T>(content);
             }
             catch (Exception ex)

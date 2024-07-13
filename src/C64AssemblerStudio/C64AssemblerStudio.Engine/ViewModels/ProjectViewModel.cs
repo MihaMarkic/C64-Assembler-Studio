@@ -6,12 +6,14 @@ namespace C64AssemblerStudio.Engine.ViewModels;
 public interface IProjectViewModel
 {
     string? Path { get; set; }
+    object? Configuration { get; }
 }
 public abstract class ProjectViewModel<TConfiguration>: ViewModel, IProjectViewModel
     where TConfiguration : Project
 {
     private readonly ILogger<ProjectViewModel<TConfiguration>> _logger;
     public TConfiguration? Configuration { get; private set; }
+    object? IProjectViewModel.Configuration => Configuration;
     public string? Path { get; set; }
 
     public ProjectViewModel(ILogger<ProjectViewModel<TConfiguration>> logger)

@@ -4,8 +4,8 @@ namespace C64AssemblerStudio.Engine.Services.Abstract;
 
 public interface ISettingsManager
 {
-    Settings LoadSettings();
-    T? Load<T>(string path)
+    Task<Settings> LoadSettingsAsync(CancellationToken ct);
+    Task<T?> LoadAsync<T>(string path, CancellationToken ct)
         where T : class;
     void Save(Settings settings);
     //BreakpointsSettings LoadBreakpointsSettings(string filePath);

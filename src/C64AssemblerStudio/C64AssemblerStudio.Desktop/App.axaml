@@ -2,9 +2,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="C64AssemblerStudio.Desktop.App"
              RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
-
+    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+    <Application.Resources>
+        <!-- default font family for code -->
+        <FontFamily x:Key="CodeFont">resm:C64AssemblerStudio.Desktop.Assets.Fonts.?assembly=C64AssemblerStudio.Desktop#Fira Code</FontFamily>
+        <FontFamily x:Key="C64Mono">resm:C64AssemblerStudio.Desktop.Assets.Fonts.?assembly=C64AssemblerStudio.Desktop#C64 Pro Mono</FontFamily>
+        <Color x:Key="OddRowBackground">#3DD3D3D3</Color>
+        <SolidColorBrush x:Key="LineNumber">#FF237893</SolidColorBrush>
+    </Application.Resources>
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+        <StyleInclude Source="/Styles/AppStyles.xaml" />
     </Application.Styles>
 </Application>

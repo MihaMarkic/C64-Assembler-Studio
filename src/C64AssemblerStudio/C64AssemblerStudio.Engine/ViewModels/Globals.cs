@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Core;
+﻿using System.Diagnostics;
+using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
@@ -23,11 +24,17 @@ public class Globals: NotifiableObject
         this._settingsManager = settingsManager;
         Project= emptyProject;
     }
-    public void Load()
+    public async Task LoadAsync(CancellationToken ct)
     {
-        Settings = _settingsManager.LoadSettings();
+        Stopwatch sw = Stopwatch.StartNew();
+        Settings = await _settingsManager.LoadSettingsAsync(ct);
+        if (sw.Elapsed.TotalSeconds < 1)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1) - sw.Elapsed, ct);
+        }
         _logger.LogDebug("Loaded settings");
     }
+
     public void Save()
     {
         try
