@@ -10,9 +10,8 @@ public class Settings : NotifiableObject
     /// User selected path to VICE files.
     /// </summary>
     public string? VicePath { get; set; }
-    
     /// <summary>
-    /// Signals that VICE files are contained in ./bin sub directory.
+    /// Signals that VICE files are contained in ./bin subdirectory.
     /// True by default because of legacy.
     /// </summary>
     public bool ViceFilesInBinDirectory { get; set; } = true;
