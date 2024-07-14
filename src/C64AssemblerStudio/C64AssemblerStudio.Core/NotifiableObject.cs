@@ -13,4 +13,16 @@ public abstract class NotifiableObject : DisposableObject, INotifyPropertyChange
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
+
+    /// <summary>
+    /// Signals more properties have changed
+    /// </summary>
+    /// <param name="properties"></param>
+    protected void OnPropertiesChanged(params string[] properties)
+    {
+        foreach (var p in properties)
+        {
+            OnPropertyChanged(p);
+        }
+    }
 }

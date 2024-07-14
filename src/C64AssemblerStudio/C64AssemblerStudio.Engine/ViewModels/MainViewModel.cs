@@ -157,7 +157,7 @@ public class MainViewModel : ViewModel
     }
     internal async Task<bool> OpenProjectFromPathInternalAsync(string? path, CancellationToken ct = default)
     {
-        const string ErrorTitle = "Failed opening project";
+        const string errorTitle = "Failed opening project";
         if (path is null)
         {
             return false;
@@ -167,7 +167,7 @@ public class MainViewModel : ViewModel
         {
             if (!File.Exists(path))
             {
-                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, ErrorTitle, $"Project file {path} does not exist."));
+                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, errorTitle, $"Project file {path} does not exist."));
                 return false;
             }
             var projectConfiguration = await _settingsManager.LoadAsync<Project>(path, ct);
@@ -180,6 +180,7 @@ public class MainViewModel : ViewModel
             {
                 var projectViewModel = _scope.ServiceProvider.GetRequiredService<KickAssProjectViewModel>();
                 projectViewModel.Init(kickAssConfiguration, path);
+                _globals.Project = projectViewModel;
             }
             else
             {
@@ -189,7 +190,7 @@ public class MainViewModel : ViewModel
         }
         catch (Exception ex)
         {
-            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, ErrorTitle, ex.Message));
+            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, errorTitle, ex.Message));
         }
         finally
         {
@@ -222,7 +223,7 @@ public class MainViewModel : ViewModel
         switch (e.PropertyName)
         {
             case nameof(Globals.Project):
-                OnPropertyChanged(nameof(IsProjectOpen));
+                OnPropertiesChanged(nameof(IsProjectOpen), nameof(Project), nameof(Caption));
                 break;
             // case Globals.ProjectDirectory:
             //     UpdateDirectoryChangesTracker();

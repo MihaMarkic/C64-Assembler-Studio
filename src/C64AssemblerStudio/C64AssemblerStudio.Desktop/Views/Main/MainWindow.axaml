@@ -15,9 +15,6 @@
         x:Class="C64AssemblerStudio.Desktop.Views.Main.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="{Binding Caption}">
-    <Window.Resources>
-        <c:PassthroughConverter x:Key="PassthroughConverter" />
-    </Window.Resources>
     <Grid>
         <TextBlock Text="Loading" HorizontalAlignment="Center" VerticalAlignment="Center"
                    FontSize="60" FontFamily="{StaticResource C64Mono}"
