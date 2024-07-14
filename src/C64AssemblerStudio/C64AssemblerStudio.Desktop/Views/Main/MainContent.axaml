@@ -10,8 +10,6 @@
         xmlns:views="clr-namespace:C64AssemblerStudio.Desktop.Views"
         xmlns:mv="clr-namespace:C64AssemblerStudio.Desktop.Views.Main"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
-        MinWidth="600" Width="800"
-        MinHeight="300" Height="600"
         x:Class="C64AssemblerStudio.Desktop.Views.Main.MainContent"
         x:DataType="vm:MainViewModel">
   <UserControl.Resources>

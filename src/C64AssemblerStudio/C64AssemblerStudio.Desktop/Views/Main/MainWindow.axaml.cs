@@ -1,4 +1,6 @@
-﻿using Avalonia;
+﻿using System.Diagnostics;
+using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
@@ -29,7 +31,7 @@ partial class MainWindow : Window
         var viewModel = DataContext;
         if (viewModel is not null)
         {
-            MainContent.IsVisible = true;
+            _ = StartFadeAsync();
             viewModel.ShowCreateProjectFileDialogAsync = ShowCreateProjectFileDialogAsync;
             viewModel.ShowOpenProjectFileDialogAsync = ShowOpenProjectFileDialogAsync;
             //ViewModel.ShowMessagesHistoryContent = ShowMessagesHistory;
@@ -37,6 +39,17 @@ partial class MainWindow : Window
             viewModel.ShowModalDialog = ShowModalDialog;
         }
         base.OnDataContextChanged(e);
+    }
+
+    async Task StartFadeAsync()
+    {
+        var animation = (Animation?)Resources["FadeLoading"];
+        if (animation is not null)
+        {
+            await animation.RunAsync(Loading);
+        }
+        Loading.IsVisible = false;
+        MainContent.IsVisible = true;
     }
     internal void ShowModalDialog(ShowModalDialogMessageCore message)
     {

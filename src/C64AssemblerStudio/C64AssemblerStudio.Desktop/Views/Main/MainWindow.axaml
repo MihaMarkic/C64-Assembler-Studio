@@ -15,10 +15,24 @@
         x:Class="C64AssemblerStudio.Desktop.Views.Main.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="{Binding Caption}">
+    <Window.Resources>
+        <Animation x:Key="FadeLoading"
+                   x:SetterTargetType="TextBlock"
+                   Duration="0:0:0.2"
+                   Easing="CubicEaseOut"
+                   FillMode="Forward"> 
+            <KeyFrame Cue="0%">
+                <Setter Property="Opacity" Value="1.0"/>
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+                <Setter Property="Opacity" Value="0.0"/>
+            </KeyFrame>
+        </Animation>
+    </Window.Resources>
     <Grid>
-        <TextBlock Text="Loading" HorizontalAlignment="Center" VerticalAlignment="Center"
+        <TextBlock x:Name="Loading" Text="Loading" HorizontalAlignment="Center" VerticalAlignment="Center"
                    FontSize="60" FontFamily="{StaticResource C64Mono}"
-                   IsVisible="{Binding Converter={x:Static ObjectConverters.IsNull}}" />
+                   IsVisible="true" />
         <mv:MainContent x:Name="MainContent" IsVisible="False"/>
     </Grid>
 </Window>
