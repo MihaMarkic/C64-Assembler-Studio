@@ -1,9 +1,10 @@
 ﻿using System.Text.Json.Serialization;
+using C64AssemblerStudio.Core;
 
 namespace C64AssemblerStudio.Engine.Models.Projects;
 
 [JsonDerivedType(typeof(KickAssProject), typeDiscriminator: "kick-ass")]
-public abstract class Project
+public abstract class Project: NotifiableObject
 {
     /// <summary>
     /// Project's caption

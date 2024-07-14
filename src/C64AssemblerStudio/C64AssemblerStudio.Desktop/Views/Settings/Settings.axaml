@@ -6,7 +6,7 @@
              xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:SettingsViewModel"
-             x:Class="C64AssemblerStudio.Desktop.Views.Settings">
+             x:Class="C64AssemblerStudio.Desktop.Views.Settings.Settings">
   <UserControl.Resources>
     <c:BoolToStringConverter x:Key="ViceDirectoryLocationConverter" OnTrue="Valid directory (in bin subdirectory)" OnFalse="Valid directory" />
   </UserControl.Resources>

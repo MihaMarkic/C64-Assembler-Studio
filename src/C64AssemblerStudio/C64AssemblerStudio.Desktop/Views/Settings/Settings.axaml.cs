@@ -5,7 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using C64AssemblerStudio.Engine.ViewModels;
 
-namespace C64AssemblerStudio.Desktop.Views;
+namespace C64AssemblerStudio.Desktop.Views.Settings;
 
 partial class Settings : UserControl
 {

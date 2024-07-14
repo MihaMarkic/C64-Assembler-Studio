@@ -6,11 +6,11 @@ namespace C64AssemblerStudio.Engine.ViewModels;
 
 public abstract class OverlayContentViewModel : ScopedViewModel
 {
-    protected readonly IDispatcher dispatcher;
+    protected readonly IDispatcher _dispatcher;
     public RelayCommand CloseCommand { get; }
-    public OverlayContentViewModel(IDispatcher dispatcher)
+    protected OverlayContentViewModel(IDispatcher dispatcher)
     {
-        this.dispatcher = dispatcher;
+        _dispatcher = dispatcher;
         CloseCommand = new(() =>
         {
             Closing();

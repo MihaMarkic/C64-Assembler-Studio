@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
-using static System.Formats.Asn1.AsnWriter;
+using PropertyChanged;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -46,7 +46,7 @@ public class MainViewModel : ViewModel
     /// AvaloniaObject should set this property for each event when it needs to handle shift status.
     /// </summary>
     public bool IsShiftDown { get; set; }
-    public string Caption => $"{Globals.AppName} - {(Project.Path ?? "no project")}";
+    public string Caption => $"{Globals.AppName} - {(Project?.Configuration?.Caption ?? "no project")}";
     public bool IsShowingSettings => OverlayContent is SettingsViewModel;
     public bool IsShowingProject => OverlayContent is IProjectViewModel;
     public Action<ShowModalDialogMessageCore>? ShowModalDialog { get; set; }
@@ -218,18 +218,35 @@ public class MainViewModel : ViewModel
             SwitchOverlayContent<SettingsViewModel>();
         }
     }
+
+    private Project? _oldProjectConfiguration;
     void Globals_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
             case nameof(Globals.Project):
+                if (_oldProjectConfiguration is not null)
+                {
+                    _oldProjectConfiguration.PropertyChanged -= OnProjectConfigurationPropertyChanged;
+                }
                 OnPropertiesChanged(nameof(IsProjectOpen), nameof(Project), nameof(Caption));
+                _globals.Project.Configuration.ValueOrThrow().PropertyChanged +=  OnProjectConfigurationPropertyChanged;
+                _oldProjectConfiguration = _globals.Project.Configuration; 
                 break;
-            // case Globals.ProjectDirectory:
-            //     UpdateDirectoryChangesTracker();
-            //     break;
         }
     }
+
+    [SuppressPropertyChangedWarnings]
+    private void OnProjectConfigurationPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(C64AssemblerStudio.Engine.Models.Projects.Project.Caption):
+                OnPropertyChanged(nameof(Caption));
+                break;
+        }
+    }
+
     private bool _shouldDisposeOverlay;
     internal void SwitchOverlayContent<T>(T overlayContent)
         where T: ViewModel
