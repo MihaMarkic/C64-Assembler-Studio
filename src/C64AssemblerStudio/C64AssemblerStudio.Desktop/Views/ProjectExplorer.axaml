@@ -1,0 +1,57 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:mp="clr-namespace:C64AssemblerStudio.Engine.Models.Projects;assembly=C64AssemblerStudio.Engine"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
+             xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:ProjectExplorerViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.ProjectExplorer">
+    <Grid>
+        <TextBlock IsVisible="{Binding !IsProjectOpen}">No project open</TextBlock>
+        <TreeView x:Name="Tree" ItemsSource="{Binding Items}" IsVisible="{Binding IsProjectOpen}">
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Add">
+                        <MenuItem Header="File" Command="{Binding AddFileCommand}" />
+                        <MenuItem Header="Directory" Command="{Binding AddDirectoryCommand}" />
+                    </MenuItem>
+                </ContextMenu>
+            </TreeView.ContextMenu>
+            <TreeView.DataTemplates>
+                <TreeDataTemplate DataType="mp:ProjectDirectory" ItemsSource="{Binding Items}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Background="Transparent">
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add">
+                                    <MenuItem Header="File"
+                                              Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddFileCommand}"
+                                              CommandParameter="{Binding}" />
+                                    <MenuItem Header="Directory"
+                                              Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddDirectoryCommand}"
+                                              CommandParameter="{Binding}" />
+                                </MenuItem>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                        <TextBlock Text="D" Foreground="LightGray" />
+                        <TextBlock Text="{Binding Name}" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </TreeDataTemplate>
+                <TreeDataTemplate DataType="mp:ProjectFile">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                        <TextBlock Text="F" Foreground="LightBlue" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </TreeDataTemplate>
+            </TreeView.DataTemplates>
+        </TreeView>
+    </Grid>
+</UserControl>

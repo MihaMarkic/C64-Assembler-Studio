@@ -2,7 +2,7 @@
 using Avalonia.Controls;
 using C64AssemblerStudio.Engine.Messages;
 
-namespace C64AssemblerStudio.Desktop.Views;
+namespace C64AssemblerStudio.Desktop.Views.Dialogs;
 
 public partial class ModalDialogWindow : Window
 {
@@ -32,5 +32,5 @@ public partial class ModalDialogWindow : Window
     private void Message_Close(object? sender, EventArgs e)
     {
         Close();
-    }
+    } 
 }

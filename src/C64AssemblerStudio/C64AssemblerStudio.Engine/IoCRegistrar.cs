@@ -15,7 +15,11 @@ public static class IoCRegistrar
             .AddSingleton<ISettingsManager, SettingsManager>()
             // ViewModels
             .AddSingleton<MainViewModel>()
+            .AddScoped<ProjectFilesWatcherViewModel>()
+            .AddScoped<ProjectExplorerViewModel>()
             .AddScoped<SettingsViewModel>()
+            .AddTransient<AddFileViewModel>()
+            .AddTransient<AddDirectoryViewModel>()
             .AddTransient<KickAssProjectViewModel>()
             .AddSingleton<EmptyProjectViewModel>()
             // System

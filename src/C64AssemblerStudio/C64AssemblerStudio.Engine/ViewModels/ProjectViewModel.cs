@@ -11,6 +11,7 @@ public interface IProjectViewModel
 {
     RelayCommand CloseCommand { get; }
     string? Path { get; set; }
+    string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
     Project? Configuration { get; }
     event PropertyChangedEventHandler? PropertyChanged;
 }

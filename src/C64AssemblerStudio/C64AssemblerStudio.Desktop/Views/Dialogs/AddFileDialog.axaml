@@ -1,0 +1,39 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
+             xmlns:cnv="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
+             x:DataType="vm:AddFileViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.AddFileDialog">
+    <UserControl.Resources>
+        <cnv:FileTypeToStringConverter x:Key="FileTypeToStringConverter" />
+    </UserControl.Resources>
+    <Grid RowDefinitions="Auto, Auto, *, Auto, Auto" Margin="4,4">
+        <TextBlock Classes="h1" HorizontalAlignment="Center" Margin="0,6">Add new file</TextBlock>
+        <TextBox Grid.Row="1" x:Name="FileName" Text="{Binding FileName}" VerticalAlignment="Center">
+            <i:Interaction.Behaviors>
+                <iac:FocusOnAttachedBehavior />
+            </i:Interaction.Behaviors>
+        </TextBox>
+        <ListBox Grid.Row="2" Margin="0,4" ItemsSource="{Binding AvailableFileTypes}"
+                 SelectedItem="{Binding FileType}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Converter={StaticResource FileTypeToStringConverter}}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Grid.Row="3" Classes="error" Text="{Binding Error}"
+                   IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right"
+                     VerticalAlignment="Bottom" Margin="0,0,8,0">
+            <Button Margin="0,0,8,0" IsDefault="True" Command="{Binding CreateCommand}">Create</Button>
+            <Button Margin="0,0,8,0" IsCancel="True" Command="{Binding CancelCommand, Mode=OneTime}">Cancel</Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

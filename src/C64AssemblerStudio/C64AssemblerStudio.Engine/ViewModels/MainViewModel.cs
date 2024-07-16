@@ -36,6 +36,8 @@ public class MainViewModel : ViewModel
     public RelayCommand ShowProjectSettingsCommand { get; }
     public RelayCommand ExitCommand { get; }
     public IProjectViewModel Project => _globals.Project;
+
+    public ProjectExplorerViewModel ProjectExplorer { get; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
@@ -53,7 +55,7 @@ public class MainViewModel : ViewModel
     public Action? CloseApp { get; set; }
     public ViewModel? OverlayContent { get; private set; }
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
-        ISettingsManager settingsManager)
+        ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer)
     {
         _logger = logger;
         _globals = globals;
@@ -63,6 +65,7 @@ public class MainViewModel : ViewModel
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _closeOverlaySubscription = dispatcher.Subscribe<CloseOverlayMessage>(CloseOverlay);
         _showModalDialogMessageSubscription = dispatcher.Subscribe<ShowModalDialogMessageCore>(OnShowModalDialog);
+        ProjectExplorer = projectExplorer;
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
         OpenProjectFromPathCommand = _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);
@@ -230,8 +233,16 @@ public class MainViewModel : ViewModel
                     _oldProjectConfiguration.PropertyChanged -= OnProjectConfigurationPropertyChanged;
                 }
                 OnPropertiesChanged(nameof(IsProjectOpen), nameof(Project), nameof(Caption));
-                _globals.Project.Configuration.ValueOrThrow().PropertyChanged +=  OnProjectConfigurationPropertyChanged;
-                _oldProjectConfiguration = _globals.Project.Configuration; 
+                if (_globals.Project is not EmptyProjectViewModel)
+                {
+                    _globals.Project.Configuration.ValueOrThrow().PropertyChanged +=
+                        OnProjectConfigurationPropertyChanged;
+                    _oldProjectConfiguration = _globals.Project.Configuration;
+                }
+                else
+                {
+                    _oldProjectConfiguration = null;
+                }
                 break;
         }
     }

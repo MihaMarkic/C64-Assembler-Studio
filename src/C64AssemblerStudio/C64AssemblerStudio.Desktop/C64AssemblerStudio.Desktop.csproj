@@ -33,6 +33,18 @@
       <DependentUpon>ProjectSettings.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Dialogs\AddFileDialog.axaml.cs">
+      <DependentUpon>AddFileDialog.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\ModalDialog.axaml.cs">
+      <DependentUpon>ModalDialog.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Dialogs\ModalDialogWindow.axaml.cs">
+      <DependentUpon>ModalDialogWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Globalization"/>

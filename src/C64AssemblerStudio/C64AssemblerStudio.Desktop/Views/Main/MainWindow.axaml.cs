@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
+using C64AssemblerStudio.Desktop.Views.Dialogs;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.ViewModels;
@@ -55,12 +56,12 @@ partial class MainWindow : Window
     {
         var dialog = new ModalDialogWindow
         {
-            // TODO make generic
             DataContext = message,
-            MinWidth = 500,
-            Height = 500,
-            MinHeight = 350,
-            SizeToContent = SizeToContent.Width,
+            MinWidth = message.MinSize.Width,
+            MinHeight = message.MinSize.Height,
+            Width = message.DesiredSize.Width,
+            Height = message.DesiredSize.Height,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen
         };
         dialog.ShowDialog(this);
     }

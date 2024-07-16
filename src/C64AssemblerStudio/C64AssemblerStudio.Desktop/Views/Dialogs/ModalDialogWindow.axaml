@@ -7,10 +7,9 @@
         xmlns:msg="clr-namespace:C64AssemblerStudio.Engine.Messages;assembly=C64AssemblerStudio.Engine"
         xmlns:v="clr-namespace:C64AssemblerStudio.Desktop.Views"
         xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
-        xmlns:views="clr-namespace:C64AssemblerStudio.Desktop.Views"
+        xmlns:views="clr-namespace:C64AssemblerStudio.Desktop.Views.Dialogs"
         x:DataType="msg:ShowModalDialogMessageCore"
-        x:Class="C64AssemblerStudio.Desktop.Views.ModalDialogWindow"
-        Title="{Binding Caption, Mode=OneTime}"
-        SizeToContent="WidthAndHeight">
+        x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.ModalDialogWindow"
+        Title="{Binding Caption, Mode=OneTime}">
   <views:ModalDialog />
 </Window>
