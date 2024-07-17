@@ -24,6 +24,7 @@ public class ProjectExplorerViewModel : ViewModel
     public RelayCommand<ProjectDirectory> AddDirectoryCommand { get; }
     public RelayCommandAsync<ProjectItem> RenameItemCommand { get; }
     public RelayCommand<ProjectItem> DeleteItemCommand { get; }
+    public RelayCommand<ProjectItem> OpenInExplorerCommand { get; }
     public RelayCommandAsync RefreshCommand { get; }
     public ObservableCollection<ProjectItem> Items => _projectFilesWatcher.Items;
 
@@ -41,8 +42,19 @@ public class ProjectExplorerViewModel : ViewModel
         RenameItemCommand = new RelayCommandAsync<ProjectItem>(RenameItemAsync, p => p is not null);
         DeleteItemCommand = new RelayCommand<ProjectItem>(DeleteItem, p => p is not null);
         RefreshCommand = new RelayCommandAsync(_projectFilesWatcher.RefreshAsync);
+        OpenInExplorerCommand = new RelayCommand<ProjectItem>(OpenInExplorer, p => p is not null);
     }
 
+    private void OpenInExplorer(ProjectItem? item)
+    {
+        if (item is null)
+        {
+            _logger.LogError("Item was null");
+            return;
+        }
+        string path = Path.Combine(_globals.Project.Directory.ValueOrThrow(), item.GetRelativeDirectory());
+        Process.Start("explorer.exe", path);
+    }
     private void ProjectFilesWatcherOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
@@ -154,8 +166,13 @@ public class ProjectExplorerViewModel : ViewModel
             await message.Result;
         }
     }
-    internal async Task RenameItemAsync(ProjectItem item)
+    internal async Task RenameItemAsync(ProjectItem? item)
     {
+        if (item is null)
+        {
+            _logger.LogError("Item was null");
+            return;
+        }
         using (var scope = _serviceScopeFactory.CreateScope())
         {
             var detailViewModel = scope.ServiceProvider.GetRequiredService<RenameItemViewModel>();

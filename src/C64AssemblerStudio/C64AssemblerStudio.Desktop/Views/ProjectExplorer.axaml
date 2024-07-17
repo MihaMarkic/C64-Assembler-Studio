@@ -40,6 +40,10 @@
                                 <MenuItem Header="Delete"
                                           Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).DeleteItemCommand}"
                                           CommandParameter="{Binding}" />
+                                <Separator/>
+                                <MenuItem Header="Open In Explorer"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).OpenInExplorerCommand}"
+                                          CommandParameter="{Binding}" />
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <TextBlock Text="D" Foreground="LightGray" Margin="2,0" />
@@ -55,6 +59,10 @@
                                           CommandParameter="{Binding}" />
                                 <MenuItem Header="Delete"
                                           Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).DeleteItemCommand}"
+                                          CommandParameter="{Binding}" />
+                                <Separator/>
+                                <MenuItem Header="Open In Explorer"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).OpenInExplorerCommand}"
                                           CommandParameter="{Binding}" />
                             </ContextMenu>
                         </StackPanel.ContextMenu>
