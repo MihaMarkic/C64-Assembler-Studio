@@ -20,6 +20,7 @@ public static class IoCRegistrar
             .AddScoped<SettingsViewModel>()
             .AddTransient<AddFileViewModel>()
             .AddTransient<AddDirectoryViewModel>()
+            .AddTransient<RenameItemViewModel>()
             .AddTransient<KickAssProjectViewModel>()
             .AddSingleton<EmptyProjectViewModel>()
             // System

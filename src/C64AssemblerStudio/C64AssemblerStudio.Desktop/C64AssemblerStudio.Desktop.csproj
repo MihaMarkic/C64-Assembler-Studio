@@ -45,6 +45,10 @@
       <DependentUpon>ModalDialogWindow.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Dialogs\RenameItemDialog.axaml.cs">
+      <DependentUpon>RenameFileDialog.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Globalization"/>

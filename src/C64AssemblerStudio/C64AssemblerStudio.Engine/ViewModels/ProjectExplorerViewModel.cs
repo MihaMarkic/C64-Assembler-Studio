@@ -22,6 +22,9 @@ public class ProjectExplorerViewModel : ViewModel
     public bool IsProjectOpen => _projectFilesWatcher.IsProjectOpen;
     public RelayCommand<ProjectDirectory> AddFileCommand { get; }
     public RelayCommand<ProjectDirectory> AddDirectoryCommand { get; }
+    public RelayCommandAsync<ProjectItem> RenameItemCommand { get; }
+    public RelayCommand<ProjectItem> DeleteItemCommand { get; }
+    public RelayCommandAsync RefreshCommand { get; }
     public ObservableCollection<ProjectItem> Items => _projectFilesWatcher.Items;
 
     public ProjectExplorerViewModel(ILogger<ProjectExplorerViewModel> logger, IDispatcher dispatcher,
@@ -33,9 +36,11 @@ public class ProjectExplorerViewModel : ViewModel
         _globals = globals;
         _projectFilesWatcher = projectFilesWatcher;
         _projectFilesWatcher.PropertyChanged += ProjectFilesWatcherOnPropertyChanged;
-        //_globals.PropertyChanged += GlobalsOnPropertyChanged;
         AddFileCommand = new RelayCommand<ProjectDirectory>(AddFile);
         AddDirectoryCommand = new RelayCommand<ProjectDirectory>(AddDirectory);
+        RenameItemCommand = new RelayCommandAsync<ProjectItem>(RenameItemAsync, p => p is not null);
+        DeleteItemCommand = new RelayCommand<ProjectItem>(DeleteItem, p => p is not null);
+        RefreshCommand = new RelayCommandAsync(_projectFilesWatcher.RefreshAsync);
     }
 
     private void ProjectFilesWatcherOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -48,6 +53,47 @@ public class ProjectExplorerViewModel : ViewModel
             case nameof(ProjectFilesWatcherViewModel.IsRefreshing):
                 OnPropertyChanged(nameof(IsRefreshing));
                 break;
+        }
+    }
+    void DeleteItem(ProjectItem? item)
+    {
+        switch (item)
+        {
+            case ProjectFile file:
+                DeleteFile(file);
+                break;
+            case ProjectDirectory directory:
+                DeleteDirectory(directory);
+                break;
+            default:
+                _logger.LogError("Unknown project item of type {Type}", item?.GetType().Name ?? "null");
+                break;
+        }
+    }
+
+    private void DeleteDirectory(ProjectDirectory directory)
+    {
+        string path = Path.Combine(_globals.Project.Directory.ValueOrThrow(), directory.GetRelativeDirectory(), directory.Name);
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed deleting {Directory}", directory);
+        }
+    }
+
+    private void DeleteFile(ProjectFile file)
+    {
+        string path = Path.Combine(_globals.Project.Directory.ValueOrThrow(), file.GetRelativeDirectory(), file.Name);
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed deleting {File}", file);
         }
     }
 
@@ -64,10 +110,7 @@ public class ProjectExplorerViewModel : ViewModel
         {
             return Path.Combine(projectRoot, parent.GetRelativeDirectory());
         }
-        else
-        {
-            return projectRoot;
-        }
+        return projectRoot;
     }
     internal async Task AddFileAsync(ProjectDirectory? parent)
     {
@@ -85,7 +128,7 @@ public class ProjectExplorerViewModel : ViewModel
                     DesiredSize = new Size(500, 300),
                 };
             _dispatcher.DispatchShowModalDialog(message);
-            var result = await message.Result;
+            await message.Result;
         }
     }
     internal void AddDirectory(ProjectDirectory? parent)
@@ -108,10 +151,30 @@ public class ProjectExplorerViewModel : ViewModel
                     DesiredSize = new Size(500, 180),
                 };
             _dispatcher.DispatchShowModalDialog(message);
-            var result = await message.Result;
+            await message.Result;
         }
     }
-
+    internal async Task RenameItemAsync(ProjectItem item)
+    {
+        using (var scope = _serviceScopeFactory.CreateScope())
+        {
+            var detailViewModel = scope.ServiceProvider.GetRequiredService<RenameItemViewModel>();
+            detailViewModel.RootDirectory = GetRootDirectory(item.Parent);
+            detailViewModel.Item = item;
+            string itemType = item is ProjectDirectory ? "directory" : "file";
+            var message =
+                new ShowModalDialogMessage<RenameItemViewModel, SimpleDialogResult>(
+                    $"Rename {itemType}",
+                    DialogButton.OK | DialogButton.Cancel,
+                    detailViewModel)
+                {
+                    MinSize = new Size(300, 120),
+                    DesiredSize = new Size(500, 120),
+                };
+            _dispatcher.DispatchShowModalDialog(message);
+            await message.Result;
+        }
+    }
     protected override void Dispose(bool disposing)
     {
         if (disposing)

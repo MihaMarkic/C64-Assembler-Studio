@@ -11,4 +11,16 @@ public static class TaskExtension
         }
         return task.Result;
     }
+
+    public static Task CancelNullableAsync(this CancellationTokenSource? cts, CancellationToken ct = default)
+    {
+        if (cts is null)
+        {
+            return Task.CompletedTask;
+        }
+        else
+        {
+            return cts.CancelAsync();
+        }
+    }
 }

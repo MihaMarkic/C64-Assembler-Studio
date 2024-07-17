@@ -34,20 +34,31 @@
                                               Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddDirectoryCommand}"
                                               CommandParameter="{Binding}" />
                                 </MenuItem>
+                                <MenuItem Header="Rename"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).RenameItemCommand}"
+                                          CommandParameter="{Binding}" />
+                                <MenuItem Header="Delete"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).DeleteItemCommand}"
+                                          CommandParameter="{Binding}" />
                             </ContextMenu>
                         </StackPanel.ContextMenu>
-                        <TextBlock Text="D" Foreground="LightGray" />
+                        <TextBlock Text="D" Foreground="LightGray" Margin="2,0" />
                         <TextBlock Text="{Binding Name}" HorizontalAlignment="Stretch" />
                     </StackPanel>
                 </TreeDataTemplate>
                 <TreeDataTemplate DataType="mp:ProjectFile">
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Background="Transparent">
                         <StackPanel.ContextMenu>
                             <ContextMenu>
-
+                                <MenuItem Header="Rename"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).RenameItemCommand}"
+                                          CommandParameter="{Binding}" />
+                                <MenuItem Header="Delete"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).DeleteItemCommand}"
+                                          CommandParameter="{Binding}" />
                             </ContextMenu>
                         </StackPanel.ContextMenu>
-                        <TextBlock Text="F" Foreground="LightBlue" />
+                        <TextBlock Text="F" Foreground="LightBlue" Margin="2,0" />
                         <TextBlock Text="{Binding Name}" />
                     </StackPanel>
                 </TreeDataTemplate>

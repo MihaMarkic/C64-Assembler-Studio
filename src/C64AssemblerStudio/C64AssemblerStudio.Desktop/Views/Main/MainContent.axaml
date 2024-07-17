@@ -86,6 +86,9 @@
             </ctl:DockTool>
             <ctl:DockSizer Height="5" Margin="0,2" DockPanel.Dock="Bottom" Orientation="Horizontal" />
             <ctl:DockTool DockPanel.Dock="Left" Width="300" Title="Project Explorer">
+                <ctl:DockTool.HeaderContext>
+                    <Button Classes="docktool" Command="{Binding ProjectExplorer.RefreshCommand}">R</Button>
+                </ctl:DockTool.HeaderContext>
                 <v:ProjectExplorer DataContext="{Binding ProjectExplorer}" />
             </ctl:DockTool>
             <ctl:DockSizer Width="5" Margin="2,0" DockPanel.Dock="Left" Orientation="Vertical" />

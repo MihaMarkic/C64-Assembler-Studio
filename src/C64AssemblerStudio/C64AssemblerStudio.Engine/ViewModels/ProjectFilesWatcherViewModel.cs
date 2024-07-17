@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -14,6 +15,8 @@ public class ProjectFilesWatcherViewModel: ViewModel
     private FileSystemWatcher? _directoryWatcher;
     private readonly Globals _globals;
     public bool IsRefreshing { get; private set; }
+    public bool IsProjectChanging { get; private set; }
+    [MemberNotNullWhen(true, nameof(_fileWatcher), nameof(_directoryWatcher))]
     public bool IsProjectOpen { get; private set; }
     public ObservableCollection<ProjectItem> Items { get; } = new();
     public ProjectFilesWatcherViewModel(ILogger<ProjectFilesWatcherViewModel> logger, Globals globals)
@@ -23,38 +26,59 @@ public class ProjectFilesWatcherViewModel: ViewModel
         _globals.PropertyChanged += GlobalsOnPropertyChanged;
         _ = RefreshAsync();
     }
-    private void GlobalsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private async void GlobalsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
             case nameof(Globals.Project):
-                Disengage();
-                _ = RefreshAsync();
-                if (_globals.Project.Path is not null)
-                {
-                    Start(Path.GetDirectoryName(_globals.Project.Path).ValueOrThrow());
-                }
+                _ = ProjectChanged(_globals.Project);
                 break;
         }
     }
+
+    private CancellationTokenSource? _projectChangingCts;
+    async Task ProjectChanged(IProjectViewModel project)
+    {
+        await _projectChangingCts.CancelNullableAsync();
+        _projectChangingCts = new();
+        var token = _projectChangingCts.Token;
+        IsProjectChanging = true;
+        try
+        {
+            IsProjectOpen = project is not EmptyProjectViewModel;
+            Disengage();
+            await RefreshAsync();
+            if (project.Directory is not null && !token.IsCancellationRequested)
+            {
+                Start(project.Directory);
+            }
+        }
+        finally
+        {
+            IsProjectChanging = false;
+        }
+    }
+    
     private CancellationTokenSource? _refreshCts;
 
-    async Task RefreshAsync()
+    public async Task RefreshAsync()
     {
+        if (!IsProjectOpen)
+        {
+            return;
+        }
         IsRefreshing = true;
         try
         {
-            if (_refreshCts is not null)
-            {
-                await _refreshCts.CancelAsync();
-            }
+            await _refreshCts.CancelNullableAsync();
 
             IsProjectOpen = _globals.Project is not EmptyProjectViewModel;
             Items.Clear();
             if (_globals.Project is KickAssProjectViewModel project)
             {
-                _refreshCts = new();
+                _refreshCts = new CancellationTokenSource();
                 var ct = _refreshCts.Token;
+                
                 var directory = Path.GetDirectoryName(project.Path);
                 try
                 {
@@ -188,11 +212,11 @@ public class ProjectFilesWatcherViewModel: ViewModel
     }
     private void OnDirectoryDeleted(object sender, FileSystemEventArgs e)
     {
-        
+        OnDeleted(e);
     }
     private void OnDirectoryRenamed(object sender, RenamedEventArgs e)
     {
-        
+        OnRenamed(e);
     }
     
     private void OnFileChanged(object sender, FileSystemEventArgs e)
@@ -261,14 +285,52 @@ public class ProjectFilesWatcherViewModel: ViewModel
         return current;
     }
 
-    private void OnFileDeleted(object sender, FileSystemEventArgs e) =>
-        Console.WriteLine($"Deleted: {e.FullPath}");
+    
+    private void OnDeleted(FileSystemEventArgs e)
+    {
+        _logger.LogDebug("Created file {File}", e.FullPath);
+        var directory = FindMatchingDirectory(
+            _globals.Project.Directory.ValueOrThrow(),
+            Path.GetDirectoryName(e.Name).ValueOrThrow());
+        ObservableCollection<ProjectItem> target = directory is null ? Items : directory.Items;
 
+        var fileName = Path.GetFileName(e.Name);
+        var item = target.SingleOrDefault(i => string.Equals(i.Name, fileName, OSDependent.FileStringComparison)); 
+        if (item is null)
+        {
+            _logger.LogError("Couldn't find {Item} to delete", e.FullPath);
+            return;
+        }
+
+        target.Remove(item);
+    }
+
+    private void OnFileDeleted(object sender, FileSystemEventArgs e)
+    {
+        OnDeleted(e);
+    }
+
+    private void OnRenamed(RenamedEventArgs e)
+    {
+        _logger.LogDebug("Renamed file {OldName} to {NewName}", e.OldName, e.Name);
+        var directory = FindMatchingDirectory(
+            _globals.Project.Directory.ValueOrThrow(),
+            Path.GetDirectoryName(e.OldName).ValueOrThrow());
+        ObservableCollection<ProjectItem> target = directory is null ? Items : directory.Items;
+
+        var oldFileName = Path.GetFileName(e.OldName);
+        var item = target.SingleOrDefault(i => string.Equals(i.Name, oldFileName, OSDependent.FileStringComparison)); 
+        if (item is null)
+        {
+            _logger.LogError("Couldn't find {Item} to rename", e.FullPath);
+            return;
+        }
+
+        item.Name = Path.GetFileName(e.Name).ValueOrThrow();
+    }
     private void OnFileRenamed(object sender, RenamedEventArgs e)
     {
-        Console.WriteLine($"Renamed:");
-        Console.WriteLine($"    Old: {e.OldFullPath}");
-        Console.WriteLine($"    New: {e.FullPath}");
+        OnRenamed(e);
     }
 
     private void OnError(object sender, ErrorEventArgs e)

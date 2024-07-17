@@ -170,7 +170,7 @@ public class MainViewModel : ViewModel
         {
             if (!File.Exists(path))
             {
-                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, errorTitle, $"Project file {path} does not exist."));
+                await _dispatcher.DispatchAsync(new ErrorMessage(ErrorMessageLevel.Error, errorTitle, $"Project file {path} does not exist."), ct: ct);
                 return false;
             }
             var projectConfiguration = await _settingsManager.LoadAsync<Project>(path, ct);
@@ -193,7 +193,7 @@ public class MainViewModel : ViewModel
         }
         catch (Exception ex)
         {
-            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, errorTitle, ex.Message));
+            await _dispatcher.DispatchAsync(new ErrorMessage(ErrorMessageLevel.Error, errorTitle, ex.Message), ct: ct);
         }
         finally
         {

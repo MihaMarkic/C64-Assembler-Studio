@@ -17,6 +17,9 @@
         <DataTemplate DataType="vm:AddDirectoryViewModel">
             <v:AddDirectoryDialog />
         </DataTemplate>
+        <DataTemplate DataType="vm:RenameItemViewModel">
+            <v:RenameItemDialog />
+        </DataTemplate>
     </UserControl.DataTemplates>
     <ContentControl Content="{Binding ViewModel, Mode=OneTime}"  />
 </UserControl>

@@ -1,9 +1,10 @@
 ﻿using System.Text;
+using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
 
 namespace C64AssemblerStudio.Engine.Models.Projects;
 
-public abstract class ProjectItem
+public abstract class ProjectItem: NotifiableObject
 {
     public required ProjectDirectory? Parent { get; init; }
     public required string Name { get; set; }
@@ -18,7 +19,7 @@ public abstract class ProjectItem
         ProjectDirectory? current = Parent;
         while (current is not null)
         {
-            sb.Insert(0, $"{Name}{Path.DirectorySeparatorChar}");
+            sb.Insert(0, $"{current.Name}{Path.DirectorySeparatorChar}");
             current = current.Parent;
         }
 
