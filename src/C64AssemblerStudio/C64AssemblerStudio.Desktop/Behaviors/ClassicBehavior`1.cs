@@ -10,7 +10,7 @@ public abstract class ClassicBehavior<T> : Behavior<T>
     {
         base.OnAttached();
 
-        if (AssociatedObject is object)
+        if (AssociatedObject is not null)
         {
             Attached();
         }
@@ -24,7 +24,7 @@ public abstract class ClassicBehavior<T> : Behavior<T>
     protected override void OnDetaching()
     {
         base.OnDetaching();
-        if (AssociatedObject is object)
+        if (AssociatedObject is not null)
         {
             Detached();
         }

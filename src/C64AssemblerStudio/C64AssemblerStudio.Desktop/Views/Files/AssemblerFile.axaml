@@ -2,7 +2,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             xmlns:aee="clr-namespace:AvaloniaEdit.Editing;assembly=AvaloniaEdit"
+             xmlns:files="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
+             xmlns:behaviors="clr-namespace:C64AssemblerStudio.Desktop.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="files:AssemblerFileViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Files.AssemblerFile">
-    Welcome to Avalonia!
+    <ae:TextEditor Name="Editor"
+                   FontFamily="{StaticResource CodeFont}"
+                   Background="#FFFDF6E3"
+                   ShowLineNumbers="False"
+                   Margin="12,4,4,4"
+                   Foreground="Black"
+                   HorizontalScrollBarVisibility="Auto"
+                   VerticalScrollBarVisibility="Auto"
+                   FontWeight="Light"
+                   FontSize="14"
+                   PointerHover="Editor_PointerHover"
+                   PointerPressed="Editor_PointerPressed">
+        <i:Interaction.Behaviors>
+            <behaviors:TextEditorBindingBehavior Text="{Binding Content}" />
+        </i:Interaction.Behaviors>
+        <ae:TextEditor.Styles>
+            <Style Selector="aee|TextArea">
+                <Setter Property="SelectionBrush" Value="#66ffff80" />
+            </Style>
+        </ae:TextEditor.Styles>
+        <ae:TextEditor.Options>
+            <ae:TextEditorOptions ShowTabs="False" />
+        </ae:TextEditor.Options>
+    </ae:TextEditor>
 </UserControl>
