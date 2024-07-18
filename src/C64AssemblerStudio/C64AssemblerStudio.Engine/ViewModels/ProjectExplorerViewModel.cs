@@ -5,6 +5,7 @@ using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
+using C64AssemblerStudio.Engine.ViewModels.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
@@ -20,11 +21,12 @@ public class ProjectExplorerViewModel : ViewModel
     private readonly ProjectFilesWatcherViewModel _projectFilesWatcher;
     public bool IsRefreshing => _projectFilesWatcher.IsRefreshing;
     public bool IsProjectOpen => _projectFilesWatcher.IsProjectOpen;
+    public RelayCommandWithParameter<ProjectFile> OpenFileCommand { get; }
     public RelayCommand<ProjectDirectory> AddFileCommand { get; }
     public RelayCommand<ProjectDirectory> AddDirectoryCommand { get; }
-    public RelayCommandAsync<ProjectItem> RenameItemCommand { get; }
-    public RelayCommand<ProjectItem> DeleteItemCommand { get; }
-    public RelayCommand<ProjectItem> OpenInExplorerCommand { get; }
+    public RelayCommandWithParameterAsync<ProjectItem> RenameItemCommand { get; }
+    public RelayCommandWithParameter<ProjectItem> DeleteItemCommand { get; }
+    public RelayCommandWithParameter<ProjectItem> OpenInExplorerCommand { get; }
     public RelayCommandAsync RefreshCommand { get; }
     public ObservableCollection<ProjectItem> Items => _projectFilesWatcher.Items;
 
@@ -37,21 +39,22 @@ public class ProjectExplorerViewModel : ViewModel
         _globals = globals;
         _projectFilesWatcher = projectFilesWatcher;
         _projectFilesWatcher.PropertyChanged += ProjectFilesWatcherOnPropertyChanged;
+        OpenFileCommand = new RelayCommandWithParameter<ProjectFile>(OpenFile);
         AddFileCommand = new RelayCommand<ProjectDirectory>(AddFile);
         AddDirectoryCommand = new RelayCommand<ProjectDirectory>(AddDirectory);
-        RenameItemCommand = new RelayCommandAsync<ProjectItem>(RenameItemAsync, p => p is not null);
-        DeleteItemCommand = new RelayCommand<ProjectItem>(DeleteItem, p => p is not null);
+        RenameItemCommand = new RelayCommandWithParameterAsync<ProjectItem>(RenameItemAsync);
+        DeleteItemCommand = new RelayCommandWithParameter<ProjectItem>(DeleteItem);
         RefreshCommand = new RelayCommandAsync(_projectFilesWatcher.RefreshAsync);
-        OpenInExplorerCommand = new RelayCommand<ProjectItem>(OpenInExplorer, p => p is not null);
+        OpenInExplorerCommand = new RelayCommandWithParameter<ProjectItem>(OpenInExplorer);
     }
 
-    private void OpenInExplorer(ProjectItem? item)
+    private void OpenFile(ProjectFile file)
     {
-        if (item is null)
-        {
-            _logger.LogError("Item was null");
-            return;
-        }
+        var message = new OpenFileMessage(file);
+        _dispatcher.Dispatch(message);
+    }
+    private void OpenInExplorer(ProjectItem item)
+    {
         string path = Path.Combine(_globals.Project.Directory.ValueOrThrow(), item.GetRelativeDirectory());
         Process.Start("explorer.exe", path);
     }
@@ -67,7 +70,7 @@ public class ProjectExplorerViewModel : ViewModel
                 break;
         }
     }
-    void DeleteItem(ProjectItem? item)
+    void DeleteItem(ProjectItem item)
     {
         switch (item)
         {
@@ -78,7 +81,7 @@ public class ProjectExplorerViewModel : ViewModel
                 DeleteDirectory(directory);
                 break;
             default:
-                _logger.LogError("Unknown project item of type {Type}", item?.GetType().Name ?? "null");
+                _logger.LogError("Unknown project item of type {Type}", item.GetType().Name);
                 break;
         }
     }
@@ -128,10 +131,10 @@ public class ProjectExplorerViewModel : ViewModel
     {
         using (var scope = _serviceScopeFactory.CreateScope())
         {
-            var detailViewModel = scope.ServiceProvider.GetRequiredService<AddFileViewModel>();
+            var detailViewModel = scope.ServiceProvider.GetRequiredService<AddFileDialogViewModel>();
             detailViewModel.RootDirectory = GetRootDirectory(parent);
             var message =
-                new ShowModalDialogMessage<AddFileViewModel, SimpleDialogResult>(
+                new ShowModalDialogMessage<AddFileDialogViewModel, SimpleDialogResult>(
                     "Add new file",
                     DialogButton.OK | DialogButton.Cancel,
                     detailViewModel)
@@ -151,10 +154,10 @@ public class ProjectExplorerViewModel : ViewModel
     {
         using (var scope = _serviceScopeFactory.CreateScope())
         {
-            var detailViewModel = scope.ServiceProvider.GetRequiredService<AddDirectoryViewModel>();
+            var detailViewModel = scope.ServiceProvider.GetRequiredService<AddDirectoryDialogViewModel>();
             detailViewModel.RootDirectory = GetRootDirectory(parent);
             var message =
-                new ShowModalDialogMessage<AddDirectoryViewModel, SimpleDialogResult>(
+                new ShowModalDialogMessage<AddDirectoryDialogViewModel, SimpleDialogResult>(
                     "Add new directory",
                     DialogButton.OK | DialogButton.Cancel,
                     detailViewModel)
@@ -166,21 +169,16 @@ public class ProjectExplorerViewModel : ViewModel
             await message.Result;
         }
     }
-    internal async Task RenameItemAsync(ProjectItem? item)
+    internal async Task RenameItemAsync(ProjectItem item)
     {
-        if (item is null)
-        {
-            _logger.LogError("Item was null");
-            return;
-        }
         using (var scope = _serviceScopeFactory.CreateScope())
         {
-            var detailViewModel = scope.ServiceProvider.GetRequiredService<RenameItemViewModel>();
+            var detailViewModel = scope.ServiceProvider.GetRequiredService<RenameItemDialogViewModel>();
             detailViewModel.RootDirectory = GetRootDirectory(item.Parent);
             detailViewModel.Item = item;
             string itemType = item is ProjectDirectory ? "directory" : "file";
             var message =
-                new ShowModalDialogMessage<RenameItemViewModel, SimpleDialogResult>(
+                new ShowModalDialogMessage<RenameItemDialogViewModel, SimpleDialogResult>(
                     $"Rename {itemType}",
                     DialogButton.OK | DialogButton.Cancel,
                     detailViewModel)

@@ -13,6 +13,12 @@
     <Grid>
         <TextBlock IsVisible="{Binding !IsProjectOpen}">No project open</TextBlock>
         <TreeView x:Name="Tree" ItemsSource="{Binding Items}" IsVisible="{Binding IsProjectOpen}">
+            <i:Interaction.Behaviors>
+                <ia:EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #Tree}">
+                    <ia:InvokeCommandAction Command="{Binding OpenFileCommand}" 
+                                            CommandParameter="{Binding #Tree.SelectedItem}"/>
+                </ia:EventTriggerBehavior>
+            </i:Interaction.Behaviors>
             <TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Add">
@@ -61,6 +67,9 @@
                                           Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).DeleteItemCommand}"
                                           CommandParameter="{Binding}" />
                                 <Separator/>
+                                <MenuItem Header="Open"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).OpenFileCommand}"
+                                          CommandParameter="{Binding}" />
                                 <MenuItem Header="Open In Explorer"
                                           Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).OpenInExplorerCommand}"
                                           CommandParameter="{Binding}" />

@@ -2,6 +2,7 @@
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.ViewModels;
+using C64AssemblerStudio.Engine.ViewModels.Dialogs;
 
 namespace C64AssemblerStudio.Engine.Messages;
 

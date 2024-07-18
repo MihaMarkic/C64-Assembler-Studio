@@ -1,4 +1,4 @@
-﻿namespace C64AssemblerStudio.Engine.ViewModels;
+﻿namespace C64AssemblerStudio.Engine.ViewModels.Dialogs;
 
 public interface IDialogViewModel<TResult>
 {

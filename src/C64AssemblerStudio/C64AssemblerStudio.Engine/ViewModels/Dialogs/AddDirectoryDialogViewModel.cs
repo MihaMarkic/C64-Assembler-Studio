@@ -3,9 +3,9 @@ using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 
-namespace C64AssemblerStudio.Engine.ViewModels;
+namespace C64AssemblerStudio.Engine.ViewModels.Dialogs;
 
-public class AddDirectoryViewModel : NotifiableObject, IDialogViewModel<SimpleDialogResult>
+public class AddDirectoryDialogViewModel : NotifiableObject, IDialogViewModel<SimpleDialogResult>
 {
     public RelayCommand CreateCommand { get; }
     public RelayCommand CancelCommand { get; }
@@ -16,7 +16,7 @@ public class AddDirectoryViewModel : NotifiableObject, IDialogViewModel<SimpleDi
     /// </summary>
     public string? RootDirectory { get; set; } 
     public string? Error { get; private set; }
-    public AddDirectoryViewModel()
+    public AddDirectoryDialogViewModel()
     {
         CancelCommand = new RelayCommand(Cancel);
         CreateCommand = new RelayCommand(Create, () => !string.IsNullOrWhiteSpace(DirectoryName));

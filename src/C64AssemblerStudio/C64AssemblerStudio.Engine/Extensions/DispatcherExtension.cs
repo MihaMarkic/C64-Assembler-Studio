@@ -1,6 +1,7 @@
 ﻿using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.ViewModels;
+using C64AssemblerStudio.Engine.ViewModels.Dialogs;
 
 namespace Righthand.MessageBus;
 internal static class DispatcherExtension
