@@ -10,6 +10,7 @@
              xmlns:ctl="clr-namespace:C64AssemblerStudio.Desktop.Controls"
              xmlns:mv="clr-namespace:C64AssemblerStudio.Desktop.Views.Main"
              xmlns:fv="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
+             xmlns:tools="clr-namespace:C64AssemblerStudio.Desktop.Views.Tools"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
              x:Class="C64AssemblerStudio.Desktop.Views.Main.MainContent"
              x:DataType="vm:MainViewModel">
@@ -56,9 +57,9 @@
                           HorizontalContentAlignment="Stretch">
                 <Grid>
                     <TabControl x:Name="BottomTabs" TabStripPlacement="Bottom">
-                        <!--   <TabItem Header="Errors"> -->
-                        <!--     <v:ErrorMessages DataContext="{Binding #Source.DataContext.ErrorMessagesViewModel}" /> -->
-                        <!--   </TabItem> -->
+                        <TabItem Header="Errors">
+                          <tools:ErrorMessages DataContext="{Binding #Source.((vm:MainViewModel)DataContext).ErrorMessages}" />
+                        </TabItem>
                         <!--   <TabItem Header="Registers"> -->
                         <!--     <v:Registers DataContext="{Binding #Source.DataContext.RegistersViewModel}" /> -->
                         <!--   </TabItem> -->

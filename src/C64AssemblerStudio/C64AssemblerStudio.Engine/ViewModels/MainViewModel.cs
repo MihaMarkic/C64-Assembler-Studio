@@ -10,6 +10,7 @@ using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Files;
+using C64AssemblerStudio.Engine.ViewModels.Tools;
 using PropertyChanged;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
@@ -40,6 +41,7 @@ public class MainViewModel : ViewModel
 
     public ProjectExplorerViewModel ProjectExplorer { get; }
     public FilesViewModel Files { get; }
+    public ErrorMessagesViewModel ErrorMessages { get; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
@@ -57,7 +59,8 @@ public class MainViewModel : ViewModel
     public Action? CloseApp { get; set; }
     public ViewModel? OverlayContent { get; private set; }
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
-        ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files)
+        ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
+        ErrorMessagesViewModel errorMessages)
     {
         _logger = logger;
         _globals = globals;
@@ -69,6 +72,7 @@ public class MainViewModel : ViewModel
         _showModalDialogMessageSubscription = dispatcher.Subscribe<ShowModalDialogMessageCore>(OnShowModalDialog);
         ProjectExplorer = projectExplorer;
         Files = files;
+        ErrorMessages = errorMessages;
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
         OpenProjectFromPathCommand = _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);

@@ -9,26 +9,49 @@ namespace C64AssemblerStudio.Engine.ViewModels.Files;
 public class FilesViewModel: ViewModel
 {
     private readonly ILogger<FilesViewModel> _logger;
+    private readonly IDispatcher _dispatcher;
     private readonly ISubscription _openFileMessage;
     private readonly IServiceProvider _serviceProvider;
     public ObservableCollection<FileViewModel> Files { get; }
+    public BusyIndicator BusyIndicator { get; } = new();
     public FileViewModel? Selected { get; set; }
     public RelayCommandWithParameter<FileViewModel> CloseFileCommand { get; }
+    public RelayCommandAsync SaveAllCommand { get; }
 
     public FilesViewModel(ILogger<FilesViewModel> logger, IDispatcher dispatcher, IServiceProvider serviceProvider)
     {
         _logger = logger;
+        _dispatcher = dispatcher;
         _serviceProvider = serviceProvider;
         _openFileMessage = dispatcher.Subscribe<OpenFileMessage>(OpenFile);
         Files = new();
         CloseFileCommand = new RelayCommandWithParameter<FileViewModel>(CloseFile);
+        SaveAllCommand = new RelayCommandAsync(SaveAll);
     }
 
+    async Task SaveAll()
+    {
+        using (BusyIndicator.Increase())
+        {
+            try
+            {
+                var allFiles = Files.Where(f => f.HasChanges)
+                    .Select(f => f.SaveContentAsync());
+                await Task.WhenAll(allFiles);
+            }
+            catch (Exception ex)
+            {
+                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, "Save all content", ex.Message));
+                _logger.LogError(ex, "Failed saving all files");
+            }
+        }
+    }
+    
     internal void CloseFile(FileViewModel file)
     {
         Files.Remove(file);
     }
-    internal void OpenFile(OpenFileMessage message)
+    internal async void OpenFile(OpenFileMessage message)
     {
         var viewModel = message.File.FileType switch
         {
@@ -37,8 +60,16 @@ public class FilesViewModel: ViewModel
         };
         if (viewModel is not null)
         {
-            _ = viewModel.LoadContentAsync();
-            Files.Add(viewModel);
+            try
+            {
+                _ = viewModel.LoadContentAsync();
+                Files.Add(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, $"Loading {message.File.Name}",
+                    ex.Message));
+            }
         }
         else
         {

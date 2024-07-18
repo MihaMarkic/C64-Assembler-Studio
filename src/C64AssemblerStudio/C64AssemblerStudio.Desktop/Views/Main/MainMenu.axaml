@@ -20,7 +20,8 @@
         <MenuItem Header="_New..." Command="{Binding NewProjectCommand}" />
         <MenuItem Header="_Open..." Command="{Binding OpenProjectCommand}" />
         <Separator/>
-        <MenuItem Header="_Save" Command="{Binding Files.Selected.SaveCommand}" />
+        <MenuItem Header="Save" Command="{Binding Files.Selected.SaveCommand}" />
+        <MenuItem Header="_Save All" Command="{Binding Files.SaveAllCommand}" />
         <Separator/>
         <MenuItem Header="_Close" Command="{Binding CloseProjectCommand}" />
         <Separator/>

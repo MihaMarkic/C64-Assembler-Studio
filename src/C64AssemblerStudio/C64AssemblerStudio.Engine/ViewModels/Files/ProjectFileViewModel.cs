@@ -1,8 +1,10 @@
 ﻿using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
+using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using Microsoft.Extensions.Logging;
+using Righthand.MessageBus;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -13,20 +15,23 @@ public abstract class ProjectFileViewModel : FileViewModel
     public BusyIndicator BusyIndicator { get; } = new();
     public string Content { get; set; }
     public bool IsReadOnly => string.IsNullOrEmpty(Content);
-    protected ProjectFileViewModel(ILogger<ProjectFileViewModel> logger, IFileService fileService, Globals globals, ProjectFile file) :
-        base(logger, fileService)
+
+    protected ProjectFileViewModel(ILogger<ProjectFileViewModel> logger, IFileService fileService,
+        IDispatcher dispatcher, Globals globals, ProjectFile file) :
+        base(logger, fileService, dispatcher)
     {
         File = file;
         Globals = globals;
         Caption = file.Name;
-        Content = "";        
+        Content = "";
     }
 
     public async Task LoadContentAsync(CancellationToken ct = default)
     {
         using (BusyIndicator.Increase())
         {
-            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.GetRelativeDirectory(), File.Name);
+            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.GetRelativeDirectory(),
+                File.Name);
             try
             {
                 Content = await FileService.ReadAllTextAsync(path, ct);
@@ -50,14 +55,16 @@ public abstract class ProjectFileViewModel : FileViewModel
                 SaveCommand.RaiseCanExecuteChanged();
                 break;
         }
+
         base.OnPropertyChanged(name);
     }
 
-    protected override async Task SaveContentAsync(CancellationToken ct = default)
+    public override async Task SaveContentAsync(CancellationToken ct = default)
     {
         using (BusyIndicator.Increase())
         {
-            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.GetRelativeDirectory(), File.Name);
+            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.GetRelativeDirectory(),
+                File.Name);
             try
             {
                 await FileService.WriteAllTextAsync(path, Content, ct);
@@ -65,6 +72,7 @@ public abstract class ProjectFileViewModel : FileViewModel
             }
             catch (Exception ex)
             {
+                Dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, "Save content", ex.Message));
                 ErrorText = ex.Message;
             }
         }
