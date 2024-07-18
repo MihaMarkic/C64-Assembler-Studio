@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.ViewModels.Files;
 using PropertyChanged;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
@@ -38,6 +39,7 @@ public class MainViewModel : ViewModel
     public IProjectViewModel Project => _globals.Project;
 
     public ProjectExplorerViewModel ProjectExplorer { get; }
+    public FilesViewModel Files { get; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
@@ -55,7 +57,7 @@ public class MainViewModel : ViewModel
     public Action? CloseApp { get; set; }
     public ViewModel? OverlayContent { get; private set; }
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
-        ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer)
+        ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files)
     {
         _logger = logger;
         _globals = globals;
@@ -66,6 +68,7 @@ public class MainViewModel : ViewModel
         _closeOverlaySubscription = dispatcher.Subscribe<CloseOverlayMessage>(CloseOverlay);
         _showModalDialogMessageSubscription = dispatcher.Subscribe<ShowModalDialogMessageCore>(OnShowModalDialog);
         ProjectExplorer = projectExplorer;
+        Files = files;
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
         OpenProjectFromPathCommand = _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);
@@ -291,5 +294,15 @@ public class MainViewModel : ViewModel
             }
             OverlayContent = null;
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _closeOverlaySubscription.Dispose();
+            _showModalDialogMessageSubscription.Dispose();
+        }
+        base.Dispose(disposing);
     }
 }

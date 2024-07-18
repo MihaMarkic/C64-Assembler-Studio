@@ -1,0 +1,42 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:v="clr-namespace:C64AssemblerStudio.Desktop.Views"
+             xmlns:fv="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
+             xmlns:fvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="fvm:FilesViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Files.FilesViewer">
+    <TabControl ItemsSource="{Binding Files}" SelectedItem="{Binding Selected}">
+        <TabControl.ItemTemplate>
+            <DataTemplate>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Caption}" FontSize="15" VerticalAlignment="Center" />
+                    <Button Command="{Binding $parent[TabControl].((fvm:FilesViewModel)DataContext).CloseFileCommand}"
+                            CommandParameter="{Binding}" VerticalAlignment="Top"
+                            Padding="4" Background="Transparent">
+                        <Image Height="12">
+                            <Image.Source>
+                                <SvgImage Source="/Assets/Icons/times.svg" />
+                            </Image.Source>
+                        </Image>
+                    </Button>
+                </StackPanel>
+            </DataTemplate>
+        </TabControl.ItemTemplate>
+        <TabControl.ContentTemplate>
+            <v:DataContextTemplateSelector>
+                <v:DataContextTemplateSelector.Templates>
+                    <DataTemplate x:Key="{x:Type fvm:AssemblerFileViewModel}">
+                        <fv:AssemblerFile FontFamily="{StaticResource CodeFont}" />
+                    </DataTemplate>
+                    <!-- <DataTemplate x:Key="{x:Type vm:DisassemblyViewModel}"> -->
+                    <!--     <v:DisassemblyViewer FontFamily="{StaticResource CodeFont}" /> -->
+                    <!-- </DataTemplate> -->
+                </v:DataContextTemplateSelector.Templates>
+            </v:DataContextTemplateSelector>
+        </TabControl.ContentTemplate>
+    </TabControl>
+</UserControl>

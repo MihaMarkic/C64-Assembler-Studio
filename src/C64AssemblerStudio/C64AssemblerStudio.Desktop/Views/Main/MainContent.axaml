@@ -9,6 +9,7 @@
              xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
              xmlns:ctl="clr-namespace:C64AssemblerStudio.Desktop.Controls"
              xmlns:mv="clr-namespace:C64AssemblerStudio.Desktop.Views.Main"
+             xmlns:fv="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
              x:Class="C64AssemblerStudio.Desktop.Views.Main.MainContent"
              x:DataType="vm:MainViewModel">
@@ -93,8 +94,7 @@
             </ctl:DockTool>
             <ctl:DockSizer Width="5" Margin="2,0" DockPanel.Dock="Left" Orientation="Vertical" />
             <!-- <v:SourceFilesViewer DataContext="{Binding #Source.DataContext.DebuggerViewModel.SourceFileViewerViewModel}"/> -->
-            <!-- place holder for SourceFilesViewer -->
-            <Control />
+            <fv:FilesViewer DataContext="{Binding Files}" />
             </DockPanel>
             <ContentControl Content="{Binding OverlayContent}" />
         </Grid>

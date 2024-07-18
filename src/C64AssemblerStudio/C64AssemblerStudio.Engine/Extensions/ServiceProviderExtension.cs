@@ -1,19 +1,23 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.ViewModels;
+using C64AssemblerStudio.Engine.ViewModels.Files;
 
+// ReSharper disable once CheckNamespace
 namespace System;
 
 public static class ServiceProviderExtension
 {
-    //public static SourceFileViewModel CreateScopedSourceFileViewModel(this IServiceProvider serviceProvider, PdbFile file, ImmutableArray<LineViewModel> lines)
-    //{
-    //    var contentScope = serviceProvider.CreateScope();
-    //    var viewModel = ActivatorUtilities.CreateInstance<SourceFileViewModel>(serviceProvider, file, lines);
-    //    viewModel.AssignScope(contentScope);
-    //    return viewModel;
-    //}
+    public static T CreateScopedSourceFileViewModel<T>(this IServiceProvider serviceProvider, ProjectFile file)
+        where T: FileViewModel
+    {
+        var contentScope = serviceProvider.CreateScope();
+        var viewModel = ActivatorUtilities.CreateInstance<T>(contentScope.ServiceProvider, file);
+        viewModel.AssignScope(contentScope);
+        return viewModel;
+    }
     //public static DisassemblyViewModel CreateScopedDisassemblyViewModel(this IServiceProvider serviceProvider, ushort address)
     //{
     //    var contentScope = serviceProvider.CreateScope();

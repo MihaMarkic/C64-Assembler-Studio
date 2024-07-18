@@ -2,6 +2,7 @@
 using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Dialogs;
+using C64AssemblerStudio.Engine.ViewModels.Files;
 using Microsoft.Extensions.DependencyInjection;
 using Righthand.MessageBus;
 
@@ -19,6 +20,9 @@ public static class IoCRegistrar
             .AddScoped<ProjectFilesWatcherViewModel>()
             .AddScoped<ProjectExplorerViewModel>()
             .AddScoped<SettingsViewModel>()
+            .AddScoped<FilesViewModel>()
+            .AddTransient<AssemblerFileViewModel>()
+            // Dialogs
             .AddTransient<AddFileDialogViewModel>()
             .AddTransient<AddDirectoryDialogViewModel>()
             .AddTransient<RenameItemDialogViewModel>()
