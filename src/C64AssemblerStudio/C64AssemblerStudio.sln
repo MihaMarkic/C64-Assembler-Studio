@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C64AssemblerStudio.Engine.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestsBase", "Test\TestsBase\TestsBase.csproj", "{9683A8F3-FE99-4373-A8F2-B043E07FF1AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Righthand.RetroDbgDataProvider", "..\..\..\retro-dbg-data-provider\src\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider.csproj", "{8D6F452B-21CB-446B-88F6-26E85360E293}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{9683A8F3-FE99-4373-A8F2-B043E07FF1AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9683A8F3-FE99-4373-A8F2-B043E07FF1AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9683A8F3-FE99-4373-A8F2-B043E07FF1AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D6F452B-21CB-446B-88F6-26E85360E293}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D6F452B-21CB-446B-88F6-26E85360E293}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D6F452B-21CB-446B-88F6-26E85360E293}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D6F452B-21CB-446B-88F6-26E85360E293}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

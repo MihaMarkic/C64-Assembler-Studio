@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\retro-dbg-data-provider\src\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider.csproj" />
     <ProjectReference Include="..\C64AssemblerStudio.Core\C64AssemblerStudio.Core.csproj" />
   </ItemGroup>
 

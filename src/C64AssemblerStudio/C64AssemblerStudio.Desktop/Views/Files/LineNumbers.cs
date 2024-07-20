@@ -1,17 +1,16 @@
 ﻿using Avalonia;
 using Avalonia.Media;
 using AvaloniaEdit.Rendering;
-using C64AssemblerStudio.Core.Extensions;
 
 namespace C64AssemblerStudio.Desktop.Views.Files;
 
-public class LineNumbersMargin : AdditionalLineInfoMargin
+public class LineNumbers : AdditionalLineInfoMargin
 {
     readonly double fontSize;
     internal IBrush? Foreground { get; set; }
     readonly Typeface typeface;
     //private string? text;
-    public LineNumbersMargin(FontFamily fontFamily, double fontSize)
+    public LineNumbers(FontFamily fontFamily, double fontSize)
     {
         this.fontSize = fontSize;
         typeface = new Typeface(fontFamily);
@@ -50,5 +49,24 @@ public class LineNumbersMargin : AdditionalLineInfoMargin
                 context.DrawText(text, new Point(renderSize.Width - text.Width, y - TextView.VerticalOffset));
             }
         }
+    }
+
+    protected override void OnDocumentLineCountChanged()
+    {
+        var documentLineCount = Document?.LineCount ?? 1;
+        var newLength = documentLineCount.ToString(CultureInfo.CurrentCulture).Length;
+
+        // The margin looks too small when there is only one digit, so always reserve space for
+        // at least two digits
+        if (newLength < 2)
+        {
+            newLength = 2;
+        }
+        if (newLength != MaxLineNumberLength)
+        {
+            MaxLineNumberLength = newLength;
+            InvalidateMeasure();
+        }
+        base.OnDocumentLineCountChanged();
     }
 }

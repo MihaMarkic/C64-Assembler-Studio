@@ -48,21 +48,6 @@ public abstract class AdditionalLineInfoMargin : AbstractMargin
     /// </summary>
     protected int MaxLineNumberLength = 1;
 
-    private void OnDocumentLineCountChanged()
-    {
-        var documentLineCount = Document?.LineCount ?? 1;
-        var newLength = documentLineCount.ToString(CultureInfo.CurrentCulture).Length;
-
-        // The margin looks too small when there is only one digit, so always reserve space for
-        // at least two digits
-        if (newLength < 2)
-        {
-            newLength = 2;
-        }
-        if (newLength != MaxLineNumberLength)
-        {
-            MaxLineNumberLength = newLength;
-            InvalidateMeasure();
-        }
-    }
+    protected virtual void OnDocumentLineCountChanged()
+    { }
 }

@@ -1,9 +1,8 @@
-﻿using Avalonia;
+﻿using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -11,37 +10,97 @@ namespace C64AssemblerStudio.Desktop.Views.Files;
 
 public partial class AssemblerFile : UserControl
 {
-    readonly LineNumbersMargin _lineNumbersMargin;
+    readonly LineNumbers _lineNumbers;
+    private SyntaxColorizer? _syntaxColorizer;
     ISolidColorBrush? _lineNumberForeground;
+    private AssemblerFileViewModel? _oldViewModel;
     public AssemblerFile()
     {
         InitializeComponent();
         var leftMargins = Editor.TextArea.LeftMargins;
-        _lineNumbersMargin = new LineNumbersMargin(Editor.FontFamily, Editor.FontSize)
+        _lineNumbers = new LineNumbers(Editor.FontFamily, Editor.FontSize)
         {
             Foreground = _lineNumberForeground,
             Margin = new Thickness(4, 0),
         };
-        leftMargins.Add(_lineNumbersMargin);
+        leftMargins.Add(_lineNumbers);
         Editor.TextChanged += EditorOnTextChanged;
+    }
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        DetachOldViewModel();
+        if (DataContext is AssemblerFileViewModel fileViewModel)
+        {
+            _syntaxColorizer = new SyntaxColorizer(fileViewModel);
+            Editor.TextArea.TextView.LineTransformers.Add(_syntaxColorizer);
+            fileViewModel.PropertyChanged += FileViewModelOnPropertyChanged;
+            Editor.Text = fileViewModel.Content;
+            _oldViewModel = fileViewModel;
+        }
+        else
+        {
+            if (_syntaxColorizer is not null)
+            {
+                Editor.TextArea.TextView.LineTransformers.Remove(_syntaxColorizer);
+            }
+            _syntaxColorizer = null;
+            _oldViewModel = null;
+        }
+        base.OnDataContextChanged(e);
+    }
+
+    void DetachOldViewModel()
+    {
+        if (_oldViewModel is not null)
+        {
+            _oldViewModel.PropertyChanged -= FileViewModelOnPropertyChanged;
+        }
+    }
+
+    private bool _ignoreTextChange;
+    private void FileViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(AssemblerFileViewModel.Content):
+                if (!_ignoreTextChange)
+                {
+                    Editor.Text = ViewModel.ValueOrThrow().Content;
+                }
+
+                break;
+            case nameof(AssemblerFileViewModel.Lines):
+                Editor.TextArea.TextView.Redraw();
+                break;
+        }
     }
 
     private void EditorOnTextChanged(object? sender, EventArgs e)
     {
-        _lineNumbersMargin.InvalidateMeasure();    
+        if (ViewModel is not null)
+        {
+            _lineNumbers.InvalidateMeasure();
+            _ignoreTextChange = true;
+            try
+            {
+                ViewModel.Content = Editor.Text;
+            }
+            finally
+            {
+                _ignoreTextChange = false;
+            }
+        }
     }
 
-    internal FileViewModel? ViewModel => (FileViewModel?)base.DataContext;
+    internal AssemblerFileViewModel? ViewModel => (AssemblerFileViewModel?)base.DataContext;
     protected override void OnAttachedToLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
         base.OnAttachedToLogicalTree(e);
         if (this.TryFindResource("LineNumber", out object? res) && res is ISolidColorBrush brush)
         {
             _lineNumberForeground = brush;
-            if (_lineNumbersMargin is not null)
-            {
-                _lineNumbersMargin.Foreground = _lineNumberForeground;
-            }
+            _lineNumbers.Foreground = _lineNumberForeground;
         }
     }
     private void Editor_PointerHover(object? sender, PointerEventArgs e)

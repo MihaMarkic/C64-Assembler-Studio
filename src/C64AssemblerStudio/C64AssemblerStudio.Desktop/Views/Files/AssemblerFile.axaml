@@ -23,9 +23,6 @@
                    FontSize="14"
                    PointerHover="Editor_PointerHover"
                    PointerPressed="Editor_PointerPressed">
-        <i:Interaction.Behaviors>
-            <behaviors:TextEditorBindingBehavior Text="{Binding Content}" />
-        </i:Interaction.Behaviors>
         <ae:TextEditor.Styles>
             <Style Selector="aee|TextArea">
                 <Setter Property="SelectionBrush" Value="#66ffff80" />
