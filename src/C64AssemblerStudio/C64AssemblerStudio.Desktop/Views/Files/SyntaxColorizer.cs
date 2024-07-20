@@ -34,6 +34,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
                     {
                         AssemblerFileViewModel.TokenType.String => ApplyStringChanges,
                         AssemblerFileViewModel.TokenType.Instruction => ApplyInstructionChanges,
+                        AssemblerFileViewModel.TokenType.InstructionExtension => ApplyInstructionExtensionChanges,
                         AssemblerFileViewModel.TokenType.Comment => ApplyCommentChanges,
                         AssemblerFileViewModel.TokenType.Number => ApplyNumberChanges,
                         AssemblerFileViewModel.TokenType.Directive => ApplyDirectiveChanges,
@@ -80,13 +81,30 @@ public class SyntaxColorizer : DocumentColorizingTransformer
         }
     }
 
-    void ApplyStringChanges(VisualLineElement element) => element.TextRunProperties.SetForegroundBrush(ElementColor.String);
-    void ApplyInstructionChanges(VisualLineElement element) => element.TextRunProperties.SetForegroundBrush(ElementColor.Instruction);
-    void ApplyCommentChanges(VisualLineElement element) => element.TextRunProperties.SetForegroundBrush(ElementColor.Comment);
-    void ApplyNumberChanges(VisualLineElement element) => element.TextRunProperties.SetForegroundBrush(ElementColor.Number);
-    void ApplyDirectiveChanges(VisualLineElement element) => element.TextRunProperties.SetForegroundBrush(ElementColor.Directive);
-    void ApplyAssemblyChanges(VisualLineElement element) => element.TextRunProperties.SetForegroundBrush(ElementColor.Assembly);
-    void ApplyCallStackChanges(VisualLineElement element) => element.TextRunProperties.SetBackgroundBrush(ElementColor.CallStackCall);
+    void ApplyStringChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetForegroundBrush(ElementColor.String);
+
+    void ApplyInstructionChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetForegroundBrush(ElementColor.Instruction);
+
+    void ApplyInstructionExtensionChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetForegroundBrush(ElementColor.InstructionExtension);
+
+    void ApplyCommentChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetForegroundBrush(ElementColor.Comment);
+
+    void ApplyNumberChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetForegroundBrush(ElementColor.Number);
+
+    void ApplyDirectiveChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetForegroundBrush(ElementColor.Directive);
+
+    void ApplyAssemblyChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetForegroundBrush(ElementColor.Assembly);
+
+    void ApplyCallStackChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetBackgroundBrush(ElementColor.CallStackCall);
+
     void ApplyExecutionLineChanges(VisualLineElement element)
     {
         // This is where you do anything with the line
@@ -108,6 +126,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
         public static readonly IBrush Comment = Brushes.LightGray;
         public static readonly IBrush Assembly = Brushes.Gray;
         public static readonly IBrush Instruction = Brushes.Blue;
+        public static readonly IBrush InstructionExtension = Brushes.DarkBlue;
         public static readonly IBrush Number = Brushes.DarkCyan;
         public static readonly IBrush Directive = Brushes.PaleVioletRed;
         public static readonly IBrush BreakpointBackground = new SolidColorBrush(new Color(0xFF, 0x96, 0x3A, 0x46));

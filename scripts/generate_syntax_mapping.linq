@@ -65,16 +65,6 @@ TYA: 'tya';
 """;
 
 const string operatorsSource = """
-OPEN_BRACE               : '{' ; //{ this.OnOpenBrace(); };
-CLOSE_BRACE              : '}' ; //{ this.OnCloseBrace(); };
-OPEN_BRACKET             : '[';
-CLOSE_BRACKET            : ']';
-OPEN_PARENS              : '(';
-CLOSE_PARENS             : ')';
-DOT                      : '.';
-COMMA                    : ',';
-COLON                    : ':' ; //{ this.OnColon(); };
-SEMICOLON                : ';';
 PLUS                     : '+';
 MINUS                    : '-';
 STAR                     : '*';
@@ -116,6 +106,22 @@ OP_COALESCING_ASSIGNMENT : '??=';
 OP_RANGE                 : '..';
 """;
 
+const string separatorsSource = """
+DOT                      : '.';
+COMMA                    : ',';
+COLON                    : ':' ; //{ this.OnColon(); };
+SEMICOLON                : ';';
+""";
+
+const string bracketsSource = """
+OPEN_BRACE               : '{' ; //{ this.OnOpenBrace(); };
+CLOSE_BRACE              : '}' ; //{ this.OnCloseBrace(); };
+OPEN_BRACKET             : '[';
+CLOSE_BRACKET            : ']';
+OPEN_PARENS              : '(';
+CLOSE_PARENS             : ')';
+""";
+
 const string directiveSources = """
 BINARY_TEXT: 'binary';
 C64_TEXT: 'c64';
@@ -124,6 +130,14 @@ ENCODING: 'encoding';
 FILL: 'fill';
 FILLWORD: 'fillword'; 
 LOHIFILL: 'lohifill';
+BYTE: 'byte' | 'by';
+WORD: 'word' | 'wo';
+DWORD: 'dword' | 'dw';
+CPU: 'cpu';
+CPU6502NOILLEGALS: '_6502NoIllegals';
+CPU6502: '_6502';
+DTV: 'dtv';
+CPU65C02: '_65c02';
 ASSERT: 'assert';
 ASSERTERROR: 'asserterror';
 PRINT: 'print';
@@ -187,28 +201,29 @@ LIGHT_GRAY: 'LIGHT_GRAY';
 LIGHT_GREY: 'LIGHT_GREY';
 """;
 
-Console.WriteLine("// Instructions");
-string? line;
-var reader = new StringReader(instructionsSource);
-while ((line = reader.ReadLine()) is not null)
+
+void CreateEntries(string comment, string text, string tokenType)
 {
-	Console.WriteLine($"{{ KickAssemblerLexer.{line.Split(':')[0]}, TokenType.Instruction }},");
+	const string prefix = "\t\t\t\t";
+
+	Console.WriteLine($"{prefix}// {comment}");
+	string? line;
+	var reader = new StringReader(text);
+	while ((line = reader.ReadLine()) is not null)
+	{
+		Console.WriteLine($"{prefix}{{ KickAssemblerLexer.{line.Split(':')[0]}, TokenType.{tokenType} }},");
+	}
 }
-Console.WriteLine("// Operators");
-reader = new StringReader(operatorsSource);
-while ((line = reader.ReadLine()) is not null)
-{
-	Console.WriteLine($"{{ KickAssemblerLexer.{line.Split(':')[0]}, TokenType.Operator }},");
-}
-Console.WriteLine("// Directives");
-reader = new StringReader(directiveSources);
-while ((line = reader.ReadLine()) is not null)
-{
-	Console.WriteLine($"{{ KickAssemblerLexer.{line.Split(':')[0]}, TokenType.Directive }},");
-}
-Console.WriteLine("// Colors");
+
+CreateEntries("Instructions", instructionsSource, "Instruction");
+CreateEntries("Brackets", bracketsSource, "Bracket");
+CreateEntries("Operators", operatorsSource, "Operator");
+CreateEntries("Directives", directiveSources, "Directive");
+CreateEntries("Colors", colorSources, "Color");
+
+Console.WriteLine("{prefix}// Colors");
 reader = new StringReader(colorSources);
 while ((line = reader.ReadLine()) is not null)
 {
-	Console.WriteLine($"{{ KickAssemblerLexer.{line.Split(':')[0]}, TokenType.Color }},");
+	Console.WriteLine($"\t\t\t{{ KickAssemblerLexer.{line.Split(':')[0]}, TokenType.Color }},");
 }

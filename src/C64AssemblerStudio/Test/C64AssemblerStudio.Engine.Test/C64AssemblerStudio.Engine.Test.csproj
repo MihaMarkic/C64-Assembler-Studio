@@ -18,6 +18,7 @@
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\..\..\..\..\retro-dbg-data-provider\src\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider.csproj" />
       <ProjectReference Include="..\..\C64AssemblerStudio.Core\C64AssemblerStudio.Core.csproj" />
       <ProjectReference Include="..\..\C64AssemblerStudio.Engine\C64AssemblerStudio.Engine.csproj" />
       <ProjectReference Include="..\TestsBase\TestsBase.csproj" />
