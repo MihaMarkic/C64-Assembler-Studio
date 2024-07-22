@@ -20,6 +20,7 @@ public static class IoCRegistrar
             .AddSingleton<ISettingsManager, SettingsManager>()
             // ViewModels
             .AddSingleton<MainViewModel>()
+            .AddScoped<StartPageViewModel>()
             .AddScoped<ProjectFilesWatcherViewModel>()
             .AddScoped<ProjectExplorerViewModel>()
             .AddScoped<SettingsViewModel>()

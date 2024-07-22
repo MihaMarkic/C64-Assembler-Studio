@@ -2,13 +2,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModels:StartPageViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Main.StartPage">
     <Grid RowDefinitions="Auto,*">
         <TextBlock>Start Page</TextBlock>
         <TextBlock Grid.Column="0" Grid.Row="1" Margin="0,4">
             <InlineUIContainer>
-                <!-- <HyperlinkButton Content="Load last project" /> -->
+                <HyperlinkButton Content="Load last project" Command="{Binding LoadLastProjectCommand}" />
             </InlineUIContainer>
         </TextBlock>
     </Grid>

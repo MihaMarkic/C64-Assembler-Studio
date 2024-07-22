@@ -143,7 +143,7 @@
                 <ctl:DockSizer Width="5" Margin="2,0" DockPanel.Dock="Left" Orientation="Vertical" />
                 <!-- <v:SourceFilesViewer DataContext="{Binding #Source.DataContext.DebuggerViewModel.SourceFileViewerViewModel}"/> -->
                 <fv:FilesViewer DataContext="{Binding Files}" IsVisible="{Binding #Source.((vm:MainViewModel)DataContext).IsProjectOpen}" />
-                <mv:StartPage IsVisible="{Binding !#Source.((vm:MainViewModel)DataContext).IsProjectOpen}"  />
+                <mv:StartPage DataContext="{Binding StartPage}" IsVisible="{Binding !#Source.((vm:MainViewModel)DataContext).IsProjectOpen}"  />
             </DockPanel>
             <ContentControl Content="{Binding OverlayContent}" />
         </Grid>

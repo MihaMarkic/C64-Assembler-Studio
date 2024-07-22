@@ -41,9 +41,9 @@ public class MainViewModel : ViewModel
     public RelayCommand ExitCommand { get; }
     public RelayCommandAsync BuildCommand { get; }
     public IProjectViewModel Project => _globals.Project;
-
     public ProjectExplorerViewModel ProjectExplorer { get; }
     public FilesViewModel Files { get; }
+    public StartPageViewModel? StartPage { get; private set; }
     public ErrorMessagesViewModel ErrorMessages { get; }
     public BuildOutputViewModel BuildOutput { get; }
     public CompilerErrorsOutputViewModel CompilerErrors { get; }
@@ -84,6 +84,8 @@ public class MainViewModel : ViewModel
         BuildOutput = buildOutput;
         CompilerErrors = compilerErrors;
         BottomTools = [ErrorMessages, CompilerErrors, BuildOutput];
+        StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
+        StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
         OpenProjectFromPathCommand = _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);
@@ -98,6 +100,17 @@ public class MainViewModel : ViewModel
             SwitchOverlayContent<SettingsViewModel>();
         }
         globals.PropertyChanged += Globals_PropertyChanged;
+    }
+
+    private void StartPage_LoadLastProjectRequest(object? sender, EventArgs e)
+    {
+        if (StartPage is not null)
+        {
+            OpenProjectFromPath(RecentProjects.First());
+            StartPage.LoadLastProjectRequest -= StartPage_LoadLastProjectRequest;
+            StartPage.Dispose();
+            StartPage = null;
+        }
     }
 
     private CancellationTokenSource? _buildCts;
