@@ -10,7 +10,7 @@ namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
 public abstract class ProjectFileViewModel : FileViewModel
 {
-    protected ProjectFile File { get; }
+    public ProjectFile File { get; }
     protected Globals Globals { get; }
     public BusyIndicator BusyIndicator { get; } = new();
     public string Content { get; set; }

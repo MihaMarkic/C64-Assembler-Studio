@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
+using C64AssemblerStudio.Engine.ViewModels;
 
 namespace C64AssemblerStudio.Engine.Models.Projects;
 
@@ -8,7 +9,6 @@ public abstract class ProjectItem: NotifiableObject
 {
     public required ProjectDirectory? Parent { get; init; }
     public required string Name { get; set; }
-
     public string GetRelativeDirectory()
     {
         var sb = new StringBuilder();
@@ -24,6 +24,26 @@ public abstract class ProjectItem: NotifiableObject
         }
 
         return sb.ToString();
+    }
+    /// <summary>
+    /// Compares full path to <param name="other"></param>
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public bool IsSame(ProjectItem other)
+    {
+        if (other.GetType() != GetType())
+        {
+            return false;
+        }
+
+        string thisDirectory = GetRelativeDirectory();
+        string otherDirectory = other.GetRelativeDirectory();
+        if (!thisDirectory.Equals(otherDirectory, OSDependent.FileStringComparison))
+        {
+            return false;
+        }
+        return Name.Equals(other.Name, OSDependent.FileStringComparison);
     }
 }
 

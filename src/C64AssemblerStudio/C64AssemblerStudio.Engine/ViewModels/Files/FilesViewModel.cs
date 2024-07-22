@@ -1,6 +1,7 @@
 ﻿using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
+using C64AssemblerStudio.Engine.Models.Projects;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 
@@ -51,8 +52,19 @@ public class FilesViewModel: ViewModel
     {
         Files.Remove(file);
     }
+
+    ProjectFileViewModel? FindOpenFile(ProjectFile file)
+    {
+        return Files.OfType<ProjectFileViewModel>().FirstOrDefault(vm => vm.File.IsSame(file));
+    }
     internal async void OpenFile(OpenFileMessage message)
     {
+        var existingViewModel = FindOpenFile(message.File);
+        if (existingViewModel is not null)
+        {
+            Selected = existingViewModel;
+            return;
+        }
         var viewModel = message.File.FileType switch
         {
             FileType.Assembler => _serviceProvider.CreateScopedSourceFileViewModel<AssemblerFileViewModel>(message.File),
@@ -64,6 +76,7 @@ public class FilesViewModel: ViewModel
             {
                 _ = viewModel.LoadContentAsync();
                 Files.Add(viewModel);
+                Selected = viewModel;
             }
             catch (Exception ex)
             {
