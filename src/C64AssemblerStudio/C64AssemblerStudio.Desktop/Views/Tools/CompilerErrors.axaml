@@ -1,0 +1,17 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:tools="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="tools:CompilerErrorsOutputViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Tools.CompilerErrors">
+        <DataGrid ItemsSource="{Binding Lines}" AutoGenerateColumns="False" >
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Line" Binding="{Binding Line}" Width="60"/>
+                <DataGridTextColumn Header="Col" Binding="{Binding Column}" Width="60" />
+                <DataGridTextColumn Header="Error" Binding="{Binding Text}" Width="400" />
+                <DataGridTextColumn Header="Path" Binding="{Binding Path}" />
+            </DataGrid.Columns>
+        </DataGrid>
+</UserControl>

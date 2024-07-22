@@ -1,20 +1,19 @@
-﻿using C64AssemblerStudio.Core;
-using C64AssemblerStudio.Engine.Messages;
+﻿using C64AssemblerStudio.Engine.Messages;
 using Righthand.MessageBus;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Tools;
 
-public class ErrorMessagesViewModel: NotifiableObject
+public class ErrorMessagesViewModel: OutputViewModel<ErrorMessage>
 {
-    public ObservableCollection<ErrorMessage> Messages { get; } = new ObservableCollection<ErrorMessage>();
     private readonly ISubscription _messagesSubscription;
+    public override string Header { get; } = "Error Messages";
     public ErrorMessagesViewModel(IDispatcher dispatcher)
     {
         _messagesSubscription = dispatcher.Subscribe<ErrorMessage>(OnErrorMessage);
     }
     void OnErrorMessage(ErrorMessage message)
     {
-        Messages.Add(message);
+        Lines.Add(message);
     }
     protected override void Dispose(bool disposing)
     {

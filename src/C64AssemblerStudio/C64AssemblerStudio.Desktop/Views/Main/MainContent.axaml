@@ -11,6 +11,7 @@
              xmlns:mv="clr-namespace:C64AssemblerStudio.Desktop.Views.Main"
              xmlns:fv="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
              xmlns:tools="clr-namespace:C64AssemblerStudio.Desktop.Views.Tools"
+             xmlns:tvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
              x:Class="C64AssemblerStudio.Desktop.Views.Main.MainContent"
              x:DataType="vm:MainViewModel">
@@ -52,50 +53,97 @@
         <mv:MainMenu DockPanel.Dock="Top" />
         <Grid>
             <DockPanel IsVisible="{Binding OverlayContent, Converter={x:Static ObjectConverters.IsNull}}">
-            <ctl:DockTool DockPanel.Dock="Bottom" Height="200"
-                          Title="{Binding #BottomTabs.((TabItem)SelectedItem).Header}"
-                          HorizontalContentAlignment="Stretch">
-                <Grid>
-                    <TabControl x:Name="BottomTabs" TabStripPlacement="Bottom">
-                        <TabItem Header="Errors">
-                          <tools:ErrorMessages DataContext="{Binding #Source.((vm:MainViewModel)DataContext).ErrorMessages}" />
-                        </TabItem>
-                        <!--   <TabItem Header="Registers"> -->
-                        <!--     <v:Registers DataContext="{Binding #Source.DataContext.RegistersViewModel}" /> -->
-                        <!--   </TabItem> -->
-                        <!--   <TabItem Header="Breakpoints"> -->
-                        <!--     <v:Breakpoints DataContext="{Binding #Source.DataContext.BreakpointsViewModel}" /> -->
-                        <!--   </TabItem> -->
-                        <!--   <TabItem Header="Variables"> -->
-                        <!--     <v:Variables DataContext="{Binding #Source.DataContext.VariablesViewModel}" /> -->
-                        <!--   </TabItem> -->
-                        <!--   <TabItem Header="Watch"> -->
-                        <!--     <v:Variables DataContext="{Binding #Source.DataContext.WatchedVariablesViewModel}" /> -->
-                        <!--   </TabItem> -->
-                        <!--   <TabItem Header="Trace"> -->
-                        <!--     <v:TraceOutput DataContext="{Binding #Source.DataContext.TraceOutputViewModel}" /> -->
-                        <!--   </TabItem> -->
-                        <!--   <TabItem Header="Memory"> -->
-                        <!--     <v:MemoryViewer DataContext="{Binding #Source.DataContext.MemoryViewerViewModel}" /> -->
-                        <!--   </TabItem> -->
-                        <!--   <TabItem Header="Call Stack"> -->
-                        <!--     <v:CallStack DataContext="{Binding #Source.DataContext.CallStackViewModel}" /> -->
-                        <!--   </TabItem> -->
-                    </TabControl>
-                    <!-- <v:StatusInfo DataContext="{Binding StatusInfoViewModel}" HorizontalAlignment="Right"  -->
-                    <!--   VerticalAlignment="Bottom" Margin="0,0,4,4"/> -->
-                </Grid>
-            </ctl:DockTool>
-            <ctl:DockSizer Height="5" Margin="0,2" DockPanel.Dock="Bottom" Orientation="Horizontal" />
-            <ctl:DockTool DockPanel.Dock="Left" Width="300" Title="Project Explorer">
-                <ctl:DockTool.HeaderContext>
-                    <Button Classes="docktool" Command="{Binding ProjectExplorer.RefreshCommand}">R</Button>
-                </ctl:DockTool.HeaderContext>
-                <v:ProjectExplorer DataContext="{Binding ProjectExplorer}" />
-            </ctl:DockTool>
-            <ctl:DockSizer Width="5" Margin="2,0" DockPanel.Dock="Left" Orientation="Vertical" />
-            <!-- <v:SourceFilesViewer DataContext="{Binding #Source.DataContext.DebuggerViewModel.SourceFileViewerViewModel}"/> -->
-            <fv:FilesViewer DataContext="{Binding Files}" />
+                <ctl:DockTool DockPanel.Dock="Bottom" Height="200"
+                              Title="{Binding #BottomTabs.((tvm:IToolView)SelectedItem).Header}"
+                              HorizontalContentAlignment="Stretch">
+                    <ctl:DockTool.HeaderContext>
+                        <ContentControl Content="{Binding #BottomTabs.((tvm:IToolView)SelectedItem)}">
+                            <ContentControl.DataTemplates>
+                                <DataTemplate DataType="tvm:ErrorMessagesViewModel">
+                                    <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
+                                </DataTemplate>
+                                <DataTemplate DataType="tvm:BuildOutputViewModel">
+                                    <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
+                                </DataTemplate>
+                                <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
+                                    <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
+                                </DataTemplate>
+                            </ContentControl.DataTemplates>
+                        </ContentControl>
+                    </ctl:DockTool.HeaderContext>
+                    <Grid>
+                        <TabControl x:Name="BottomTabs" TabStripPlacement="Bottom" ItemsSource="{Binding BottomTools}" SelectedItem="{Binding SelectedBottomTool}">
+                            <TabControl.ContentTemplate>
+                                <DataTemplate DataType="tvm:IToolView">
+                                    <ContentControl Content="{Binding}">
+                                        <ContentControl.DataTemplates>
+                                            <DataTemplate DataType="tvm:ErrorMessagesViewModel">
+                                                <tools:ErrorMessages />
+                                            </DataTemplate>
+                                            <DataTemplate DataType="tvm:BuildOutputViewModel">
+                                                <tools:BuildOutput />
+                                            </DataTemplate>
+                                            <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
+                                                <tools:CompilerErrors />
+                                            </DataTemplate>
+                                        </ContentControl.DataTemplates>
+                                    </ContentControl>
+                                </DataTemplate>
+                            </TabControl.ContentTemplate>
+                            <TabControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Header}" />
+                                </DataTemplate>
+                            </TabControl.ItemTemplate>
+                            <!-- <TabItem Header="Errors"> -->
+                            <!--     <tools:ErrorMessages -->
+                            <!--         DataContext="{Binding #Source.((vm:MainViewModel)DataContext).ErrorMessages}" /> -->
+                            <!-- </TabItem> -->
+                            <!-- <TabItem Header="Error List"> -->
+                            <!--     <tools:CompilerErrors -->
+                            <!--         DataContext="{Binding #Source.((vm:MainViewModel)DataContext).CompilerErrors}" /> -->
+                            <!-- </TabItem> -->
+                            <!-- <TabItem Header="Build"> -->
+                            <!--     <tools:BuildOutput -->
+                            <!--         DataContext="{Binding #Source.((vm:MainViewModel)DataContext).BuildOutput}" /> -->
+                            <!-- </TabItem> -->
+                            <!--   <TabItem Header="Registers"> -->
+                            <!--     <v:Registers DataContext="{Binding #Source.DataContext.RegistersViewModel}" /> -->
+                            <!--   </TabItem> -->
+                            <!--   <TabItem Header="Breakpoints"> -->
+                            <!--     <v:Breakpoints DataContext="{Binding #Source.DataContext.BreakpointsViewModel}" /> -->
+                            <!--   </TabItem> -->
+                            <!--   <TabItem Header="Variables"> -->
+                            <!--     <v:Variables DataContext="{Binding #Source.DataContext.VariablesViewModel}" /> -->
+                            <!--   </TabItem> -->
+                            <!--   <TabItem Header="Watch"> -->
+                            <!--     <v:Variables DataContext="{Binding #Source.DataContext.WatchedVariablesViewModel}" /> -->
+                            <!--   </TabItem> -->
+                            <!--   <TabItem Header="Trace"> -->
+                            <!--     <v:TraceOutput DataContext="{Binding #Source.DataContext.TraceOutputViewModel}" /> -->
+                            <!--   </TabItem> -->
+                            <!--   <TabItem Header="Memory"> -->
+                            <!--     <v:MemoryViewer DataContext="{Binding #Source.DataContext.MemoryViewerViewModel}" /> -->
+                            <!--   </TabItem> -->
+                            <!--   <TabItem Header="Call Stack"> -->
+                            <!--     <v:CallStack DataContext="{Binding #Source.DataContext.CallStackViewModel}" /> -->
+                            <!--   </TabItem> -->
+                        </TabControl>
+                        <!-- <v:StatusInfo DataContext="{Binding StatusInfoViewModel}" HorizontalAlignment="Right"  -->
+                        <!--   VerticalAlignment="Bottom" Margin="0,0,4,4"/> -->
+                    </Grid>
+                </ctl:DockTool>
+                <ctl:DockSizer Height="5" Margin="0,2" DockPanel.Dock="Bottom" Orientation="Horizontal" />
+                <ctl:DockTool DockPanel.Dock="Left" Width="300" Title="Project Explorer">
+                    <ctl:DockTool.HeaderContext>
+                        <Button Classes="docktool" Command="{Binding ProjectExplorer.RefreshCommand}">R</Button>
+                    </ctl:DockTool.HeaderContext>
+                    <v:ProjectExplorer DataContext="{Binding ProjectExplorer}" />
+                </ctl:DockTool>
+                <ctl:DockSizer Width="5" Margin="2,0" DockPanel.Dock="Left" Orientation="Vertical" />
+                <!-- <v:SourceFilesViewer DataContext="{Binding #Source.DataContext.DebuggerViewModel.SourceFileViewerViewModel}"/> -->
+                <fv:FilesViewer DataContext="{Binding Files}" IsVisible="{Binding #Source.((vm:MainViewModel)DataContext).IsProjectOpen}" />
+                <mv:StartPage IsVisible="{Binding !#Source.((vm:MainViewModel)DataContext).IsProjectOpen}"  />
             </DockPanel>
             <ContentControl Content="{Binding OverlayContent}" />
         </Grid>

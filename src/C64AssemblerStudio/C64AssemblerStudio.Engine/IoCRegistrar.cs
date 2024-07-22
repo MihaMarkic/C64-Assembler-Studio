@@ -6,14 +6,16 @@ using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider;
+using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine;
 
 public static class IoCRegistrar
 {
-    public static void AddEngine(this IServiceCollection services, bool messagesHistoryEnabled)
+    public static IServiceCollection AddEngine(this IServiceCollection services, bool messagesHistoryEnabled)
     {
-        services
+        return services
             .AddSingleton<Globals>()
             .AddSingleton<ISettingsManager, SettingsManager>()
             // ViewModels
@@ -25,6 +27,8 @@ public static class IoCRegistrar
             .AddTransient<AssemblerFileViewModel>()
             // Tools
             .AddScoped<ErrorMessagesViewModel>()
+            .AddScoped<BuildOutputViewModel>()
+            .AddScoped<CompilerErrorsOutputViewModel>()
             // Dialogs
             .AddTransient<AddFileDialogViewModel>()
             .AddTransient<AddDirectoryDialogViewModel>()
@@ -35,6 +39,7 @@ public static class IoCRegistrar
             .AddTransient(sp => sp.CreateScope())
             .AddSingleton<IDispatcher>(
             // uses dispatching from within same thread to all subscriptions by default as most subscribers are running on UI thread
-new Dispatcher(new DispatchContext(DispatchThreading.SameThread)));
+                new Dispatcher(new DispatchContext(DispatchThreading.SameThread)))
+            .AddDebugDataProvider();
     }
 }

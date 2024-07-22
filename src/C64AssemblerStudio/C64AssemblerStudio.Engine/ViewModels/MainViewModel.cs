@@ -12,6 +12,8 @@ using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using PropertyChanged;
+using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
+using Righthand.RetroDbgDataProvider.KickAssembler.Services.Implementation;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -37,15 +39,21 @@ public class MainViewModel : ViewModel
     public RelayCommand ShowSettingsCommand { get; }
     public RelayCommand ShowProjectSettingsCommand { get; }
     public RelayCommand ExitCommand { get; }
+    public RelayCommandAsync BuildCommand { get; }
     public IProjectViewModel Project => _globals.Project;
 
     public ProjectExplorerViewModel ProjectExplorer { get; }
     public FilesViewModel Files { get; }
     public ErrorMessagesViewModel ErrorMessages { get; }
+    public BuildOutputViewModel BuildOutput { get; }
+    public CompilerErrorsOutputViewModel CompilerErrors { get; }
+    public ImmutableArray<IToolView> BottomTools { get; }
+    public IToolView SelectedBottomTool { get; set; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
     public bool IsDebugging => false;
+    public bool IsBuilding { get; private set; }
     public bool IsProjectOpen => _globals.Project is not EmptyProjectViewModel;
     /// <summary>
     /// Tracks whether user held shift when it performed an action.
@@ -60,7 +68,7 @@ public class MainViewModel : ViewModel
     public ViewModel? OverlayContent { get; private set; }
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
-        ErrorMessagesViewModel errorMessages)
+        ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput, CompilerErrorsOutputViewModel compilerErrors)
     {
         _logger = logger;
         _globals = globals;
@@ -73,6 +81,9 @@ public class MainViewModel : ViewModel
         ProjectExplorer = projectExplorer;
         Files = files;
         ErrorMessages = errorMessages;
+        BuildOutput = buildOutput;
+        CompilerErrors = compilerErrors;
+        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput];
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
         OpenProjectFromPathCommand = _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);
@@ -81,11 +92,46 @@ public class MainViewModel : ViewModel
         CloseProjectCommand = _commandsManager.CreateRelayCommand(CloseProject, () => IsProjectOpen && !IsDebugging);
         ShowSettingsCommand = _commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
         ExitCommand = new RelayCommand(() => CloseApp?.Invoke());
+        BuildCommand = new RelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
         if (!Directory.Exists(globals.Settings.VicePath))
         {
             SwitchOverlayContent<SettingsViewModel>();
         }
         globals.PropertyChanged += Globals_PropertyChanged;
+    }
+
+    private CancellationTokenSource? _buildCts;
+    async Task BuildAsync()
+    {
+        await _buildCts.CancelNullableAsync();
+        IsBuilding = true;
+        _buildCts = new CancellationTokenSource();
+        var ct = _buildCts.Token;
+        try
+        {
+            BuildOutput.Clear();
+            CompilerErrors.Clear();
+            SelectedBottomTool = BuildOutput;
+            using (var compileScope = _scope.ServiceProvider.CreateScope())
+            {
+                var compiler = compileScope.ServiceProvider.GetRequiredService<IKickAssemblerCompiler>();
+                var settings =
+                    new KickAssemblerCompilerSettings(
+                        @"D:\Git\Righthand\C64\C64-Assembler-Studio\binaries\KickAss\KickAss.jar");
+                string directory = Project.Directory.ValueOrThrow();
+                string file = "main.asm";
+                var (errorCode, errors) = await compiler.CompileAsync(file, directory, "build", settings, l => BuildOutput.AddLine(l));
+                if (errorCode != 0)
+                {
+                    CompilerErrors.AddLines(errors);
+                    SelectedBottomTool = CompilerErrors;
+                }
+            }
+        }
+        finally
+        {
+            IsBuilding = false;
+        }
     }
     public async Task CreateProjectAsync()
     {

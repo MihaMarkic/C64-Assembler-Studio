@@ -41,6 +41,9 @@
         <Separator/>
         <MenuItem Header="_Exit" Command="{Binding ExitCommand}" />
       </MenuItem>
+      <MenuItem Header="_Build">
+        <MenuItem Header="_Build Project" Command="{Binding BuildCommand}" />  
+      </MenuItem>
       <!--<MenuItem Header="_Debug">
         <MenuItem Header="{Binding RunMenuCommandTitle}" Command="{Binding RunCommand}">
           <MenuItem.Icon>

@@ -204,7 +204,7 @@ LIGHT_GREY: 'LIGHT_GREY';
 
 void CreateEntries(string comment, string text, string tokenType)
 {
-	const string prefix = "\t\t\t\t";
+	const string prefix = "\t\t\t\t\t";
 
 	Console.WriteLine($"{prefix}// {comment}");
 	string? line;
@@ -220,10 +220,3 @@ CreateEntries("Brackets", bracketsSource, "Bracket");
 CreateEntries("Operators", operatorsSource, "Operator");
 CreateEntries("Directives", directiveSources, "Directive");
 CreateEntries("Colors", colorSources, "Color");
-
-Console.WriteLine("{prefix}// Colors");
-reader = new StringReader(colorSources);
-while ((line = reader.ReadLine()) is not null)
-{
-	Console.WriteLine($"\t\t\t{{ KickAssemblerLexer.{line.Split(':')[0]}, TokenType.Color }},");
-}
