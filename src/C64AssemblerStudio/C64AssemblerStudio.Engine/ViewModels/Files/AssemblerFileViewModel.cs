@@ -11,6 +11,7 @@ using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
+public record SyntaxError(string Text, int Line, int Start, int End);
 public class AssemblerFileViewModel : ProjectFileViewModel
 {
     public enum TokenType
@@ -29,8 +30,6 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     }
     public record LineItem(int Start, int End, TokenType TokenType);
     public record Line(ImmutableArray<LineItem> Items);
-    public record SyntaxError(string Text, int Line, int Start, int End);
-
     private readonly CompilerErrorsOutputViewModel _compilerErrors;
     private ImmutableArray<ImmutableArray<IToken>> _tokens = ImmutableArray<ImmutableArray<IToken>>.Empty;
     public ImmutableArray<Line?> Lines { get; private set; } = ImmutableArray<Line?>.Empty;
@@ -101,6 +100,21 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         return null;
     }
 
+    public SyntaxError? GetSyntaxErrorAt(int line, int column)
+    {
+        if (Errors.TryGetValue(line, out var errors))
+        {
+            foreach (var e in errors)
+            {
+                if (e.Start <= column && e.End > column)
+                {
+                    return e;
+                }
+            }
+        }
+
+        return null;
+    }
     protected override void OnPropertyChanged(string name = default!)
     {
         switch (name)

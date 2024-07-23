@@ -1,11 +1,14 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using AvaloniaEdit;
+using AvaloniaEdit.Utils;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using TextMateSharp.Grammars;
@@ -132,23 +135,35 @@ public partial class AssemblerFile : UserControl
 
     private void Editor_PointerHover(object? sender, PointerEventArgs e)
     {
-        // if (ViewModel is not null)
-        // {
-        //     var flyout = (Flyout?)FlyoutBase.GetAttachedFlyout(Editor);
-        //     if (flyout is not null)
-        //     {
-        //         object? symbolReference = GetSymbolReferenceAtPosition(e);
-        //         if (symbolReference is not null)
-        //         {
-        //             var info = ViewModel.GetContextSymbolReferenceInfo(symbolReference);
-        //             if (info is not null)
-        //             {
-        //                 FlyoutContent.DataContext = info;
-        //                 flyout.ShowAt(Editor, true);
-        //             }
-        //         }
-        //     }
-        // }
+        if (ViewModel is not null)
+        {
+            var flyout = (Flyout?)FlyoutBase.GetAttachedFlyout(Editor);
+            if (flyout is not null)
+            {
+                object? symbolReference = GetSymbolReferenceAtPosition(e);
+                if (symbolReference is not null)
+                {
+                        FlyoutContent.DataContext = symbolReference;
+                        flyout.ShowAt(Editor, true);
+                }
+            }
+        }
+    }
+    SyntaxError? GetSymbolReferenceAtPosition(PointerEventArgs e)
+    {
+        if (ViewModel is not null)
+        {
+            var textView = Editor.TextArea.TextView;
+            var pos = e.GetPosition(textView);
+            pos = new Point(pos.X, pos.Y.CoerceValue(0, textView.Bounds.Height) + textView.VerticalOffset);
+            var vp = textView.GetPosition(pos);
+            if (vp is not null)
+            {
+                Debug.WriteLine($"Pos {vp.Value.Line} {vp.Value.Column}");
+                return ViewModel.GetSyntaxErrorAt(vp.Value.Line, vp.Value.Column-1);
+            }
+        }
+        return null;
     }
 
     private void Editor_PointerPressed(object? sender, PointerPressedEventArgs e)

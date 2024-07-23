@@ -30,5 +30,12 @@
         <ae:TextEditor.Options>
             <ae:TextEditorOptions ShowTabs="False" />
         </ae:TextEditor.Options>
+        <FlyoutBase.AttachedFlyout>
+            <Flyout ShowMode="TransientWithDismissOnPointerMoveAway">
+                <StackPanel Name="FlyoutContent" Orientation="Horizontal" x:DataType="files:SyntaxError">
+                    <TextBlock Text="{Binding Text}" />
+                </StackPanel>
+            </Flyout>
+        </FlyoutBase.AttachedFlyout>
     </ae:TextEditor>
 </UserControl>
