@@ -49,6 +49,7 @@ public class MainViewModel : ViewModel
     public CompilerErrorsOutputViewModel CompilerErrors { get; }
     public ImmutableArray<IToolView> BottomTools { get; }
     public IToolView SelectedBottomTool { get; set; }
+    public StatusInfoViewModel StatusInfo { get; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
@@ -68,7 +69,8 @@ public class MainViewModel : ViewModel
     public ViewModel? OverlayContent { get; private set; }
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
-        ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput, CompilerErrorsOutputViewModel compilerErrors)
+        ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput, CompilerErrorsOutputViewModel compilerErrors,
+        StatusInfoViewModel statusInfo)
     {
         _logger = logger;
         _globals = globals;
@@ -83,6 +85,7 @@ public class MainViewModel : ViewModel
         ErrorMessages = errorMessages;
         BuildOutput = buildOutput;
         CompilerErrors = compilerErrors;
+        StatusInfo = statusInfo;
         BottomTools = [ErrorMessages, CompilerErrors, BuildOutput];
         StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
         StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
@@ -281,6 +284,12 @@ public class MainViewModel : ViewModel
     }
     protected override void OnPropertyChanged([CallerMemberName] string name = default!)
     {
+        switch (name)
+        {
+            case nameof(IsBuilding):
+                StatusInfo.IsBuilding = IsBuilding;
+                break;
+        }
         base.OnPropertyChanged(name);
     }
     internal void ShowSettings()

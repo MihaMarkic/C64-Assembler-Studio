@@ -129,8 +129,8 @@
                             <!--     <v:CallStack DataContext="{Binding #Source.DataContext.CallStackViewModel}" /> -->
                             <!--   </TabItem> -->
                         </TabControl>
-                        <!-- <v:StatusInfo DataContext="{Binding StatusInfoViewModel}" HorizontalAlignment="Right"  -->
-                        <!--   VerticalAlignment="Bottom" Margin="0,0,4,4"/> -->
+                        <v:StatusInfo DataContext="{Binding StatusInfo}" HorizontalAlignment="Right"
+                          VerticalAlignment="Bottom" Margin="0,0,4,4"/>
                     </Grid>
                 </ctl:DockTool>
                 <ctl:DockSizer Height="5" Margin="0,2" DockPanel.Dock="Bottom" Orientation="Horizontal" />

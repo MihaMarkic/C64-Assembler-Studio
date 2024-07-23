@@ -1,0 +1,21 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModels:StatusInfoViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.StatusInfo">
+    <StackPanel Name="Content" Orientation="Horizontal">
+       <TextBlock Classes="pc_value" Text="Building" IsVisible="{Binding IsBuilding}" />
+        <!-- <TextBlock Classes="pc_value" Text="{Binding StepMode, Converter={StaticResource StepModeToStringConverter}}" -->
+        <!--            MinWidth="34" TextAlignment="Center" ToolTip.Tip="Step Mode. Hold Shift to activate ASM mode."/> -->
+        <!-- <TextBlock Classes="pc_value">|</TextBlock> -->
+        <!-- ~1~<TextBlock Classes="pc_label" Text="PC:" Margin="0,0,2,0" />@1@ -->
+        <!-- <Grid MinWidth="50" ToolTip.Tip="Current execution address (PC)"> -->
+        <!--     <TextBlock Classes="pc_value" -->
+        <!--                Text="{Binding ExecutionAddress, Converter={StaticResource HexAddressConverter}}"  -->
+        <!--                IsVisible="{Binding EffectiveVisibility}" /> -->
+        <!-- </Grid> -->
+    </StackPanel>
+</UserControl>
