@@ -14,20 +14,10 @@ namespace C64AssemblerStudio.Desktop.Views.Files;
 
 public partial class AssemblerFile : UserControl
 {
-    static readonly RegistryOptions RegistryOptions;
-    static readonly PropertyInfo TextEditorScrollViewerPropertyInfo;
     readonly LineNumbers _lineNumbers;
     private SyntaxColorizer? _syntaxColorizer;
     ISolidColorBrush? _lineNumberForeground;
     private AssemblerFileViewModel? _oldViewModel;
-
-    static AssemblerFile()
-    {
-        TextEditorScrollViewerPropertyInfo = typeof(TextEditor)
-            .GetProperty("ScrollViewer", BindingFlags.Instance | BindingFlags.NonPublic)
-            .ValueOrThrow();
-        RegistryOptions = new RegistryOptions(ThemeName.SolarizedLight);
-    }
 
     public AssemblerFile()
     {
@@ -103,6 +93,9 @@ public partial class AssemblerFile : UserControl
 
                 break;
             case nameof(AssemblerFileViewModel.Lines):
+                Editor.TextArea.TextView.Redraw();
+                break;
+            case nameof(AssemblerFileViewModel.Errors):
                 Editor.TextArea.TextView.Redraw();
                 break;
         }

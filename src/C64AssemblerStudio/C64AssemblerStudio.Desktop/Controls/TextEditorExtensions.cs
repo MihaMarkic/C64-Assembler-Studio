@@ -1,10 +1,15 @@
 ﻿using Avalonia;
-using AvaloniaEdit;
 
 namespace AvaloniaEdit;
 
 public static class TextEditorExtensions
 {
+    /// <summary>
+    /// Awaits layout update.
+    /// </summary>
+    /// <param name="editor"></param>
+    /// <returns></returns>
+    /// <remarks>Used for awaiting layout completition before jumping to any line.</remarks>
     public static Task WaitForLayoutUpdatedAsync(this TextEditor editor)
     {
         var tcs = new TaskCompletionSource();

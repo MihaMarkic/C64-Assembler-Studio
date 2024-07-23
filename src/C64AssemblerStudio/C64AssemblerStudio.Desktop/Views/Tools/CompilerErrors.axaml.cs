@@ -18,7 +18,7 @@ public partial class CompilerErrors : UserControl
         if (ViewModel is not null)
         {
             var command = ViewModel.JumpToCommand;
-            var parameter = (CompilerError)Grid.SelectedItem;
+            var parameter = (FileCompilerError)Grid.SelectedItem;
             if (command.CanExecute(parameter))
             {
                 command.Execute(parameter);

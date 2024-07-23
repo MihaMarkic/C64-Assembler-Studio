@@ -6,11 +6,11 @@ using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Tools;
 
-public class CompilerErrorsOutputViewModel : OutputViewModel<CompilerError>
+public class CompilerErrorsOutputViewModel : OutputViewModel<FileCompilerError>
 {
     private readonly IDispatcher _dispatcher;
     private readonly ProjectExplorerViewModel _projectExplorer;
-    public RelayCommandWithParameter<CompilerError> JumpToCommand { get; }
+    public RelayCommandWithParameter<FileCompilerError> JumpToCommand { get; }
     public override string Header { get; } = "Error List";
 
     public CompilerErrorsOutputViewModel(IDispatcher dispatcher,
@@ -18,16 +18,18 @@ public class CompilerErrorsOutputViewModel : OutputViewModel<CompilerError>
     {
         _dispatcher = dispatcher;
         _projectExplorer = projectExplorer;
-        JumpToCommand = new RelayCommandWithParameter<CompilerError>(JumpTo);
+        JumpToCommand = new RelayCommandWithParameter<FileCompilerError>(JumpTo);
     }
 
-    void JumpTo(CompilerError line)
+    void JumpTo(FileCompilerError line)
     {
-        var file = _projectExplorer.GetProjectFileFromFullPath(line.Path);
-        if (file is not null)
+        //var file = _projectExplorer.GetProjectFileFromFullPath(line.Path);
+        if (line.File is not null)
         {
-            var message = new OpenFileMessage(file, line.Column, line.Line, MoveCaret: true);
+            var message = new OpenFileMessage(line.File, line.Error.Column, line.Error.Line, MoveCaret: true);
             _dispatcher.Dispatch(message);
         }
     }
 }
+
+public record FileCompilerError(ProjectFile? File, CompilerError Error);

@@ -1,12 +1,13 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Specialized;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using C64AssemblerStudio.Core.Services.Abstract;
-using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
+using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.Logging;
-using PropertyChanged;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -28,7 +29,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     }
     public record LineItem(int Start, int End, TokenType TokenType);
     public record Line(ImmutableArray<LineItem> Items);
+    public record SyntaxError(string Text, int Line, int Start, int End);
+
+    private readonly CompilerErrorsOutputViewModel _compilerErrors;
+    private ImmutableArray<ImmutableArray<IToken>> _tokens = ImmutableArray<ImmutableArray<IToken>>.Empty;
     public ImmutableArray<Line?> Lines { get; private set; } = ImmutableArray<Line?>.Empty;
+    public FrozenDictionary<int, ImmutableArray<SyntaxError>> Errors { get; private set; }
     private static readonly FrozenDictionary<int, TokenType> Map;
 
     static AssemblerFileViewModel()
@@ -37,10 +43,62 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     }
 
     public AssemblerFileViewModel(ILogger<AssemblerFileViewModel> logger, IFileService fileService,
-        IDispatcher dispatcher, Globals globals,
+        IDispatcher dispatcher, Globals globals, CompilerErrorsOutputViewModel compilerErrors,
         ProjectFile file) : base(
         logger, fileService, dispatcher, globals, file)
     {
+        _compilerErrors = compilerErrors;
+        Errors = FrozenDictionary<int, ImmutableArray<SyntaxError>>.Empty;
+        UpdateErrors();
+        _compilerErrors.Lines.CollectionChanged += CompilerErrors_LinesOnCollectionChanged;
+    }
+
+    private void CompilerErrors_LinesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        UpdateErrors();
+    }
+
+    void UpdateErrors()
+    {
+        var errors = _compilerErrors.Lines
+            .Where(f => f.File?.IsSame(File) == true)
+            .Select(e =>
+            {
+                var token = FindTokenAtLocation(e.Error.Line, e.Error.Column);
+                int start;
+                int end;
+                if (token is not null)
+                {
+                    start = token.Column;
+                    end = token.Column + token.Text.Length;
+                }
+                else
+                {
+                    start = e.Error.Column;
+                    end = e.Error.Column + 1;
+                }
+                return new SyntaxError(e.Error.Text ?? "?", e.Error.Line, start, end);
+            });
+        Errors = errors
+            .GroupBy(e => e.Line)
+            .ToFrozenDictionary(g => g.Key, g => g.ToImmutableArray());
+    }
+
+    IToken? FindTokenAtLocation(int line, int column)
+    {
+        if (_tokens.Length >= line)
+        {
+            var tokens = _tokens[line - 1];
+            foreach (var t in tokens)
+            {
+                if (t.Column <= column && t.Column + t.Text.Length >= column)
+                {
+                    return t;
+                }
+            }
+        }
+
+        return null;
     }
 
     protected override void OnPropertyChanged(string name = default!)
@@ -59,22 +117,30 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
     internal async Task ParseTextAsync(CancellationToken ct = default)
     {
-        _ctsParser?.Cancel();
+        await _ctsParser.CancelNullableAsync(ct: ct);
         _ctsParser = new();
         try
         {
-            Lines = await Task.Run(() => ParseText(Logger, Content, _ctsParser.Token), _ctsParser.Token);
+            (Lines, var tokens) = await Task.Run(() => ParseText(Logger, Content, _ctsParser.Token), _ctsParser.Token);
+            var tokensBuilder = new List<IToken>?[Lines.Length];
+            foreach (var t in tokens)
+            {
+                tokensBuilder[t.Line-1] ??= new();
+                tokensBuilder[t.Line-1]!.Add(t);
+            }
+            _tokens = [..tokensBuilder.Select(a => a?.ToImmutableArray() ?? ImmutableArray<IToken>.Empty)];
+            UpdateErrors();
         }
         catch (OperationCanceledException)
         {
         }
     }
 
-    internal static ImmutableArray<Line?> ParseText(ILogger logger, string content, CancellationToken ct = default)
+    internal static (ImmutableArray<Line?> Lines, ImmutableArray<IToken> Tokens) ParseText(ILogger logger, string content, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(content))
         {
-            return ImmutableArray<Line?>.Empty;
+            return (ImmutableArray<Line?>.Empty, ImmutableArray<IToken>.Empty);
         }
 
         var input = new AntlrInputStream(content);
@@ -93,7 +159,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         var builder = IterateTokens(linesCount, tokens, ct);
 
         var lines = builder.Select(l => l is not null ? new Line([..l]) : null);
-        return [..lines];
+        return ([..lines], [..tokens]);
     }
 
     internal static List<LineItem>?[] IterateTokens(int linesCount, IList<IToken> tokens, CancellationToken ct)
@@ -348,5 +414,14 @@ public class AssemblerFileViewModel : ProjectFileViewModel
           { KickAssemblerLexer.LIGHT_GREY, TokenType.Color },
         };
         return map.ToFrozenDictionary();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _compilerErrors.Lines.CollectionChanged -= CompilerErrors_LinesOnCollectionChanged;
+        }
+        base.Dispose(disposing);
     }
 }

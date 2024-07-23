@@ -10,6 +10,13 @@ public class SyntaxColorizer : DocumentColorizingTransformer
     public int? LineNumber { get; set; }
     private readonly AssemblerFileViewModel _file;
     public ImmutableHashSet<int> CallStackLineNumbers { get; set; }
+    private static readonly TextDecorationCollection _squiggle;
+
+    static SyntaxColorizer()
+    {
+        _squiggle = TextDecorations.Underline;
+        _squiggle.Add(new TextDecoration { StrokeThickness = 4, Stroke = Brushes.Red});
+    }
     public SyntaxColorizer(AssemblerFileViewModel file)
     {
         _file = file;
@@ -47,6 +54,15 @@ public class SyntaxColorizer : DocumentColorizingTransformer
                     }
                 }
             }
+
+            if (_file.Errors.TryGetValue(line.LineNumber, out var errors))
+            {
+                foreach (var e in errors)
+                {
+                    ChangeLinePart(line.Offset + e.Start, line.Offset + e.End, ApplySyntaxErrorChanges);
+                }
+            }
+
             bool isBackgroundAssigned = false;
 
             if (LineNumber.HasValue && LineNumber == line.LineNumber)
@@ -104,6 +120,11 @@ public class SyntaxColorizer : DocumentColorizingTransformer
 
     void ApplyCallStackChanges(VisualLineElement element) =>
         element.TextRunProperties.SetBackgroundBrush(ElementColor.CallStackCall);
+
+    void ApplySyntaxErrorChanges(VisualLineElement element)
+    {
+        element.TextRunProperties.SetTextDecorations(_squiggle);
+    }
 
     void ApplyExecutionLineChanges(VisualLineElement element)
     {

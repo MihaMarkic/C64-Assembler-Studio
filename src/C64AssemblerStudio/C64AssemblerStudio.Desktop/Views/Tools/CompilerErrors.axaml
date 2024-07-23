@@ -8,10 +8,10 @@
              x:Class="C64AssemblerStudio.Desktop.Views.Tools.CompilerErrors">
         <DataGrid Name="Grid" ItemsSource="{Binding Lines}" AutoGenerateColumns="False" IsReadOnly="True">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Line" Binding="{Binding Line}" Width="60"/>
-                <DataGridTextColumn Header="Col" Binding="{Binding Column}" Width="60" />
-                <DataGridTextColumn Header="Error" Binding="{Binding Text}" Width="400" />
-                <DataGridTextColumn Header="Path" Binding="{Binding Path}" />
+                <DataGridTextColumn Header="Line" Binding="{Binding Error.Line}" Width="60"/>
+                <DataGridTextColumn Header="Col" Binding="{Binding Error.Column}" Width="60" />
+                <DataGridTextColumn Header="Error" Binding="{Binding Error.Text}" Width="400" />
+                <DataGridTextColumn Header="Path" Binding="{Binding Error.Path}" />
             </DataGrid.Columns>
         </DataGrid>
 </UserControl>

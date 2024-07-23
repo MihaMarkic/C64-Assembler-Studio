@@ -58,6 +58,14 @@
                 </TreeDataTemplate>
                 <TreeDataTemplate DataType="mp:ProjectFile">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Background="Transparent">
+                        <StackPanel.Styles>
+                            <Style Selector="TextBlock.file_name">
+                                <Setter Property="Foreground" Value="DarkGray" />
+                            </Style>
+                            <Style Selector="TextBlock.can_open">
+                                <Setter Property="Foreground" Value="Black" />
+                            </Style>
+                        </StackPanel.Styles>
                         <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Rename"
@@ -76,7 +84,7 @@
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <TextBlock Text="F" Foreground="LightBlue" Margin="2,0" />
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Classes="file_name" Classes.can_open="{Binding CanOpen}" Text="{Binding Name}" />
                     </StackPanel>
                 </TreeDataTemplate>
             </TreeView.DataTemplates>

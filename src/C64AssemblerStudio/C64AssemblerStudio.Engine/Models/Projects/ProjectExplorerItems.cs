@@ -62,5 +62,6 @@ public class ProjectDirectory : ProjectItem
 
 public class ProjectFile : ProjectItem
 {
-    public required FileType FileType { get; set; }
+    public required FileType FileType { get; init; }
+    public bool CanOpen => FileType == FileType.Assembler;
 }

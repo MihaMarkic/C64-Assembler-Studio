@@ -133,10 +133,13 @@ public class MainViewModel : ViewModel
                         @"D:\Git\Righthand\C64\C64-Assembler-Studio\binaries\KickAss\KickAss.jar");
                 string directory = Project.Directory.ValueOrThrow();
                 string file = "main.asm";
-                var (errorCode, errors) = await compiler.CompileAsync(file, directory, "build", settings, l => BuildOutput.AddLine(l));
+                var (errorCode, errors) =
+                    await compiler.CompileAsync(file, directory, "build", settings, l => BuildOutput.AddLine(l));
                 if (errorCode != 0)
                 {
-                    CompilerErrors.AddLines(errors);
+                    var fileErorrs = errors.Select(e =>
+                        new FileCompilerError(ProjectExplorer.GetProjectFileFromFullPath(e.Path), e));
+                    CompilerErrors.AddLines(fileErorrs);
                     SelectedBottomTool = CompilerErrors;
                 }
             }
