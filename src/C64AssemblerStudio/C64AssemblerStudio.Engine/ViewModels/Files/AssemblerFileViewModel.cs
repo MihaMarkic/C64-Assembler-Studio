@@ -2,8 +2,10 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using C64AssemblerStudio.Core.Services.Abstract;
+using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using Microsoft.Extensions.Logging;
+using PropertyChanged;
 using Righthand.MessageBus;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
@@ -24,11 +26,8 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         Bracket,
         Separator
     }
-
     public record LineItem(int Start, int End, TokenType TokenType);
-
     public record Line(ImmutableArray<LineItem> Items);
-
     public ImmutableArray<Line?> Lines { get; private set; } = ImmutableArray<Line?>.Empty;
     private static readonly FrozenDictionary<int, TokenType> Map;
 

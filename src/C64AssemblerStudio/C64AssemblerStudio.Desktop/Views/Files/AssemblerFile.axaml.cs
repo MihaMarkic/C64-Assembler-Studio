@@ -1,19 +1,34 @@
 ﻿using System.ComponentModel;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
+using AvaloniaEdit;
+using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.ViewModels.Files;
+using TextMateSharp.Grammars;
 
 namespace C64AssemblerStudio.Desktop.Views.Files;
 
 public partial class AssemblerFile : UserControl
 {
+    static readonly RegistryOptions RegistryOptions;
+    static readonly PropertyInfo TextEditorScrollViewerPropertyInfo;
     readonly LineNumbers _lineNumbers;
     private SyntaxColorizer? _syntaxColorizer;
     ISolidColorBrush? _lineNumberForeground;
     private AssemblerFileViewModel? _oldViewModel;
+
+    static AssemblerFile()
+    {
+        TextEditorScrollViewerPropertyInfo = typeof(TextEditor)
+            .GetProperty("ScrollViewer", BindingFlags.Instance | BindingFlags.NonPublic)
+            .ValueOrThrow();
+        RegistryOptions = new RegistryOptions(ThemeName.SolarizedLight);
+    }
+
     public AssemblerFile()
     {
         InitializeComponent();
@@ -27,6 +42,15 @@ public partial class AssemblerFile : UserControl
         Editor.TextChanged += EditorOnTextChanged;
     }
 
+    void DetachOldViewModel()
+    {
+        if (_oldViewModel is not null)
+        {
+            _oldViewModel.PropertyChanged -= FileViewModelOnPropertyChanged;
+            _oldViewModel.MoveCaretRequest -= FileViewModelOnMoveCaretRequest;
+        }
+    }
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         DetachOldViewModel();
@@ -35,6 +59,7 @@ public partial class AssemblerFile : UserControl
             _syntaxColorizer = new SyntaxColorizer(fileViewModel);
             Editor.TextArea.TextView.LineTransformers.Add(_syntaxColorizer);
             fileViewModel.PropertyChanged += FileViewModelOnPropertyChanged;
+            fileViewModel.MoveCaretRequest += FileViewModelOnMoveCaretRequest;
             Editor.Text = fileViewModel.Content;
             _oldViewModel = fileViewModel;
         }
@@ -44,21 +69,28 @@ public partial class AssemblerFile : UserControl
             {
                 Editor.TextArea.TextView.LineTransformers.Remove(_syntaxColorizer);
             }
+
             _syntaxColorizer = null;
             _oldViewModel = null;
         }
+
         base.OnDataContextChanged(e);
     }
 
-    void DetachOldViewModel()
+    private async void FileViewModelOnMoveCaretRequest(object? sender, MoveCaretEventArgs e)
     {
-        if (_oldViewModel is not null)
+        var caret = Editor.TextArea.Caret;
+        caret.Line = e.Line;
+        caret.Column = e.Column;
+        if (Editor.Bounds.Height <= 0)
         {
-            _oldViewModel.PropertyChanged -= FileViewModelOnPropertyChanged;
+            await Editor.WaitForLayoutUpdatedAsync();
         }
+        Editor.ScrollTo(e.Line, e.Column);
     }
 
     private bool _ignoreTextChange;
+
     private void FileViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
@@ -94,6 +126,7 @@ public partial class AssemblerFile : UserControl
     }
 
     internal AssemblerFileViewModel? ViewModel => (AssemblerFileViewModel?)base.DataContext;
+
     protected override void OnAttachedToLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
         base.OnAttachedToLogicalTree(e);
@@ -103,6 +136,7 @@ public partial class AssemblerFile : UserControl
             _lineNumbers.Foreground = _lineNumberForeground;
         }
     }
+
     private void Editor_PointerHover(object? sender, PointerEventArgs e)
     {
         // if (ViewModel is not null)

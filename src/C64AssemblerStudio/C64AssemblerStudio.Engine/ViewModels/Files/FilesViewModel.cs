@@ -63,6 +63,10 @@ public class FilesViewModel: ViewModel
         if (existingViewModel is not null)
         {
             Selected = existingViewModel;
+            if (message is { MoveCaret: true, Line: not null, Column: not null })
+            {
+                existingViewModel.MoveCaret(message.Line.Value, message.Column.Value);
+            }
             return;
         }
         var viewModel = message.File.FileType switch
@@ -77,6 +81,10 @@ public class FilesViewModel: ViewModel
                 _ = viewModel.LoadContentAsync();
                 Files.Add(viewModel);
                 Selected = viewModel;
+                if (message is { MoveCaret: true, Line: not null, Column: not null })
+                {
+                    viewModel.MoveCaret(message.Line.Value, message.Column.Value);
+                }
             }
             catch (Exception ex)
             {

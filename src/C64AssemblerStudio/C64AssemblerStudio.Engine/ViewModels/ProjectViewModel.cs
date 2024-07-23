@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
@@ -12,7 +13,7 @@ public interface IProjectViewModel
 {
     RelayCommand CloseCommand { get; }
     string? Path { get; set; }
-    string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
+    string? Directory { get; }
     Project? Configuration { get; }
     event PropertyChangedEventHandler? PropertyChanged;
 }
@@ -24,6 +25,7 @@ public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel,
     public TConfiguration? Configuration { get; private set; }
     Project? IProjectViewModel.Configuration => Configuration;
     public string? Path { get; set; }
+    public string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
 
     protected ProjectViewModel(ILogger<ProjectViewModel<TConfiguration>> logger, ISettingsManager settingsManager,
         IDispatcher dispatcher) : base(dispatcher)
@@ -31,7 +33,6 @@ public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel,
         _settingsManager = settingsManager;
         _logger = logger;
     }
-
     public void Init(TConfiguration configuration, string? path)
     {
         Configuration = configuration;

@@ -42,7 +42,7 @@
         <MenuItem Header="_Exit" Command="{Binding ExitCommand}" />
       </MenuItem>
       <MenuItem Header="_Build">
-        <MenuItem Header="_Build Project" Command="{Binding BuildCommand}" />  
+        <MenuItem Header="_Build Project" Command="{Binding BuildCommand}" HotKey="F6" />  
       </MenuItem>
       <!--<MenuItem Header="_Debug">
         <MenuItem Header="{Binding RunMenuCommandTitle}" Command="{Binding RunCommand}">

@@ -4,6 +4,7 @@ using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using Microsoft.Extensions.Logging;
+using PropertyChanged;
 using Righthand.MessageBus;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
@@ -15,6 +16,7 @@ public abstract class ProjectFileViewModel : FileViewModel
     public BusyIndicator BusyIndicator { get; } = new();
     public string Content { get; set; }
     public bool IsReadOnly => string.IsNullOrEmpty(Content);
+    public event EventHandler<MoveCaretEventArgs>? MoveCaretRequest;
 
     protected ProjectFileViewModel(ILogger<ProjectFileViewModel> logger, IFileService fileService,
         IDispatcher dispatcher, Globals globals, ProjectFile file) :
@@ -25,6 +27,8 @@ public abstract class ProjectFileViewModel : FileViewModel
         Caption = file.Name;
         Content = "";
     }
+    [SuppressPropertyChangedWarnings]
+    void OnMoveCaret(MoveCaretEventArgs e) => MoveCaretRequest?.Invoke(this, e);
 
     public async Task LoadContentAsync(CancellationToken ct = default)
     {
@@ -42,6 +46,11 @@ public abstract class ProjectFileViewModel : FileViewModel
                 ErrorText = ex.Message;
             }
         }
+    }
+
+    public void MoveCaret(int row, int col)
+    {
+        OnMoveCaret(new MoveCaretEventArgs(row, col));
     }
 
     protected override void OnPropertyChanged(string name = default!)

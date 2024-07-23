@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="tools:CompilerErrorsOutputViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Tools.CompilerErrors">
-        <DataGrid ItemsSource="{Binding Lines}" AutoGenerateColumns="False" >
+        <DataGrid Name="Grid" ItemsSource="{Binding Lines}" AutoGenerateColumns="False" IsReadOnly="True">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Line" Binding="{Binding Line}" Width="60"/>
                 <DataGridTextColumn Header="Col" Binding="{Binding Column}" Width="60" />

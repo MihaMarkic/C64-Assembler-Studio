@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
@@ -190,6 +191,48 @@ public class ProjectExplorerViewModel : ViewModel
             await message.Result;
         }
     }
+    /// <summary>
+    /// Finds <see cref="ProjectFile"/> based on full path.
+    /// </summary>
+    /// <param name="fullPath">Full path of file to find.</param>
+    /// <returns></returns>
+    public ProjectFile? GetProjectFileFromFullPath(string fullPath)
+    {
+        var directory = _globals.Project.Directory;
+        if (directory is not null && fullPath.StartsWith(directory, OSDependent.FileStringComparison))
+        {
+            var relativePath = fullPath[(directory.Length)..].TrimStart(System.IO.Path.DirectorySeparatorChar);
+            return FindProjectFile(relativePath);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Finds <see cref="ProjectFile"/> based on relative path.
+    /// </summary>
+    /// <param name="relativePath"></param>
+    /// <returns></returns>
+    public ProjectFile? FindProjectFile(string relativePath)
+    {
+        var parts = relativePath.Split(System.IO.Path.DirectorySeparatorChar);
+        ObservableCollection<ProjectItem> items = Items;
+        foreach (string part in parts[0..^1])
+        {
+            var dir = items.OfType<ProjectDirectory>()
+                .FirstOrDefault(i => part.Equals(i.Name, OSDependent.FileStringComparison));
+            if (dir is null)
+            {
+                return null;
+            }
+            items = dir.Items;
+        }
+
+        string fileName = parts.Last();
+        return items.OfType<ProjectFile>()
+            .FirstOrDefault(i => fileName.Equals(i.Name, OSDependent.FileStringComparison));
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
