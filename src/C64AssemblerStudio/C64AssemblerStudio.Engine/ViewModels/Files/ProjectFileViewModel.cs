@@ -19,8 +19,8 @@ public abstract class ProjectFileViewModel : FileViewModel
     public event EventHandler<MoveCaretEventArgs>? MoveCaretRequest;
 
     protected ProjectFileViewModel(ILogger<ProjectFileViewModel> logger, IFileService fileService,
-        IDispatcher dispatcher, Globals globals, ProjectFile file) :
-        base(logger, fileService, dispatcher)
+        IDispatcher dispatcher, StatusInfoViewModel statusInfo, Globals globals, ProjectFile file) :
+        base(logger, fileService, dispatcher, statusInfo)
     {
         File = file;
         Globals = globals;
@@ -59,6 +59,7 @@ public abstract class ProjectFileViewModel : FileViewModel
         {
             case nameof(Content):
                 HasChanges = true;
+                StatusInfo.BuildingStatus = BuildStatus.Idle;
                 break;
             case nameof(HasChanges):
                 SaveCommand.RaiseCanExecuteChanged();

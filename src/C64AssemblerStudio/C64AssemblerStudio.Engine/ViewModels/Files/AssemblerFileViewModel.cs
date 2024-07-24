@@ -42,9 +42,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     }
 
     public AssemblerFileViewModel(ILogger<AssemblerFileViewModel> logger, IFileService fileService,
-        IDispatcher dispatcher, Globals globals, CompilerErrorsOutputViewModel compilerErrors,
-        ProjectFile file) : base(
-        logger, fileService, dispatcher, globals, file)
+        IDispatcher dispatcher, StatusInfoViewModel statusInfo,
+        Globals globals, CompilerErrorsOutputViewModel compilerErrors, ProjectFile file) : base(
+        logger, fileService, dispatcher, statusInfo, globals, file)
     {
         _compilerErrors = compilerErrors;
         Errors = FrozenDictionary<int, ImmutableArray<SyntaxError>>.Empty;

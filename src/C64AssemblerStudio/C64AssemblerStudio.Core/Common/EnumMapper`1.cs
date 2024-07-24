@@ -6,18 +6,19 @@ namespace C64AssemblerStudio.Core.Common;
 
 public abstract class EnumMapper<T>
 {
-    ImmutableDictionary<Type, ImmutableDictionary<Enum, T>> cache;
-    public EnumMapper()
+    ImmutableDictionary<Type, ImmutableDictionary<Enum, T>> _cache;
+
+    protected EnumMapper()
     {
-        cache = ImmutableDictionary<Type, ImmutableDictionary<Enum, T>>.Empty;
+        _cache = ImmutableDictionary<Type, ImmutableDictionary<Enum, T>>.Empty;
     }
 
     protected ImmutableDictionary<Enum, T> GetFromCache(Type enumType, Func<ImmutableDictionary<Enum, T>> populate)
     {
-        if (!cache.TryGetValue(enumType, out var data))
+        if (!_cache.TryGetValue(enumType, out var data))
         {
             data = populate();
-            cache.Add(enumType, data);
+            _cache.Add(enumType, data);
         }
         return data;
     }

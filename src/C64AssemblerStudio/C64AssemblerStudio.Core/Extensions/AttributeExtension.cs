@@ -6,15 +6,15 @@ namespace System;
 
 public static class AttributeExtension
 {
-    static readonly EnumDisplayTextMapper mapper;
+    private static readonly EnumDisplayTextMapper Mapper;
     static AttributeExtension()
     {
-        mapper = IoC.Host.Services.GetRequiredService<EnumDisplayTextMapper>();
+        Mapper = IoC.Host.Services.GetRequiredService<EnumDisplayTextMapper>();
     }
     public static string? GetDisplayText<TEnum>(this TEnum value)
         where TEnum : Enum
     {
-        var map = mapper.GetMapEnum(typeof(TEnum));
+        var map = Mapper.GetMapEnum(typeof(TEnum));
         return map[value];
     }
 }

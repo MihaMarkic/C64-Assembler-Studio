@@ -121,6 +121,7 @@ public class MainViewModel : ViewModel
     {
         await _buildCts.CancelNullableAsync();
         IsBuilding = true;
+        StatusInfo.BuildingStatus = BuildStatus.Building;
         _buildCts = new CancellationTokenSource();
         var ct = _buildCts.Token;
         try
@@ -140,10 +141,15 @@ public class MainViewModel : ViewModel
                     await compiler.CompileAsync(file, directory, "build", settings, l => BuildOutput.AddLine(l));
                 if (errorCode != 0)
                 {
+                    StatusInfo.BuildingStatus = BuildStatus.Failure;
                     var fileErorrs = errors.Select(e =>
                         new FileCompilerError(ProjectExplorer.GetProjectFileFromFullPath(e.Path), e));
                     CompilerErrors.AddLines(fileErorrs);
                     SelectedBottomTool = CompilerErrors;
+                }
+                else
+                {
+                    StatusInfo.BuildingStatus = BuildStatus.Success;
                 }
             }
         }
@@ -281,16 +287,6 @@ public class MainViewModel : ViewModel
     void OnShowModalDialog(ShowModalDialogMessageCore message)
     {
         ShowModalDialog?.Invoke(message);
-    }
-    protected override void OnPropertyChanged([CallerMemberName] string name = default!)
-    {
-        switch (name)
-        {
-            case nameof(IsBuilding):
-                StatusInfo.IsBuilding = IsBuilding;
-                break;
-        }
-        base.OnPropertyChanged(name);
     }
     internal void ShowSettings()
     {

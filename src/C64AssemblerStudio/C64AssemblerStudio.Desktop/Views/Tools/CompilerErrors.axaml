@@ -6,7 +6,13 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="tools:CompilerErrorsOutputViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Tools.CompilerErrors">
-        <DataGrid Name="Grid" ItemsSource="{Binding Lines}" AutoGenerateColumns="False" IsReadOnly="True">
+        <DataGrid Name="Grid" ItemsSource="{Binding Lines}" AutoGenerateColumns="False" IsReadOnly="True"
+                  SelectionMode="Single">
+            <DataGrid.Styles>
+                <Style Selector="DataGridCell">
+                    <Setter Property="FontSize" Value="14" />
+                </Style>
+            </DataGrid.Styles>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Line" Binding="{Binding Error.Line}" Width="60"/>
                 <DataGridTextColumn Header="Col" Binding="{Binding Error.Column}" Width="60" />

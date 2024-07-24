@@ -26,7 +26,7 @@ public static class IoCRegistrar
             .AddScoped<SettingsViewModel>()
             .AddScoped<FilesViewModel>()
             .AddTransient<AssemblerFileViewModel>()
-            .AddScoped<StatusInfoViewModel>()
+            .AddSingleton<StatusInfoViewModel>()
             // Tools
             .AddScoped<ErrorMessagesViewModel>()
             .AddScoped<BuildOutputViewModel>()
