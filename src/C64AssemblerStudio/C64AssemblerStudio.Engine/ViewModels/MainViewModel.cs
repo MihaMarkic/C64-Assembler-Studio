@@ -193,7 +193,7 @@ public class MainViewModel : ViewModel
             {
                 string outDirectory = Path.Combine(directory, "build");
                 string dbgFile = Path.Combine(outDirectory, "main.dbg");
-                string byteDumpFile = Path.Combine(outDirectory, "ByteDump.txt");
+                string byteDumpFile = Path.Combine(outDirectory, "bytedump.dmp");
                 
                 var byteDumpTask = project.ByteDumpParser.LoadFileAsync(byteDumpFile, ct);
                 var dbg = await project.DbgParser.LoadFileAsync(dbgFile, ct);
