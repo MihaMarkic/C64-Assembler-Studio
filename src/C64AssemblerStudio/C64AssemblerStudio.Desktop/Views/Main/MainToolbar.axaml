@@ -1,0 +1,115 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:common="clr-namespace:C64AssemblerStudio.Desktop.Views.Common"
+             xmlns:viewModels="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModels:MainViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Main.MainToolbar">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="DisabledBrush">#c6c6c6</SolidColorBrush>
+        <converters:BoolToColorConverter x:Key="IsConnectedToForegroundConverter" OnTrue="Black"
+                                         OnFalse="{StaticResource DisabledBrush}" />
+        <converters:BoolToSvgImageConverter x:Key="IsConnectedToSvgImageConverter">
+            <converters:BoolToSvgImageConverter.OnTrue>
+                <SvgImage Source="/Assets/Icons/link.svg" />
+            </converters:BoolToSvgImageConverter.OnTrue>
+            <converters:BoolToSvgImageConverter.OnFalse>
+                <SvgImage Source="/Assets/Icons/disabled_link.svg" />
+            </converters:BoolToSvgImageConverter.OnFalse>
+        </converters:BoolToSvgImageConverter>
+
+    </UserControl.Resources>
+    <DockPanel Margin="4,0,4,4" LastChildFill="False" HorizontalAlignment="Stretch">
+        <DockPanel.Styles>
+            <Style Selector="Button">
+                <Setter Property="Margin" Value="4,0" />
+            </Style>
+            <Style Selector="Image">
+                <Setter Property="Margin" Value="4,0" />
+                <Setter Property="Height" Value="14" />
+                <Setter Property="Width" Value="14" />
+            </Style>
+        </DockPanel.Styles>
+        <Button ToolTip.Tip="Starts or continues debugging" Command="{Binding RunCommand}" DockPanel.Dock="Left">
+            <StackPanel Orientation="Horizontal">
+                <Image>
+                    <Image.Styles>
+                        <Style Selector="Image:disabled">
+                            <Setter Property="Source">
+                                <SvgImage Source="/Assets/Icons/play_disabled.svg" />
+                            </Setter>
+                        </Style>
+                        <Style Selector="Image">
+                            <Setter Property="Source">
+                                <SvgImage Source="/Assets/Icons/play.svg" />
+                            </Setter>
+                        </Style>
+                    </Image.Styles>
+                </Image>
+                <TextBlock Margin="4,0,0,0" Text="{Binding StatusInfo.RunCommandTitle}" />
+            </StackPanel>
+        </Button>
+        <Button ToolTip.Tip="Pauses debugging" Command="{Binding PauseCommand}" DockPanel.Dock="Left">
+            <StackPanel Orientation="Horizontal">
+                <Image>
+                    <Image.Styles>
+                        <Style Selector="Image:disabled">
+                            <Setter Property="Source">
+                                <SvgImage Source="/Assets/Icons/pause_disabled.svg" />
+                            </Setter>
+                        </Style>
+                        <Style Selector="Image">
+                            <Setter Property="Source">
+                                <SvgImage Source="/Assets/Icons/pause.svg" />
+                            </Setter>
+                        </Style>
+                    </Image.Styles>
+                </Image>
+                <TextBlock Margin="4,0,0,0">Pause</TextBlock>
+            </StackPanel>
+        </Button>
+        <Button ToolTip.Tip="Stops debugging" Command="{Binding StopCommand}" DockPanel.Dock="Left">
+            <StackPanel Orientation="Horizontal">
+                <Image>
+                    <Image.Styles>
+                        <Style Selector="Image:disabled">
+                            <Setter Property="Source">
+                                <SvgImage Source="/Assets/Icons/stop_disabled.svg" />
+                            </Setter>
+                        </Style>
+                        <Style Selector="Image">
+                            <Setter Property="Source">
+                                <SvgImage Source="/Assets/Icons/stop.svg" />
+                            </Setter>
+                        </Style>
+                    </Image.Styles>
+                </Image>
+                <TextBlock Margin="4,0,0,0">Stop</TextBlock>
+            </StackPanel>
+        </Button>
+        <Button ToolTip.Tip="Step Into" Command="{Binding StepIntoCommand}" CommandParameter="{Binding IsShiftDown}"
+                DockPanel.Dock="Left">
+            <TextBlock Margin="4,0,0,0">Step Into</TextBlock>
+        </Button>
+        <Button ToolTip.Tip="Step Over" Command="{Binding StepOverCommand}" CommandParameter="{Binding IsShiftDown}"
+                DockPanel.Dock="Left">
+            <TextBlock Margin="4,0,0,0">Step Over</TextBlock>
+        </Button>
+        <Button ToolTip.Tip="Show Disassembly at current PC address" Command="{Binding ShowDisassemblyCommand}"
+                DockPanel.Dock="Left">
+            <TextBlock Margin="4,0,0,0">Show Disassembly</TextBlock>
+        </Button>
+        <!-- busy spinner -->
+        <common:Spinner IsActive="{Binding IsBusy}" DockPanel.Dock="Right" Margin="4,0" />
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="4,0">
+            <Image Source="{Binding StatusInfo.IsViceConnected, Converter={StaticResource IsConnectedToSvgImageConverter}}" />
+            <TextBlock Margin="4,0,0,0" VerticalAlignment="Center" ToolTip.Tip="Connection status to VICE"
+                       Foreground="{Binding StatusInfo.IsViceConnected, Converter={StaticResource IsConnectedToForegroundConverter}}">
+                VICE
+            </TextBlock>
+        </StackPanel>
+    </DockPanel>
+</UserControl>

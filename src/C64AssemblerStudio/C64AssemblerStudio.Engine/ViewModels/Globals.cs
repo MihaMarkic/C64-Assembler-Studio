@@ -15,14 +15,23 @@ public class Globals: NotifiableObject
     /// <summary>
     /// Holds active project, when no project is defined it contains <see cref="EmptyProjectViewModel"/>.
     /// </summary>
-    public IProjectViewModel Project { get; set; }
-    public Settings Settings { get; set; } = new Settings();
+    public IProjectViewModel Project { get; private set; }
+    public Settings Settings { get; set; } = new ();
     public Globals(ILogger<Globals> logger, EmptyProjectViewModel emptyProject, ISettingsManager settingsManager)
     {
         _logger = logger;
         this._emptyProject = emptyProject;
         this._settingsManager = settingsManager;
-        Project= emptyProject;
+        Project = emptyProject;
+    }
+
+    public void SetProject(IProjectViewModel project)
+    {
+        if (Project is not EmptyProjectViewModel)
+        {
+            Project.Dispose();
+        }
+        Project = project;
     }
     public async Task LoadAsync(CancellationToken ct)
     {
@@ -50,6 +59,10 @@ public class Globals: NotifiableObject
 
     public void ResetProject()
     {
+        if (Project is not EmptyProjectViewModel)
+        {
+            Project.Dispose();
+        }
         Project = _emptyProject;    
     }
 }

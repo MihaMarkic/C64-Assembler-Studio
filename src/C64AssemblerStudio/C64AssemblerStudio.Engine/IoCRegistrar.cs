@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider;
 using Righthand.RetroDbgDataProvider.Models;
+using Righthand.ViceMonitor.Bridge;
 
 namespace C64AssemblerStudio.Engine;
 
@@ -15,9 +16,11 @@ public static class IoCRegistrar
 {
     public static IServiceCollection AddEngine(this IServiceCollection services, bool messagesHistoryEnabled)
     {
-        return services
+        services
             .AddSingleton<Globals>()
             .AddSingleton<ISettingsManager, SettingsManager>()
+            .AddSingleton<StatusInfoViewModel>()
+            .AddSingleton<IVice, Vice>()
             // ViewModels
             .AddSingleton<MainViewModel>()
             .AddScoped<StartPageViewModel>()
@@ -35,13 +38,15 @@ public static class IoCRegistrar
             .AddTransient<AddFileDialogViewModel>()
             .AddTransient<AddDirectoryDialogViewModel>()
             .AddTransient<RenameItemDialogViewModel>()
-            .AddTransient<KickAssProjectViewModel>()
+            .AddScoped<KickAssProjectViewModel>()
             .AddSingleton<EmptyProjectViewModel>()
             // System
             .AddTransient(sp => sp.CreateScope())
             .AddSingleton<IDispatcher>(
             // uses dispatching from within same thread to all subscriptions by default as most subscribers are running on UI thread
                 new Dispatcher(new DispatchContext(DispatchThreading.SameThread)))
-            .AddDebugDataProvider();
+            .AddDebugDataProvider()
+            .AddViceBridge();
+        return services;
     }
 }

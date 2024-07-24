@@ -6,10 +6,11 @@ using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
-public interface IProjectViewModel
+public interface IProjectViewModel: IDisposable
 {
     RelayCommand CloseCommand { get; }
     string? Path { get; set; }
@@ -57,9 +58,20 @@ public class EmptyProjectViewModel : ProjectViewModel<EmptyProject>
 
 public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
 {
+    public IKickAssemblerCompiler Compiler { get; }
+    public IKickAssemblerDbgParser DbgParser { get; }
+    public IKickAssemblerProgramInfoBuilder ProgramInfoBuilder { get; }
+    public IKickAssemblerByteDumpParser ByteDumpParser { get; }
+
     public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject>> logger, ISettingsManager settingsManager,
-        IDispatcher dispatcher)
+        IDispatcher dispatcher, IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
+        IKickAssemblerProgramInfoBuilder programInfoBuilder,
+        IKickAssemblerByteDumpParser byteDumpParser)
         : base(logger, settingsManager, dispatcher)
     {
+        Compiler = compiler;
+        DbgParser = dbgParser;
+        ProgramInfoBuilder = programInfoBuilder;
+        ByteDumpParser = byteDumpParser;
     }
 }

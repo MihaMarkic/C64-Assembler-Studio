@@ -26,6 +26,7 @@ public class MainViewModel : ViewModel
     private readonly ISettingsManager _settingsManager;
     private readonly CommandsManager _commandsManager;
     private readonly TaskFactory _uiFactory;
+    public IVice Vice { get; }
     // subscriptions
     private readonly ISubscription _closeOverlaySubscription;
     private readonly ISubscription _showModalDialogMessageSubscription;
@@ -40,6 +41,12 @@ public class MainViewModel : ViewModel
     public RelayCommand ShowProjectSettingsCommand { get; }
     public RelayCommand ExitCommand { get; }
     public RelayCommandAsync BuildCommand { get; }
+    public RelayCommandAsync RunCommand { get; }
+    public RelayCommandAsync PauseCommand { get; }
+    public RelayCommandAsync StopCommand { get; }
+    public RelayCommandAsync StepIntoCommand { get; }
+    public RelayCommandAsync StepOverCommand { get; }
+    public RelayCommandAsync ShowDisassemblyCommand { get; }
     public IProjectViewModel Project => _globals.Project;
     public ProjectExplorerViewModel ProjectExplorer { get; }
     public FilesViewModel Files { get; }
@@ -48,12 +55,13 @@ public class MainViewModel : ViewModel
     public BuildOutputViewModel BuildOutput { get; }
     public CompilerErrorsOutputViewModel CompilerErrors { get; }
     public ImmutableArray<IToolView> BottomTools { get; }
-    public IToolView SelectedBottomTool { get; set; }
+    public IToolView? SelectedBottomTool { get; set; }
     public StatusInfoViewModel StatusInfo { get; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
-    public bool IsDebugging => false;
+    public bool IsDebugging => Vice.IsDebugging;
+    public bool IsDebuggingPaused => Vice.IsPaused;
     public bool IsBuilding { get; private set; }
     public bool IsProjectOpen => _globals.Project is not EmptyProjectViewModel;
     /// <summary>
@@ -70,12 +78,13 @@ public class MainViewModel : ViewModel
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
         ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput, CompilerErrorsOutputViewModel compilerErrors,
-        StatusInfoViewModel statusInfo)
+        StatusInfoViewModel statusInfo, IVice vice)
     {
         _logger = logger;
         _globals = globals;
         _dispatcher = dispatcher;
         _scope = scope;
+        Vice = vice;
         _settingsManager = settingsManager;
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _closeOverlaySubscription = dispatcher.Subscribe<CloseOverlayMessage>(CloseOverlay);
@@ -96,13 +105,42 @@ public class MainViewModel : ViewModel
         ShowProjectSettingsCommand = _commandsManager.CreateRelayCommand(ShowProjectSettings, () => !IsShowingProject && IsProjectOpen);
         CloseProjectCommand = _commandsManager.CreateRelayCommand(CloseProject, () => IsProjectOpen && !IsDebugging);
         ShowSettingsCommand = _commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
-        ExitCommand = new RelayCommand(() => CloseApp?.Invoke());
-        BuildCommand = new RelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
+        ExitCommand = _commandsManager.CreateRelayCommand(() => CloseApp?.Invoke(), () => true);
+        BuildCommand = _commandsManager.CreateRelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
+        RunCommand = _commandsManager.CreateRelayCommandAsync(
+            StartDebuggingAsync, () => IsProjectOpen && (!IsDebugging || IsDebuggingPaused));
         if (!Directory.Exists(globals.Settings.VicePath))
         {
             SwitchOverlayContent<SettingsViewModel>();
         }
+        Vice.PropertyChanged += ViceOnPropertyChanged;
         globals.PropertyChanged += Globals_PropertyChanged;
+    }
+
+    private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(IVice.IsDebugging):
+                OnPropertyChanged(nameof(IsDebugging));
+                break;
+            case nameof(IVice.IsPaused):
+                OnPropertyChanged(nameof(IsDebuggingPaused));
+                break;
+        }
+    }
+
+    async Task StartDebuggingAsync()
+    {
+        try
+        {
+            await Vice.ConnectAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            throw;
+        }
     }
 
     private void StartPage_LoadLastProjectRequest(object? sender, EventArgs e)
@@ -126,31 +164,42 @@ public class MainViewModel : ViewModel
         var ct = _buildCts.Token;
         try
         {
+            var saveAllTask = Files.SaveAllAsync();
             BuildOutput.Clear();
             CompilerErrors.Clear();
             SelectedBottomTool = BuildOutput;
-            using (var compileScope = _scope.ServiceProvider.CreateScope())
+            var project = (KickAssProjectViewModel)Project;
+            var settings =
+                new KickAssemblerCompilerSettings(
+                    @"D:\Git\Righthand\C64\C64-Assembler-Studio\binaries\KickAss\KickAss.jar");
+            string directory = Project.Directory.ValueOrThrow();
+            string file = "main.asm";
+            await saveAllTask;
+            var (errorCode, errors) =
+                await project.Compiler.CompileAsync(file, directory, "build", settings, l => BuildOutput.AddLine(l));
+            if (errorCode != 0)
             {
-                var compiler = compileScope.ServiceProvider.GetRequiredService<IKickAssemblerCompiler>();
-                var settings =
-                    new KickAssemblerCompilerSettings(
-                        @"D:\Git\Righthand\C64\C64-Assembler-Studio\binaries\KickAss\KickAss.jar");
-                string directory = Project.Directory.ValueOrThrow();
-                string file = "main.asm";
-                var (errorCode, errors) =
-                    await compiler.CompileAsync(file, directory, "build", settings, l => BuildOutput.AddLine(l));
-                if (errorCode != 0)
+                StatusInfo.BuildingStatus = BuildStatus.Failure;
+                var fileErorrs = errors.Select(e =>
+                    new FileCompilerError(ProjectExplorer.GetProjectFileFromFullPath(e.Path), e))
+                    .ToImmutableArray();
+                if (!fileErorrs.IsEmpty)
                 {
-                    StatusInfo.BuildingStatus = BuildStatus.Failure;
-                    var fileErorrs = errors.Select(e =>
-                        new FileCompilerError(ProjectExplorer.GetProjectFileFromFullPath(e.Path), e));
                     CompilerErrors.AddLines(fileErorrs);
                     SelectedBottomTool = CompilerErrors;
                 }
-                else
-                {
-                    StatusInfo.BuildingStatus = BuildStatus.Success;
-                }
+            }
+            else
+            {
+                string outDirectory = Path.Combine(directory, "build");
+                string dbgFile = Path.Combine(outDirectory, "main.dbg");
+                string byteDumpFile = Path.Combine(outDirectory, "ByteDump.txt");
+                
+                var byteDumpTask = project.ByteDumpParser.LoadFileAsync(byteDumpFile, ct);
+                var dbg = await project.DbgParser.LoadFileAsync(dbgFile, ct);
+                var programInfo = await project.ProgramInfoBuilder.BuildAppInfoAsync(dbg, ct);
+                var byteDump = await byteDumpTask;
+                StatusInfo.BuildingStatus = BuildStatus.Success;
             }
         }
         finally
@@ -193,10 +242,10 @@ public class MainViewModel : ViewModel
                 {
                     Caption = projectName,
                 };
-                var project = _scope.ServiceProvider.GetRequiredService<KickAssProjectViewModel>();
+                var project = _scope.ServiceProvider.CreateScopedContent<KickAssProjectViewModel>();
                 project.Init(kickAssConfiguration, projectPath);
                 _settingsManager.Save<Project>(kickAssConfiguration, projectPath, false);
-                _globals.Project = project;
+                _globals.SetProject(project);
                 ShowProjectSettings();
                 return true;
             }
@@ -259,9 +308,9 @@ public class MainViewModel : ViewModel
 
             if (projectConfiguration is KickAssProject kickAssConfiguration)
             {
-                var projectViewModel = _scope.ServiceProvider.GetRequiredService<KickAssProjectViewModel>();
+                var projectViewModel = _scope.ServiceProvider.CreateScopedContent<KickAssProjectViewModel>();
                 projectViewModel.Init(kickAssConfiguration, path);
-                _globals.Project = projectViewModel;
+                _globals.SetProject(projectViewModel);
             }
             else
             {

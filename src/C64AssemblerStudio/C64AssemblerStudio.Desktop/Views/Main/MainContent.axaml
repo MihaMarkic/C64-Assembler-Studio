@@ -16,26 +16,7 @@
              x:Class="C64AssemblerStudio.Desktop.Views.Main.MainContent"
              x:DataType="vm:MainViewModel">
     <UserControl.Resources>
-        <SolidColorBrush x:Key="DisabledBrush">#c6c6c6</SolidColorBrush>
         <c:FirstNonNullConverter x:Key="FirstNonNullConverter" />
-        <c:BoolToColorConverter x:Key="IsConnectedToForegroundConverter" OnTrue="Black"
-                                OnFalse="{StaticResource DisabledBrush}" />
-        <c:BoolToSvgImageConverter x:Key="IsConnectedToSvgImageConverter">
-            <c:BoolToSvgImageConverter.OnTrue>
-                <svg:SvgImage Source="/Assets/Icons/link.svg" />
-            </c:BoolToSvgImageConverter.OnTrue>
-            <c:BoolToSvgImageConverter.OnFalse>
-                <svg:SvgImage Source="/Assets/Icons/disabled_link.svg" />
-            </c:BoolToSvgImageConverter.OnFalse>
-        </c:BoolToSvgImageConverter>
-        <c:BoolToSvgImageConverter x:Key="IsUpdatedPdbAvailableConverter">
-            <c:BoolToSvgImageConverter.OnTrue>
-                <svg:SvgImage Source="/Assets/Icons/sync.svg" />
-            </c:BoolToSvgImageConverter.OnTrue>
-            <c:BoolToSvgImageConverter.OnFalse>
-                <svg:SvgImage Source="/Assets/Icons/disabled_sync.svg" />
-            </c:BoolToSvgImageConverter.OnFalse>
-        </c:BoolToSvgImageConverter>
         <c:BoolToStringConverter x:Key="StepModeConverter" OnTrue="ASM" OnFalse="HIGH" />
     </UserControl.Resources>
     <UserControl.DataTemplates>
@@ -51,6 +32,7 @@
     </UserControl.DataTemplates>
     <DockPanel x:Name="Source" LastChildFill="True" Margin="4">
         <mv:MainMenu DockPanel.Dock="Top" />
+        <mv:MainToolbar DockPanel.Dock="Top" />
         <Grid>
             <DockPanel IsVisible="{Binding OverlayContent, Converter={x:Static ObjectConverters.IsNull}}">
                 <ctl:DockTool DockPanel.Dock="Bottom" Height="200"

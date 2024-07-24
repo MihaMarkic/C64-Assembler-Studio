@@ -27,10 +27,10 @@ public class FilesViewModel: ViewModel
         _openFileMessage = dispatcher.Subscribe<OpenFileMessage>(OpenFile);
         Files = new();
         CloseFileCommand = new RelayCommandWithParameter<FileViewModel>(CloseFile);
-        SaveAllCommand = new RelayCommandAsync(SaveAll);
+        SaveAllCommand = new RelayCommandAsync(SaveAllAsync);
     }
 
-    async Task SaveAll()
+    public async Task SaveAllAsync()
     {
         using (BusyIndicator.Increase())
         {
