@@ -191,14 +191,7 @@ public class MainViewModel : ViewModel
             }
             else
             {
-                string outDirectory = Path.Combine(directory, "build");
-                string dbgFile = Path.Combine(outDirectory, "main.dbg");
-                string byteDumpFile = Path.Combine(outDirectory, "bytedump.dmp");
-                
-                var byteDumpTask = project.ByteDumpParser.LoadFileAsync(byteDumpFile, ct);
-                var dbg = await project.DbgParser.LoadFileAsync(dbgFile, ct);
-                var programInfo = await project.ProgramInfoBuilder.BuildAppInfoAsync(dbg, ct);
-                var byteDump = await byteDumpTask;
+                await Project.LoadDebugDataAsync(ct);
                 StatusInfo.BuildingStatus = BuildStatus.Success;
             }
         }

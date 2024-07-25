@@ -59,7 +59,13 @@ public class SyntaxColorizer : DocumentColorizingTransformer
             {
                 foreach (var e in errors)
                 {
-                    ChangeLinePart(line.Offset + e.Start, line.Offset + e.End, ApplySyntaxErrorChanges);
+                    int start = line.Offset + e.Start;
+                    int end = line.Offset + e.End;
+                    // in case of errors, user can alter file (delete a char where error pointed) and error is still pointing to original length
+                    if (end <= line.EndOffset)
+                    {
+                        ChangeLinePart(start, end, ApplySyntaxErrorChanges);
+                    }
                 }
             }
 

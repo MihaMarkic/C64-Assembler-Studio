@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Frozen;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
@@ -6,7 +7,9 @@ using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.KickAssembler.Models;
 using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
+using Righthand.RetroDbgDataProvider.Models.Program;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -17,14 +20,16 @@ public interface IProjectViewModel: IDisposable
     string? Directory { get; }
     Project? Configuration { get; }
     event PropertyChangedEventHandler? PropertyChanged;
+    Task LoadDebugDataAsync(CancellationToken ct = default);
 }
 public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel, IProjectViewModel
     where TConfiguration : Project
 {
-    private readonly ILogger<ProjectViewModel<TConfiguration>> _logger;
+    protected readonly ILogger<ProjectViewModel<TConfiguration>> Logger;
     private readonly ISettingsManager _settingsManager;
     public TConfiguration? Configuration { get; private set; }
     Project? IProjectViewModel.Configuration => Configuration;
+    public AssemblerAppInfo? AppInfo { get; protected set; }
     public string? Path { get; set; }
     public string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
 
@@ -32,7 +37,7 @@ public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel,
         IDispatcher dispatcher) : base(dispatcher)
     {
         _settingsManager = settingsManager;
-        _logger = logger;
+        Logger = logger;
     }
     public void Init(TConfiguration configuration, string? path)
     {
@@ -40,6 +45,7 @@ public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel,
         Path = path;
     }
 
+    public abstract Task LoadDebugDataAsync(CancellationToken ct = default);
     protected override void Closing()
     {
         _settingsManager.Save<Project>(Configuration.ValueOrThrow(), Path.ValueOrThrow(), false);
@@ -54,6 +60,8 @@ public class EmptyProjectViewModel : ProjectViewModel<EmptyProject>
         : base(logger, settingsManager, dispatcher)
     {
     }
+
+    public override Task LoadDebugDataAsync(CancellationToken ct = default) => throw new NotImplementedException();
 }
 
 public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
@@ -62,6 +70,8 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
     public IKickAssemblerDbgParser DbgParser { get; }
     public IKickAssemblerProgramInfoBuilder ProgramInfoBuilder { get; }
     public IKickAssemblerByteDumpParser ByteDumpParser { get; }
+    public DbgData? DbgData { get; private set; }
+    public FrozenDictionary<string, AssemblySegment>? ByteDump { get; private set; }
 
     public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject>> logger, ISettingsManager settingsManager,
         IDispatcher dispatcher, IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
@@ -73,5 +83,22 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
         DbgParser = dbgParser;
         ProgramInfoBuilder = programInfoBuilder;
         ByteDumpParser = byteDumpParser;
+    }
+
+    public override async Task LoadDebugDataAsync(CancellationToken ct = default)
+    {
+        if (Directory is null)
+        {
+            Logger.LogError("Project directory is null");
+            return;
+        }
+        string outDirectory = System.IO.Path.Combine(Directory, "build");
+        string dbgFile = System.IO.Path.Combine(outDirectory, "main.dbg");
+        string byteDumpFile = System.IO.Path.Combine(outDirectory, "bytedump.dmp");
+                
+        var byteDumpTask = ByteDumpParser.LoadFileAsync(byteDumpFile, ct);
+        DbgData = await DbgParser.LoadFileAsync(dbgFile, ct);
+        AppInfo = await ProgramInfoBuilder.BuildAppInfoAsync(DbgData, ct);
+        ByteDump = await byteDumpTask;
     }
 }
