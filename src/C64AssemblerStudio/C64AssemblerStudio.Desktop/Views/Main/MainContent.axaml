@@ -74,6 +74,9 @@
                                             <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
                                                 <tools:CompilerErrors />
                                             </DataTemplate>
+                                            <DataTemplate DataType="tvm:RegistersViewModel">
+                                                <tools:Registers />
+                                            </DataTemplate>
                                         </ContentControl.DataTemplates>
                                     </ContentControl>
                                 </DataTemplate>

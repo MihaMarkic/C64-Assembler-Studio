@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics;
 using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
+using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.ViceMonitor.Bridge;
 using Righthand.ViceMonitor.Bridge.Commands;
+using Righthand.ViceMonitor.Bridge.Responses;
 using Righthand.ViceMonitor.Bridge.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.Services.Implementation;
@@ -17,25 +20,48 @@ public class Vice: NotifiableObject, IVice
     private readonly IViceBridge _bridge;
     private readonly Globals _globals;
     private readonly IDispatcher _dispatcher;
+    private readonly RegistersViewModel _registers;
     private Process? _process;
+    public event EventHandler<RegistersEventArgs>? RegistersUpdated; 
     public bool IsConnected { get; private set; }
     public bool IsDebugging { get; private set; }
     public bool IsPaused { get; private set; }
 
-    public Vice(ILogger<Vice> logger, IViceBridge bridge, Globals globals, IDispatcher dispatcher)
+    public Vice(ILogger<Vice> logger, IViceBridge bridge, Globals globals, IDispatcher dispatcher,
+        RegistersViewModel registers)
     {
         _logger = logger;
         _bridge = bridge;
         _globals = globals;
         _dispatcher = dispatcher;
+        _registers = registers;
         _bridge.ConnectedChanged += BridgeOnConnectedChanged;
         _bridge.ViceResponse += BridgeOnViceResponse;
         _bridge.Start();
     }
 
-    private void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
+    private async void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
     {
-        
+        switch (e.Response)
+        {
+            case RegistersResponse registersResponse:
+                await _registers.UpdateAsync(registersResponse, CancellationToken.None);
+                break;
+        }
+    }
+
+    private async Task InitRegistersMappingAsync(CancellationToken ct = default)
+    {
+        var command = _bridge.EnqueueCommand(new RegistersAvailableCommand(MemSpace.MainMemory), resumeOnStopped: true);
+        var response = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+        if (response is not null)
+        {
+            _registers.Init(response);
+        }
+        else
+        {
+            _logger.LogError("Failed retrieving registers mapping");
+        }
     }
 
     private void BridgeOnConnectedChanged(object? sender, ConnectedChangedEventArgs e)
@@ -61,11 +87,17 @@ public class Vice: NotifiableObject, IVice
         if (!IsConnected)
         {
             await _bridge.WaitForConnectionStatusChangeAsync(ct);
+            await InitRegistersMappingAsync(ct);
         }
     }
 
     public async Task StartDebuggingAsync(CancellationToken ct = default)
     {
+        if (IsDebugging)
+        {
+            _logger.LogWarning("Can't start debugging - already debugging");
+            return;
+        }
         IsPaused = false;
         var command = _bridge.EnqueueCommand(
             new AutoStartCommand(runAfterLoading: true, 0, _globals.Project.FullPrgPath!),
@@ -157,14 +189,17 @@ public class Vice: NotifiableObject, IVice
         {
             if (_globals.Settings.ResetOnStop)
             {
+                _logger.LogInformation("Stopping debugging with reset on stop");
                 var command = _bridge.EnqueueCommand(new ResetCommand(ResetMode.Soft), resumeOnStopped: false);
                 await command.Response;
             }
             else
             {
+                _logger.LogInformation("Stopping debugging with exit");
                 var command = _bridge.EnqueueCommand(new ExitCommand(),  resumeOnStopped: true);
                 await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
             }
+            _logger.LogInformation("Debugging stopped");
         }
         IsDebugging = false;
         IsPaused = false;

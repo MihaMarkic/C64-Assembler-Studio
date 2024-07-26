@@ -1,0 +1,29 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:tools="clr-namespace:C64AssemblerStudio.Desktop.Views.Tools"
+             xmlns:models="clr-namespace:C64AssemblerStudio.Engine.Models;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="C64AssemblerStudio.Desktop.Views.Tools.Flags">
+    <UserControl.Resources>
+        <converters:FlagsConverter x:Key="FlagsConverter" />
+        <converters:BoolToColorConverter x:Key="FlagForegroundConverter" OnTrue="Black" OnFalse="Gray" />
+        <converters:BoolToFontWeightConverter x:Key="FlagFontWeightConverter" OnTrue="Bold" OnFalse="Normal" />
+    </UserControl.Resources>
+    <StackPanel Orientation="Vertical">
+        <ItemsRepeater ItemsSource="{Binding $parent[tools:Flags].Value, Converter={StaticResource FlagsConverter}}">
+            <ItemsRepeater.Layout>
+                <StackLayout Orientation="Horizontal" Spacing="0" />
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate x:DataType="models:FlagModel">
+                    <TextBlock Classes="register_value" Text="{Binding Name, Mode=OneTime}" Foreground="{Binding Value, Converter={StaticResource FlagForegroundConverter}}"
+                               FontWeight="{Binding Value, Converter={StaticResource FlagFontWeightConverter}}"/>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+        <TextBlock Classes="register_label" Text="Flags" />
+    </StackPanel>
+</UserControl>

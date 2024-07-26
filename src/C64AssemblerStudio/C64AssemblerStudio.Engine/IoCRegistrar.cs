@@ -21,6 +21,7 @@ public static class IoCRegistrar
             .AddSingleton<ISettingsManager, SettingsManager>()
             .AddSingleton<StatusInfoViewModel>()
             .AddSingleton<IVice, Vice>()
+            .AddSingleton<RegistersMapping>()
             // ViewModels
             .AddSingleton<MainViewModel>()
             .AddScoped<StartPageViewModel>()
@@ -30,6 +31,7 @@ public static class IoCRegistrar
             .AddScoped<FilesViewModel>()
             .AddTransient<AssemblerFileViewModel>()
             .AddSingleton<StatusInfoViewModel>()
+            .AddScoped<RegistersViewModel>()
             // Tools
             .AddScoped<ErrorMessagesViewModel>()
             .AddScoped<BuildOutputViewModel>()

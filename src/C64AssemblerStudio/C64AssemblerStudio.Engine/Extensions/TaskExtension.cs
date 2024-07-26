@@ -23,4 +23,23 @@ public static class TaskExtension
             return cts.CancelAsync();
         }
     }
+
+    public static Task StartNewTyped<TArg>(this TaskFactory factory, Func<TArg?, Task> function,
+        TArg state,
+        CancellationToken ct)
+    {
+        return factory.StartNew(o => function((TArg?)o), state, ct);
+    }
+    public static Task StartNewTyped<TArg>(this TaskFactory factory, Action<TArg?> action,
+        TArg state,
+        CancellationToken ct)
+    {
+        return factory.StartNew(o => action((TArg?)o), state, ct);
+    }
+    public static Task StartNewTyped<TResult, TArg>(this TaskFactory factory, Func<TArg?, Task<TResult>> function,
+        TArg state,
+        CancellationToken ct)
+    {
+        return factory.StartNew(o => function((TArg?)o), state, ct);
+    }
 }

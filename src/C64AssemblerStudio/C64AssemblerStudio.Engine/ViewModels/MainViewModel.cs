@@ -56,6 +56,7 @@ public class MainViewModel : ViewModel
     public ImmutableArray<IToolView> BottomTools { get; }
     public IToolView? SelectedBottomTool { get; set; }
     public StatusInfoViewModel StatusInfo { get; }
+    public RegistersViewModel Registers { get; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
@@ -78,7 +79,7 @@ public class MainViewModel : ViewModel
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
         ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput,DebugOutputViewModel debugOutput, 
         CompilerErrorsOutputViewModel compilerErrors,
-        StatusInfoViewModel statusInfo, IVice vice)
+        StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice)
     {
         _logger = logger;
         _globals = globals;
@@ -96,7 +97,8 @@ public class MainViewModel : ViewModel
         DebugOutput = debugOutput;
         CompilerErrors = compilerErrors;
         StatusInfo = statusInfo;
-        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput];
+        Registers = registers;
+        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers];
         StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
         StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
         _commandsManager = new CommandsManager(this, _uiFactory);
@@ -178,10 +180,19 @@ public class MainViewModel : ViewModel
                     StatusInfo.BuildingStatus = BuildStatus.Idle;
                     StatusInfo.DebuggingStatus = DebuggingStatus.WaitingForConnection;
                     DebugOutput.AddLine("Waiting for VICE connection");
-                    await viceConnectTask;
+                    try
+                    {
+                        await viceConnectTask;
+                    }
+                    catch (TimeoutException ex)
+                    {
+                        DebugOutput.AddLine("Timeout while waiting for connection");
+                        _logger.LogError(ex, "Failed debugging");
+                        StatusInfo.BuildingStatus = BuildStatus.Idle;
+                        return;
+                    }
                     DebugOutput.AddLine("Starting debugging");
                     await Vice.StartDebuggingAsync();
-                    StatusInfo.DebuggingStatus = DebuggingStatus.Debugging;
                 }
             }
         }
@@ -189,6 +200,7 @@ public class MainViewModel : ViewModel
         {
             DebugOutput.AddLine($"Debugging error: {ex.Message}");
             _logger.LogError(ex, "Failed debugging");
+            StatusInfo.BuildingStatus = BuildStatus.Idle;
         }
     }
 

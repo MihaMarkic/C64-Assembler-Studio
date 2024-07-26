@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.Services.Implementation;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -24,6 +25,15 @@ public class StatusInfoViewModel : ViewModel
         {
             case nameof(IVice.IsConnected):
                 OnPropertyChanged(nameof(IsViceConnected));
+                break;
+            case nameof(IVice.IsDebugging):
+                DebuggingStatus = _vice.IsDebugging ? DebuggingStatus.Debugging: DebuggingStatus.Idle;
+                break;
+            case nameof(IVice.IsPaused):
+                if (_vice.IsDebugging)
+                {
+                    DebuggingStatus = DebuggingStatus.Paused;
+                }
                 break;
         }
     }
