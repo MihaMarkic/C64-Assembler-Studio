@@ -1,18 +1,16 @@
 ﻿using System.ComponentModel;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
-using C64AssemblerStudio.Engine.Messages;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Righthand.MessageBus;
-using System.Runtime.CompilerServices;
 using C64AssemblerStudio.Engine.Common;
+using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PropertyChanged;
-using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
+using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Services.Implementation;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
@@ -53,6 +51,7 @@ public class MainViewModel : ViewModel
     public StartPageViewModel? StartPage { get; private set; }
     public ErrorMessagesViewModel ErrorMessages { get; }
     public BuildOutputViewModel BuildOutput { get; }
+    public DebugOutputViewModel DebugOutput { get; }
     public CompilerErrorsOutputViewModel CompilerErrors { get; }
     public ImmutableArray<IToolView> BottomTools { get; }
     public IToolView? SelectedBottomTool { get; set; }
@@ -77,7 +76,8 @@ public class MainViewModel : ViewModel
     public ViewModel? OverlayContent { get; private set; }
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
-        ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput, CompilerErrorsOutputViewModel compilerErrors,
+        ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput,DebugOutputViewModel debugOutput, 
+        CompilerErrorsOutputViewModel compilerErrors,
         StatusInfoViewModel statusInfo, IVice vice)
     {
         _logger = logger;
@@ -93,9 +93,10 @@ public class MainViewModel : ViewModel
         Files = files;
         ErrorMessages = errorMessages;
         BuildOutput = buildOutput;
+        DebugOutput = debugOutput;
         CompilerErrors = compilerErrors;
         StatusInfo = statusInfo;
-        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput];
+        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput];
         StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
         StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
         _commandsManager = new CommandsManager(this, _uiFactory);
@@ -107,8 +108,11 @@ public class MainViewModel : ViewModel
         ShowSettingsCommand = _commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
         ExitCommand = _commandsManager.CreateRelayCommand(() => CloseApp?.Invoke(), () => true);
         BuildCommand = _commandsManager.CreateRelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
-        RunCommand = _commandsManager.CreateRelayCommandAsync(
-            StartDebuggingAsync, () => IsProjectOpen && (!IsDebugging || IsDebuggingPaused));
+        RunCommand = _commandsManager.CreateRelayCommandAsync(StartDebuggingAsync, () => IsProjectOpen && (!IsDebugging || IsDebuggingPaused));
+        StopCommand = _commandsManager.CreateRelayCommandAsync(StopDebuggingAsync, () => IsDebugging);
+        PauseCommand = _commandsManager.CreateRelayCommandAsync(PauseDebuggingAsync, () => IsDebugging && !IsDebuggingPaused);
+        StepIntoCommand = _commandsManager.CreateRelayCommandAsync(StepIntoAsync, () => IsDebugging && IsDebuggingPaused);
+        StepOverCommand = _commandsManager.CreateRelayCommandAsync(StepOverAsync, () => IsDebugging && IsDebuggingPaused);
         if (!Directory.Exists(globals.Settings.VicePath))
         {
             SwitchOverlayContent<SettingsViewModel>();
@@ -129,17 +133,62 @@ public class MainViewModel : ViewModel
                 break;
         }
     }
-
+    internal async Task PauseDebuggingAsync()
+    {
+        DebugOutput.AddLine("Pausing");
+        await Vice.PauseDebuggingAsync();
+        DebugOutput.AddLine("Paused");
+    }
+    internal async Task StepIntoAsync()
+    {
+        DebugOutput.AddLine("Stepping into");
+        await Vice.StepIntoAsync();
+        DebugOutput.AddLine("Stepped into");
+    }
+    internal async Task StepOverAsync()
+    {
+        DebugOutput.AddLine("Stepping over");
+        await Vice.StepOverAsync();
+        DebugOutput.AddLine("Stepped over");
+    }
+    internal async Task StopDebuggingAsync()
+    {
+        DebugOutput.AddLine("Stopping");
+        await Vice.StopDebuggingAsync();
+        DebugOutput.AddLine("Stopped");
+    }
     async Task StartDebuggingAsync()
     {
         try
         {
-            await Vice.ConnectAsync();
+            if (IsDebuggingPaused)
+            {
+                DebugOutput.AddLine("Continuing");
+                await Vice.ContinueAsync();
+            }
+            else
+            {
+                DebugOutput.AddLine("Building");
+                StatusInfo.DebuggingStatus = DebuggingStatus.Idle;
+                var viceConnectTask = Vice.ConnectAsync();
+                await BuildAsync();
+                if (StatusInfo.BuildingStatus == BuildStatus.Success)
+                {
+                    DebugOutput.AddLine("Build was successful");
+                    StatusInfo.BuildingStatus = BuildStatus.Idle;
+                    StatusInfo.DebuggingStatus = DebuggingStatus.WaitingForConnection;
+                    DebugOutput.AddLine("Waiting for VICE connection");
+                    await viceConnectTask;
+                    DebugOutput.AddLine("Starting debugging");
+                    await Vice.StartDebuggingAsync();
+                    StatusInfo.DebuggingStatus = DebuggingStatus.Debugging;
+                }
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
-            throw;
+            DebugOutput.AddLine($"Debugging error: {ex.Message}");
+            _logger.LogError(ex, "Failed debugging");
         }
     }
 
@@ -368,7 +417,7 @@ public class MainViewModel : ViewModel
     {
         switch (e.PropertyName)
         {
-            case nameof(C64AssemblerStudio.Engine.Models.Projects.Project.Caption):
+            case nameof(Models.Projects.Project.Caption):
                 OnPropertyChanged(nameof(Caption));
                 break;
         }

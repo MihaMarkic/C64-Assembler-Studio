@@ -7,7 +7,10 @@ public static class StudioConverters
 {
     public static readonly IValueConverter IsBuildStatusVisible =
         new FuncValueConverter<BuildStatus, bool>(x => x != BuildStatus.Idle);
-
     public static readonly IValueConverter BuildStatusToString =
         new FuncValueConverter<BuildStatus, string?>(bs => bs.GetDisplayText());
+    public static readonly IValueConverter IsDebuggingStatusVisible =
+        new FuncValueConverter<DebuggingStatus, bool>(x => x != DebuggingStatus.Idle);
+    public static readonly IValueConverter DebuggingStatusToString =
+        new FuncValueConverter<DebuggingStatus, string?>(bs => bs.GetDisplayText());
 }

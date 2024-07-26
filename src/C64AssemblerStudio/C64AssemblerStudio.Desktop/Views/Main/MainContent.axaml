@@ -47,6 +47,9 @@
                                 <DataTemplate DataType="tvm:BuildOutputViewModel">
                                     <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
                                 </DataTemplate>
+                                <DataTemplate DataType="tvm:DebugOutputViewModel">
+                                    <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
+                                </DataTemplate>
                                 <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
                                     <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
                                 </DataTemplate>
@@ -64,6 +67,9 @@
                                             </DataTemplate>
                                             <DataTemplate DataType="tvm:BuildOutputViewModel">
                                                 <tools:BuildOutput />
+                                            </DataTemplate>
+                                            <DataTemplate DataType="tvm:DebugOutputViewModel">
+                                                <tools:DebugOutput />
                                             </DataTemplate>
                                             <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
                                                 <tools:CompilerErrors />

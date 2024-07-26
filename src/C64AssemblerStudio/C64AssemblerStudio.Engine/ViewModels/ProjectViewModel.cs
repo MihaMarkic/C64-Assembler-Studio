@@ -19,6 +19,7 @@ public interface IProjectViewModel: IDisposable
     string? Path { get; set; }
     string? Directory { get; }
     Project? Configuration { get; }
+    string? FullPrgPath { get; }
     event PropertyChangedEventHandler? PropertyChanged;
     Task LoadDebugDataAsync(CancellationToken ct = default);
 }
@@ -32,6 +33,7 @@ public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel,
     public AssemblerAppInfo? AppInfo { get; protected set; }
     public string? Path { get; set; }
     public string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
+    public string? FullPrgPath => Directory is not null ? System.IO.Path.Combine(Directory, "build", "main.prg"): null;
 
     protected ProjectViewModel(ILogger<ProjectViewModel<TConfiguration>> logger, ISettingsManager settingsManager,
         IDispatcher dispatcher) : base(dispatcher)

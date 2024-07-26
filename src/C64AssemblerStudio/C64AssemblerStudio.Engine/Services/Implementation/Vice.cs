@@ -5,6 +5,8 @@ using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.ViceMonitor.Bridge;
+using Righthand.ViceMonitor.Bridge.Commands;
 using Righthand.ViceMonitor.Bridge.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.Services.Implementation;
@@ -26,25 +28,162 @@ public class Vice: NotifiableObject, IVice
         _bridge = bridge;
         _globals = globals;
         _dispatcher = dispatcher;
+        _bridge.ConnectedChanged += BridgeOnConnectedChanged;
+        _bridge.ViceResponse += BridgeOnViceResponse;
+        _bridge.Start();
+    }
+
+    private void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
+    {
+        
+    }
+
+    private void BridgeOnConnectedChanged(object? sender, ConnectedChangedEventArgs e)
+    {
+        IsConnected = e.IsConnected;
     }
 
     public async Task ConnectAsync(CancellationToken ct = default)
     {
         const string title = "Connecting";
-        if (IsConnected)
-        {
-            return;
-        }
-
-        _process = StartVice();
         if (_process is null)
         {
-            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, title, "Failed to start debugging"));
-            return;
+            _process = StartVice();
+            if (_process is null)
+            {
+                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, title, "Failed to start debugging"));
+                return;
+            }
+
+            _process.Exited += ProcessOnExited;
         }
-        _process.Exited += ProcessOnExited;
+
+        if (!IsConnected)
+        {
+            await _bridge.WaitForConnectionStatusChangeAsync(ct);
+        }
     }
 
+    public async Task StartDebuggingAsync(CancellationToken ct = default)
+    {
+        IsPaused = false;
+        var command = _bridge.EnqueueCommand(
+            new AutoStartCommand(runAfterLoading: true, 0, _globals.Project.FullPrgPath!),
+            resumeOnStopped: false);
+        await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+        IsDebugging = true;
+    }
+    public async Task StepIntoAsync(CancellationToken ct = default)
+    {
+        if (VerifyIsPaused("step into"))
+        {
+            IsPaused = false;
+            try
+            {
+                ushort instructionsNumber = 1;
+                var command =
+                    _bridge.EnqueueCommand(new AdvanceInstructionCommand(StepOverSubroutine: false,
+                        instructionsNumber));
+                await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+            }
+            finally
+            {
+                IsPaused = true;
+            }
+        }
+    }
+
+    public async Task StepOverAsync(CancellationToken ct = default)
+    {
+        if (VerifyIsPaused("step over"))
+        {
+            IsPaused = false;
+            try
+            {
+                ushort instructionsNumber = 1;
+                var command =
+                    _bridge.EnqueueCommand(new AdvanceInstructionCommand(StepOverSubroutine: true, instructionsNumber));
+                await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+            }
+            finally
+            {
+                IsPaused = true;
+            }
+        }
+    }
+    public async Task ContinueAsync(CancellationToken ct = default)
+    {
+        if (VerifyIsPaused("continue"))
+        {
+            await ExitViceMonitorAsync(ct);
+        }
+
+        IsPaused = false;
+    }
+
+    bool VerifyIsPaused(string verb)
+    {
+        if (!IsDebugging)
+        {
+            _logger.LogWarning($"Can't {verb} - not debugging");
+            return false;
+        }
+        else if (!IsPaused)
+        {
+            _logger.LogWarning($"Can't {verb} - already running");
+            return false;
+        }
+
+        return true;
+    }
+    bool VerifyIsDebugging(string verb)
+    {
+        if (!IsDebugging)
+        {
+            _logger.LogWarning($"Can't {verb} - not debugging");
+            return false;
+        }
+        else if (IsPaused)
+        {
+            _logger.LogWarning($"Can't {verb} - already paused");
+            return false;
+        }
+
+        return true;
+    }
+    public async Task StopDebuggingAsync(CancellationToken ct = default)
+    {
+        if (_bridge.IsConnected)
+        {
+            if (_globals.Settings.ResetOnStop)
+            {
+                var command = _bridge.EnqueueCommand(new ResetCommand(ResetMode.Soft), resumeOnStopped: false);
+                await command.Response;
+            }
+            else
+            {
+                var command = _bridge.EnqueueCommand(new ExitCommand(),  resumeOnStopped: true);
+                await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+            }
+        }
+        IsDebugging = false;
+        IsPaused = false;
+    }
+
+    public async Task PauseDebuggingAsync(CancellationToken ct = default)
+    {
+        if (VerifyIsDebugging("pause"))
+        {
+            var command = _bridge.EnqueueCommand(new PingCommand(), resumeOnStopped: false);
+            await command.Response;
+            IsPaused = true;
+        }
+    }
+    public async Task ExitViceMonitorAsync(CancellationToken ct = default)
+    {
+        var command = _bridge.EnqueueCommand(new ExitCommand(), resumeOnStopped: false);
+        await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+    }
     private void ProcessOnExited(object? sender, EventArgs e)
     {
         _process.ValueOrThrow().Exited -= ProcessOnExited;
@@ -74,5 +213,16 @@ public class Vice: NotifiableObject, IVice
             _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE", "VICE path is not set in settings"));
             return null;
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _ = _bridge.StopAsync(waitForQueueToProcess:false);
+            _bridge.ConnectedChanged -= BridgeOnConnectedChanged;
+            _bridge.ViceResponse -= BridgeOnViceResponse;
+        }
+        base.Dispose(disposing);
     }
 }

@@ -8,7 +8,7 @@ public class StatusInfoViewModel : ViewModel
 {
     private readonly IVice _vice;
     public BuildStatus BuildingStatus { get; set; } = BuildStatus.Idle;
-    public bool IsBuildingStatusVisible => BuildingStatus != BuildStatus.Idle;
+    public DebuggingStatus DebuggingStatus { get; set; } = DebuggingStatus.Idle;
     public bool IsViceConnected => _vice.IsConnected;
     public string RunCommandTitle => _vice.IsDebugging ? "Continue" : "Run";
 
@@ -49,4 +49,16 @@ public enum BuildStatus
 
     [Display(Description = "Build Failure")]
     Failure
+}
+
+public enum DebuggingStatus
+{
+    [Display(Description = "Idle")]
+    Idle,
+    [Display(Description = "Waiting For Connection")]
+    WaitingForConnection,
+    [Display(Description = "Debugging")]
+    Debugging,
+    [Display(Description = "Paused")]
+    Paused
 }

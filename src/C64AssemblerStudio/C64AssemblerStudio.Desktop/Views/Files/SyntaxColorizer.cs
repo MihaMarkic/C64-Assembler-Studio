@@ -22,11 +22,6 @@ public class SyntaxColorizer : DocumentColorizingTransformer
         _file = file;
         CallStackLineNumbers = ImmutableHashSet<int>.Empty;
     }
-
-    public void Update()
-    {
-        
-    }
     protected override void ColorizeLine(DocumentLine line)
     {
         if (!line.IsDeleted && !_file.Lines.IsEmpty &&  line.LineNumber <= _file.Lines.Length)

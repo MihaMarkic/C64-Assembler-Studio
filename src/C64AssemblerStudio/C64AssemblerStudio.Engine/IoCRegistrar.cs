@@ -33,6 +33,7 @@ public static class IoCRegistrar
             // Tools
             .AddScoped<ErrorMessagesViewModel>()
             .AddScoped<BuildOutputViewModel>()
+            .AddScoped<DebugOutputViewModel>()
             .AddSingleton<CompilerErrorsOutputViewModel>()
             // Dialogs
             .AddTransient<AddFileDialogViewModel>()
