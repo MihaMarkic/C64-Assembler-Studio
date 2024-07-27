@@ -1,0 +1,25 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:C64AssemblerStudio.Engine.Models;assembly=C64AssemblerStudio.Engine"
+             Name="Control"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints.BreakpointExecutionMode">
+    <StackPanel Orientation="Horizontal">
+        <StackPanel.Styles>
+            <Style Selector="Button.selected">
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+        </StackPanel.Styles>
+        <Button Name="ExecButton" IsEnabled="{Binding #Control.IsExecEnabled}"
+                Command="{Binding #Control.SetModeCommand}" 
+                CommandParameter="{x:Static models:BreakpointMode.Exec}">Exec</Button>
+        <Button Name="LoadButton" IsEnabled="{Binding #Control.IsLoadEnabled}" Margin="4,0"
+                Command="{Binding #Control.SetModeCommand}"
+                CommandParameter="{x:Static models:BreakpointMode.Load}">Load</Button>
+        <Button Name="StoreButton" IsEnabled="{Binding #Control.IsStoreEnabled}"
+                Command="{Binding #Control.SetModeCommand}"
+                CommandParameter="{x:Static models:BreakpointMode.Store}">Store</Button>
+    </StackPanel>
+</UserControl>

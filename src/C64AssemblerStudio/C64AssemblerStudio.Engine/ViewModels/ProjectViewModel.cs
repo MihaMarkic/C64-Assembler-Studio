@@ -20,6 +20,7 @@ public interface IProjectViewModel: IDisposable
     string? Directory { get; }
     Project? Configuration { get; }
     string? FullPrgPath { get; }
+    public string? BreakpointsSettingsPath { get; }
     event PropertyChangedEventHandler? PropertyChanged;
     Task LoadDebugDataAsync(CancellationToken ct = default);
 }
@@ -34,6 +35,7 @@ public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel,
     public string? Path { get; set; }
     public string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
     public string? FullPrgPath => Directory is not null ? System.IO.Path.Combine(Directory, "build", "main.prg"): null;
+    public string? BreakpointsSettingsPath => Directory is not null ? System.IO.Path.Combine(Directory, "breakpoints.json") : null;
 
     protected ProjectViewModel(ILogger<ProjectViewModel<TConfiguration>> logger, ISettingsManager settingsManager,
         IDispatcher dispatcher) : base(dispatcher)

@@ -11,4 +11,5 @@ public interface ISettingsManager
     //BreakpointsSettings LoadBreakpointsSettings(string filePath);
     //void Save(BreakpointsSettings breakpointsSettings, string filePath);
     void Save<T>(T settings, string path, bool createDirectory);
+    Task SaveAsync<T>(T settings, string path, bool createDirectory, CancellationToken ct = default);
 }

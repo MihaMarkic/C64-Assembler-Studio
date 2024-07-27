@@ -2,12 +2,9 @@
 
 namespace C64AssemblerStudio.Engine.Common;
 
-public class RegistersEventArgs: EventArgs
+public class RegistersEventArgs: ViceResponseEvent<RegistersResponse>
 {
-    public RegistersResponse Response { get; }
-
-    public RegistersEventArgs(RegistersResponse response)
+    public RegistersEventArgs(RegistersResponse? response) : base(response)
     {
-        Response = response;
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.ViewModels;
+using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 
 // ReSharper disable once CheckNamespace
@@ -39,13 +40,13 @@ public static class ServiceProviderExtension
         viewModel.AssignScope(contentScope);
         return viewModel;
     }
-    //public static BreakpointDetailViewModel CreateScopedBreakpointDetailViewModel(this IServiceScope serviceScope,
-    //    BreakpointViewModel breakpointViewModel, BreakpointDetailDialogMode mode)
-    //{
-    //    var viewModel = ActivatorUtilities.CreateInstance<BreakpointDetailViewModel>(serviceScope.ServiceProvider,
-    //        serviceScope.ServiceProvider.GetRequiredService<ILogger<BreakpointDetailViewModel>>(),
-    //        serviceScope.ServiceProvider.GetRequiredService<BreakpointsViewModel>(),
-    //        breakpointViewModel, mode);
-    //    return viewModel;
-    //}
+    public static BreakpointDetailViewModel CreateScopedBreakpointDetailViewModel(this IServiceScope serviceScope,
+        BreakpointViewModel breakpointViewModel, BreakpointDetailDialogMode mode)
+    {
+        var viewModel = ActivatorUtilities.CreateInstance<BreakpointDetailViewModel>(serviceScope.ServiceProvider,
+            serviceScope.ServiceProvider.GetRequiredService<ILogger<BreakpointDetailViewModel>>(),
+            serviceScope.ServiceProvider.GetRequiredService<BreakpointsViewModel>(),
+            breakpointViewModel, mode);
+        return viewModel;
+    }
 }

@@ -1,0 +1,82 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="breakpoints:BreakpointsViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Tools.Breakpoints">
+    <UserControl.Resources>
+  <converters:BoolToColorConverter x:Key="IsHitToBackgroundConverter" OnTrue="Yellow" OnFalse="Transparent" />
+  <!--<c:BreakpointContextConverter x:Key="BreakpointContextConverter" BindingColumn="{Binding #Grid.Columns[6]}" />-->
+</UserControl.Resources>
+<UserControl.Styles>
+  <Style Selector="DataGridCell.colored">
+    <Setter Property="Background" Value="{Binding (breakpoints:BreakpointViewModel).IsCurrentlyHit, Mode=OneWay, Converter={StaticResource IsHitToBackgroundConverter}}"/>
+  </Style>
+</UserControl.Styles>
+<DockPanel>
+  <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
+    <Button Command="{Binding RemoveAllBreakpointsCommand}" Width="32" Height="32" ToolTip.Tip="Remove all">
+      <Image>
+        <Image.Source>
+          <SvgImage Source="/Assets/Icons/trash.svg" />
+        </Image.Source>
+      </Image>
+    </Button>
+    <Button Margin="4" Command="{Binding CreateBreakpointCommand}">Create</Button>
+  </StackPanel>
+  <DataGrid Name="Grid" ItemsSource="{Binding Breakpoints}" AutoGenerateColumns="False"
+    FontFamily="{StaticResource CodeFont}">
+    <!-- this approach doesn't work for some reason - most notably it doesn't retrieve #Grid.CurrentColumn -->
+    <!--<i:Interaction.Behaviors>
+      <ia:EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #Grid}">
+        <ia:InvokeCommandAction Command="{Binding BreakPointContextCommand}">
+          <ia:InvokeCommandAction.CommandParameter>
+            <MultiBinding Converter="{StaticResource BreakpointContextConverter}">
+              <Binding Path="#Grid.SelectedItem" />
+              <Binding Path="#Grid.CurrentColumn" />
+            </MultiBinding>
+          </ia:InvokeCommandAction.CommandParameter>
+        </ia:InvokeCommandAction>
+      </ia:EventTriggerBehavior>
+    </i:Interaction.Behaviors>-->
+    <DataGrid.Styles>
+      <Style Selector="DataGridRow">
+        <Setter Property="ContextMenu">
+          <Setter.Value>
+            <ContextMenu>
+              <MenuItem Header="Properties..." Command="{Binding #Grid.((breakpoints:BreakpointsViewModel)DataContext).ShowBreakpointPropertiesCommand}" CommandParameter="{Binding}" />
+              <MenuItem Header="Remove" Command="{Binding #Grid.((breakpoints:BreakpointsViewModel)DataContext).RemoveBreakpointCommand}" CommandParameter="{Binding}" />
+            </ContextMenu >
+          </Setter.Value>
+        </Setter>
+      </Style>
+    </DataGrid.Styles>
+    <DataGrid.Resources>
+      <converters:HexAddressConverter x:Key="HexAddressConverter" />
+      <converters:BreakpointAddressRangesToStringConverter x:Key="BreakpointAddressRangesToStringConverter" />
+      <converters:BreakpointBindingToStringConverter x:Key="BreakpointBindingToStringConverter" />
+      <converters:UIntArrayToTextConverter x:Key="UIntArrayToTextConverter" />
+    </DataGrid.Resources>
+    <DataGrid.Columns>
+      <DataGridTextColumn Header="Number" IsReadOnly="true" CellStyleClasses="colored" 
+        Binding="{Binding CheckpointNumbers, Converter={StaticResource UIntArrayToTextConverter}, Mode=OneWay}"/>
+      <DataGridCheckBoxColumn CellStyleClasses="colored" Header="Enabled" Binding="{Binding IsEnabled}" IsReadOnly="True" />
+      <DataGridCheckBoxColumn CellStyleClasses="colored" Header="Errors" Binding="{Binding HasErrors, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridCheckBoxColumn CellStyleClasses="colored" Header="Stop" Binding="{Binding StopWhenHit}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" Header="Mode" Binding="{Binding Mode, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" Header="Ranges" 
+        Binding="{Binding AddressRanges, Converter={StaticResource BreakpointAddressRangesToStringConverter}, Mode=OneWay}" IsReadOnly="True" />
+      <!--<DataGridTextColumn CellStyleClasses="colored" Header="End" 
+        Binding="{Binding EndAddress, Converter={StaticResource HexAddressConverter}, Mode=OneWay}" IsReadOnly="True" />-->
+      <DataGridTextColumn CellStyleClasses="colored" Header="Binding" 
+        Binding="{Binding Bind, Converter={StaticResource BreakpointBindingToStringConverter}, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" Header="Hit Count" Binding="{Binding HitCount, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" Header="Ignore Count" Binding="{Binding IgnoreCount, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" Header="Condition" Binding="{Binding Condition, Mode=OneWay}" IsReadOnly="True" Width="*" />
+    </DataGrid.Columns>
+  </DataGrid>
+</DockPanel>
+</UserControl>

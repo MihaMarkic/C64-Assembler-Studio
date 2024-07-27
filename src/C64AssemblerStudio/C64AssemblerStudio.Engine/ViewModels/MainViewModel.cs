@@ -5,6 +5,7 @@ using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,13 +58,14 @@ public class MainViewModel : ViewModel
     public IToolView? SelectedBottomTool { get; set; }
     public StatusInfoViewModel StatusInfo { get; }
     public RegistersViewModel Registers { get; }
+    public BreakpointsViewModel Breakpoints { get; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
     public bool IsDebugging => Vice.IsDebugging;
     public bool IsDebuggingPaused => Vice.IsPaused;
     public bool IsBuilding { get; private set; }
-    public bool IsProjectOpen => _globals.Project is not EmptyProjectViewModel;
+    public bool IsProjectOpen => _globals.IsProjectOpen;
     /// <summary>
     /// Tracks whether user held shift when it performed an action.
     /// AvaloniaObject should set this property for each event when it needs to handle shift status.
@@ -78,7 +80,7 @@ public class MainViewModel : ViewModel
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
         ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput,DebugOutputViewModel debugOutput, 
-        CompilerErrorsOutputViewModel compilerErrors,
+        CompilerErrorsOutputViewModel compilerErrors, BreakpointsViewModel breakpoints,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice)
     {
         _logger = logger;
@@ -98,7 +100,8 @@ public class MainViewModel : ViewModel
         CompilerErrors = compilerErrors;
         StatusInfo = statusInfo;
         Registers = registers;
-        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers];
+        Breakpoints = breakpoints;
+        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers, Breakpoints];
         StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
         StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
         _commandsManager = new CommandsManager(this, _uiFactory);

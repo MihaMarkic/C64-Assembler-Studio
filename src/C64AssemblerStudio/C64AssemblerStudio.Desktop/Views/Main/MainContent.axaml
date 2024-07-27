@@ -12,6 +12,7 @@
              xmlns:fv="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
              xmlns:tools="clr-namespace:C64AssemblerStudio.Desktop.Views.Tools"
              xmlns:tvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
+             xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
              x:Class="C64AssemblerStudio.Desktop.Views.Main.MainContent"
              x:DataType="vm:MainViewModel">
@@ -53,6 +54,8 @@
                                 <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
                                     <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
                                 </DataTemplate>
+                                <DataTemplate DataType="tvm:RegistersViewModel" />
+                                <DataTemplate DataType="breakpoints:BreakpointsViewModel" />
                             </ContentControl.DataTemplates>
                         </ContentControl>
                     </ctl:DockTool.HeaderContext>
@@ -76,6 +79,9 @@
                                             </DataTemplate>
                                             <DataTemplate DataType="tvm:RegistersViewModel">
                                                 <tools:Registers />
+                                            </DataTemplate>
+                                            <DataTemplate DataType="breakpoints:BreakpointsViewModel">
+                                                <tools:Breakpoints />
                                             </DataTemplate>
                                         </ContentControl.DataTemplates>
                                     </ContentControl>

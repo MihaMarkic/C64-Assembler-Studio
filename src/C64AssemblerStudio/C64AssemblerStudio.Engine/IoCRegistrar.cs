@@ -1,6 +1,7 @@
 ﻿using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels;
+using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Dialogs;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
@@ -32,6 +33,7 @@ public static class IoCRegistrar
             .AddTransient<AssemblerFileViewModel>()
             .AddSingleton<StatusInfoViewModel>()
             .AddScoped<RegistersViewModel>()
+            .AddScoped<BreakpointsViewModel>()
             // Tools
             .AddScoped<ErrorMessagesViewModel>()
             .AddScoped<BuildOutputViewModel>()

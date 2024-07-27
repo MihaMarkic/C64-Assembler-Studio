@@ -4,6 +4,7 @@ using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
+using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
@@ -14,7 +15,7 @@ using Righthand.ViceMonitor.Bridge.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.Services.Implementation;
 
-public class Vice: NotifiableObject, IVice
+public class Vice : NotifiableObject, IVice
 {
     private readonly ILogger<Vice> _logger;
     private readonly IViceBridge _bridge;
@@ -22,7 +23,8 @@ public class Vice: NotifiableObject, IVice
     private readonly IDispatcher _dispatcher;
     private readonly RegistersViewModel _registers;
     private Process? _process;
-    public event EventHandler<RegistersEventArgs>? RegistersUpdated; 
+    public event EventHandler<RegistersEventArgs>? RegistersUpdated;
+    public event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated; 
     public bool IsConnected { get; private set; }
     public bool IsDebugging { get; private set; }
     public bool IsPaused { get; private set; }
@@ -40,6 +42,7 @@ public class Vice: NotifiableObject, IVice
         _bridge.Start();
     }
 
+    private void OnCheckpointInfoUpdated(CheckpointInfoEventArgs e) => CheckpointInfoUpdated?.Invoke(this, e);
     private async void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
     {
         switch (e.Response)
@@ -47,7 +50,18 @@ public class Vice: NotifiableObject, IVice
             case RegistersResponse registersResponse:
                 await _registers.UpdateAsync(registersResponse, CancellationToken.None);
                 break;
+            case CheckpointInfoResponse checkpointInfoResponse:
+                OnCheckpointInfoUpdated(new CheckpointInfoEventArgs((checkpointInfoResponse)));
+                break;
+            case ResumedResponse:
+                IsPaused = false;
+                break;
+            case StoppedResponse:
+                IsPaused = true;
+                break;
         }
+
+        Debug.WriteLine($"Got {e.Response.GetType().Name}");
     }
 
     private async Task InitRegistersMappingAsync(CancellationToken ct = default)
@@ -98,30 +112,23 @@ public class Vice: NotifiableObject, IVice
             _logger.LogWarning("Can't start debugging - already debugging");
             return;
         }
-        IsPaused = false;
+
         var command = _bridge.EnqueueCommand(
             new AutoStartCommand(runAfterLoading: true, 0, _globals.Project.FullPrgPath!),
             resumeOnStopped: false);
         await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         IsDebugging = true;
     }
+
     public async Task StepIntoAsync(CancellationToken ct = default)
     {
         if (VerifyIsPaused("step into"))
         {
-            IsPaused = false;
-            try
-            {
-                ushort instructionsNumber = 1;
-                var command =
-                    _bridge.EnqueueCommand(new AdvanceInstructionCommand(StepOverSubroutine: false,
-                        instructionsNumber));
-                await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
-            }
-            finally
-            {
-                IsPaused = true;
-            }
+            ushort instructionsNumber = 1;
+            var command =
+                _bridge.EnqueueCommand(new AdvanceInstructionCommand(StepOverSubroutine: false,
+                    instructionsNumber));
+            await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         }
     }
 
@@ -129,20 +136,13 @@ public class Vice: NotifiableObject, IVice
     {
         if (VerifyIsPaused("step over"))
         {
-            IsPaused = false;
-            try
-            {
-                ushort instructionsNumber = 1;
-                var command =
-                    _bridge.EnqueueCommand(new AdvanceInstructionCommand(StepOverSubroutine: true, instructionsNumber));
-                await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
-            }
-            finally
-            {
-                IsPaused = true;
-            }
+            ushort instructionsNumber = 1;
+            var command =
+                _bridge.EnqueueCommand(new AdvanceInstructionCommand(StepOverSubroutine: true, instructionsNumber));
+            await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         }
     }
+
     public async Task ContinueAsync(CancellationToken ct = default)
     {
         if (VerifyIsPaused("continue"))
@@ -168,6 +168,7 @@ public class Vice: NotifiableObject, IVice
 
         return true;
     }
+
     bool VerifyIsDebugging(string verb)
     {
         if (!IsDebugging)
@@ -183,6 +184,7 @@ public class Vice: NotifiableObject, IVice
 
         return true;
     }
+
     public async Task StopDebuggingAsync(CancellationToken ct = default)
     {
         if (_bridge.IsConnected)
@@ -196,13 +198,14 @@ public class Vice: NotifiableObject, IVice
             else
             {
                 _logger.LogInformation("Stopping debugging with exit");
-                var command = _bridge.EnqueueCommand(new ExitCommand(),  resumeOnStopped: true);
+                var command = _bridge.EnqueueCommand(new ExitCommand(), resumeOnStopped: true);
                 await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
             }
+
             _logger.LogInformation("Debugging stopped");
         }
+
         IsDebugging = false;
-        IsPaused = false;
     }
 
     public async Task PauseDebuggingAsync(CancellationToken ct = default)
@@ -211,14 +214,15 @@ public class Vice: NotifiableObject, IVice
         {
             var command = _bridge.EnqueueCommand(new PingCommand(), resumeOnStopped: false);
             await command.Response;
-            IsPaused = true;
         }
     }
+
     public async Task ExitViceMonitorAsync(CancellationToken ct = default)
     {
         var command = _bridge.EnqueueCommand(new ExitCommand(), resumeOnStopped: false);
         await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
     }
+
     private void ProcessOnExited(object? sender, EventArgs e)
     {
         _process.ValueOrThrow().Exited -= ProcessOnExited;
@@ -245,19 +249,89 @@ public class Vice: NotifiableObject, IVice
         }
         else
         {
-            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE", "VICE path is not set in settings"));
+            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE",
+                "VICE path is not set in settings"));
             return null;
         }
     }
 
+    public async Task<bool> DeleteCheckpointAsync(uint checkpointNumber, CancellationToken ct = default)
+    {
+        var command = _bridge.EnqueueCommand(new CheckpointDeleteCommand(checkpointNumber),
+            resumeOnStopped: true);
+        var result = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+        return result is not null;
+    }
+    public async Task<bool> ArmBreakpointAsync(BreakpointViewModel breakpoint, CancellationToken ct)
+    {
+        if (breakpoint.HasErrors)
+        {
+            _logger.Log(LogLevel.Warning, "Breakpoint has errors {ErrorText} on re-arm", breakpoint.ErrorText);
+            return false;
+        }
+
+        if (breakpoint.AddressRanges is null)
+        {
+            _logger.LogError("Breakpoint doesn't have address range");
+            return false;
+        }
+        breakpoint.ClearCheckpointNumbers();
+        foreach (var addressRange in breakpoint.AddressRanges)
+        {
+            var checkpointSetCommand = _bridge.EnqueueCommand(
+                new CheckpointSetCommand(addressRange.Start, addressRange.End, breakpoint.StopWhenHit,
+                    breakpoint.IsEnabled, breakpoint.Mode.ToCpuOperation(), false),
+                   resumeOnStopped: true);
+            var checkpointSetResponse = await checkpointSetCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger,
+                checkpointSetCommand, ct: ct);
+            if (checkpointSetResponse is not null)
+            {
+                // apply condition to checkpoint if any
+                if (!string.IsNullOrWhiteSpace(breakpoint.Condition))
+                {
+                    var conditionSetCommand = _bridge.EnqueueCommand(
+                        new ConditionSetCommand(checkpointSetResponse.CheckpointNumber, breakpoint.Condition),
+                        resumeOnStopped: true);
+                    var conditionSetResponse = await conditionSetCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger,
+                        conditionSetCommand, ct: ct);
+                    // in case condition set fails, remove the checkpoint
+                    if (conditionSetResponse is null)
+                    {
+                        var checkpointDeleteCommand = _bridge.EnqueueCommand(
+                            new CheckpointDeleteCommand(checkpointSetResponse.CheckpointNumber),
+                                resumeOnStopped: true);
+                        await checkpointDeleteCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, checkpointDeleteCommand, ct: ct);
+                        return false;
+                    }
+                }
+                breakpoint.AddCheckpointNumber(addressRange, checkpointSetResponse.CheckpointNumber);
+            }
+        }
+
+        return true;
+    }
+
+    public async Task<bool> ToggleCheckpointAsync(uint checkpointNumber, bool targetEnabledState, CancellationToken ct = default)
+    {
+        var command = _bridge.EnqueueCommand(new CheckpointToggleCommand(checkpointNumber, targetEnabledState), resumeOnStopped: true);
+        var result = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+        return result?.ErrorCode == ErrorCode.OK;
+    }
+
+    public async Task<CheckpointListResponse?> GetCheckpointsListAsync(CancellationToken ct = default)
+    {
+        var checkpointsListCommand = _bridge.EnqueueCommand(new CheckpointListCommand(), resumeOnStopped: true);
+        return await checkpointsListCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, checkpointsListCommand, ct: ct);
+    }
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            _ = _bridge.StopAsync(waitForQueueToProcess:false);
+            _ = _bridge.StopAsync(waitForQueueToProcess: false);
             _bridge.ConnectedChanged -= BridgeOnConnectedChanged;
             _bridge.ViceResponse -= BridgeOnViceResponse;
         }
+
         base.Dispose(disposing);
     }
 }

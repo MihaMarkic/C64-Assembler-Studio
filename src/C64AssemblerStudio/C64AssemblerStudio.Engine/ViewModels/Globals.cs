@@ -2,6 +2,7 @@
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using Microsoft.Extensions.Logging;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
@@ -17,6 +18,7 @@ public class Globals: NotifiableObject
     /// </summary>
     public IProjectViewModel Project { get; private set; }
     public Settings Settings { get; set; } = new ();
+    public bool IsProjectOpen => Project is not EmptyProjectViewModel;
     public Globals(ILogger<Globals> logger, EmptyProjectViewModel emptyProject, ISettingsManager settingsManager)
     {
         _logger = logger;

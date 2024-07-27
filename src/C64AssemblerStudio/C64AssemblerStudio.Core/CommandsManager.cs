@@ -42,35 +42,42 @@ public class CommandsManager: DisposableObject
         }
     }
 
-    public RelayCommand CreateRelayCommand(Action execute, Expression<Func<bool>> canExecute, params string[] additionalProperties)
+    public RelayCommand CreateRelayCommand(Action execute, Expression<Func<bool>>? canExecute = null, params string[] additionalProperties)
     {
-        var command = new RelayCommand(execute, canExecute.Compile());
-        RegisterCommandsByPropertyNames(command, canExecute.Body, additionalProperties);
+        var command = new RelayCommand(execute, canExecute?.Compile());
+        RegisterCommandsByPropertyNames(command, canExecute?.Body, additionalProperties);
         return command;
     }
-    public RelayCommandAsync CreateRelayCommandAsync(Func<Task> execute, Expression<Func<bool>> canExecute, 
+    public RelayCommandAsync CreateRelayCommandAsync(Func<Task> execute, Expression<Func<bool>>? canExecute = null, 
         params string[] additionalProperties)
     {
-        var command = new RelayCommandAsync(execute, canExecute.Compile());
-        RegisterCommandsByPropertyNames(command, canExecute.Body, additionalProperties);
+        var command = new RelayCommandAsync(execute, canExecute?.Compile());
+        RegisterCommandsByPropertyNames(command, canExecute?.Body, additionalProperties);
         return command;
     }
-    public RelayCommandAsync<T> CreateRelayCommandAsync<T>(Func<T?, Task> execute, Expression<Func<T?, bool>> canExecute, 
+    public RelayCommandAsync<T> CreateRelayCommandAsync<T>(Func<T?, Task> execute, Expression<Func<T?, bool>>? canExecute = null, 
         params string[] additionalProperties)
     {
-        var command = new RelayCommandAsync<T>(execute, canExecute.Compile());
-        RegisterCommandsByPropertyNames(command, canExecute.Body, additionalProperties);
+        var command = new RelayCommandAsync<T>(execute, canExecute?.Compile());
+        RegisterCommandsByPropertyNames(command, canExecute?.Body, additionalProperties);
         return command;
     }
-    public RelayCommand<T> CreateRelayCommand<T>(Action<T?> execute, Expression<Func<T?, bool>> canExecute, params string[] additionalProperties)
+    public RelayCommandWithParameterAsync<T> CreateRelayCommandWithParameterAsync<T>(Func<T, Task> execute, Expression<Func<T, bool>>? canExecute = null, 
+        params string[] additionalProperties)
     {
-        var command = new RelayCommand<T>(execute, canExecute.Compile());
-        RegisterCommandsByPropertyNames(command, canExecute.Body, additionalProperties);
+        var command = new RelayCommandWithParameterAsync<T>(execute, canExecute?.Compile());
+        RegisterCommandsByPropertyNames(command, canExecute?.Body, additionalProperties);
         return command;
     }
-    internal void RegisterCommandsByPropertyNames(ICommandEx command, Expression body, string[] additionalProperties)
+    public RelayCommand<T> CreateRelayCommand<T>(Action<T?> execute, Expression<Func<T?, bool>>? canExecute = null, params string[] additionalProperties)
     {
-        var propertyNames = ExtractPropertyNames(body);
+        var command = new RelayCommand<T>(execute, canExecute?.Compile());
+        RegisterCommandsByPropertyNames(command, canExecute?.Body, additionalProperties);
+        return command;
+    }
+    internal void RegisterCommandsByPropertyNames(ICommandEx command, Expression? body, string[] additionalProperties)
+    {
+        var propertyNames = body is not null ? ExtractPropertyNames(body): ImmutableHashSet<string>.Empty;
         foreach (var pn in propertyNames.Union(additionalProperties))
         {
             if (!commands.TryGetValue(pn, out var data))

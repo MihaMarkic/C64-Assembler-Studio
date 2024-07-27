@@ -1,0 +1,113 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:bvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:bdlg="clr-namespace:C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints"
+             xmlns:models="clr-namespace:C64AssemblerStudio.Engine.Models;assembly=C64AssemblerStudio.Engine"
+             xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+             xmlns:behaviors="clr-namespace:C64AssemblerStudio.Desktop.Behaviors"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
+             x:DataType="bvm:BreakpointDetailViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.BreakpointDetails">
+    <Grid Margin="8" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto"
+  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+  <Grid.Styles>
+    <Style Selector="Label">
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Margin" Value="0,10,4,10" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </Grid.Styles>
+  <Grid.Resources>
+    <converters:BreakpointAddressRangesToStringConverter x:Key="BreakpointAddressRangesToStringConverter" />
+  </Grid.Resources>
+  <CheckBox Grid.Column="1" IsChecked="{Binding Breakpoint.IsEnabled, Mode=TwoWay}">Is enabled</CheckBox>
+  <CheckBox Grid.Column="2" Grid.Row="1" IsChecked="{Binding Breakpoint.StopWhenHit, Mode=TwoWay}">Stop when hit</CheckBox>
+
+  <Label Grid.Column="0" Grid.Row="2">Addresses</Label>
+  <!--<StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal">
+    <TextBox Text="{Binding StartAddress}" Width="100" IsEnabled="{Binding !IsStartAddressReadOnly}" />
+    <Label Margin="4,0">end</Label>
+    <TextBox Text="{Binding EndAddress}" Width="100" IsEnabled="{Binding !IsEndAddressReadOnly}" />
+  </StackPanel>-->
+  <Grid Grid.Column="1" Grid.Row="2" VerticalAlignment="Center">
+    <TextBlock IsVisible="{Binding IsAddressRangeReadOnly}"
+      Text="{Binding Breakpoint.AddressRanges, Converter={StaticResource BreakpointAddressRangesToStringConverter}}" />
+    <Grid IsVisible="{Binding !IsAddressRangeReadOnly}" Grid.ColumnDefinitions="*,Auto,*">
+      <TextBox Text="{Binding StartAddress}" MinWidth="100" />
+      <Label Grid.Column="1" Margin="4,0">end</Label>
+      <TextBox Grid.Column="2" Text="{Binding EndAddress}" MinWidth="100" />
+    </Grid>
+  </Grid>
+
+  <Label Grid.Column="0" Grid.Row="3">Mode</Label>
+  <!--<ComboBox Grid.Column="1" Grid.Row="3"
+    IsEnabled="{Binding IsModeEnabled, Mode=OneWay}"
+    SelectedIndex="{Binding Breakpoint.Mode, Mode=TwoWay}" 
+    Width="100" HorizontalAlignment="Left">
+    <ComboBoxItem>Exec</ComboBoxItem>
+    <ComboBoxItem>Load</ComboBoxItem>
+    <ComboBoxItem>Store</ComboBoxItem>
+  </ComboBox>-->
+  <bdlg:BreakpointExecutionMode Grid.Column="1" Grid.Row="3" 
+    Mode="{Binding Breakpoint.Mode, Mode=TwoWay}"
+    IsExecEnabled="{Binding IsExecModeEnabled}"
+    IsLoadEnabled="{Binding IsLoadStoreModeEnabled}"
+    IsStoreEnabled="{Binding IsLoadStoreModeEnabled}"/>
+
+  <Label Grid.Row="5" VerticalAlignment="Top" Margin="0,4,4,10">Binding</Label>
+  <StackPanel Grid.Column="1" Grid.Row="5" Orientation="Vertical" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal">
+      <TextBlock Text="{Binding Breakpoint.Mode}" HorizontalAlignment="Left" VerticalAlignment="Center"
+      FontWeight="Bold" />
+      <Button Margin="10,0,4,0" Command="{Binding ClearBindingCommand}">Clear</Button>
+    </StackPanel>
+    <ContentControl Content="{Binding Breakpoint.Bind}"
+      IsVisible="{Binding Breakpoint.Bind, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <ContentControl.Resources>
+        <!-- <converters:PdbVariableAddressRangeToStringConverter x:Key="PdbVariableAddressRangeToStringConverter" /> -->
+      </ContentControl.Resources>
+      <ContentControl.DataTemplates>
+        <DataTemplate DataType="models:BreakpointLineBind">
+          <bdlg:BreakpoinLineBind />
+        </DataTemplate>
+        <DataTemplate DataType="models:BreakpointNoBind" />
+      </ContentControl.DataTemplates>
+    </ContentControl>
+  </StackPanel>
+
+  <Label Grid.Column="0" Grid.Row="6">Condition</Label>
+  <avaloniaEdit:TextEditor x:Name="Conditions" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Stretch"
+    Foreground="Gray" FontFamily="{StaticResource CodeFont}" MinHeight="60" ShowLineNumbers="true" Margin="0,5"
+    FontSize="14">
+    <Interaction.Behaviors>
+      <behaviors:DocumentTextBindingBehavior Text="{Binding Breakpoint.Condition, Mode=TwoWay}"/>
+    </Interaction.Behaviors>
+  </avaloniaEdit:TextEditor>
+
+  <Label Grid.Column="0" Grid.Row="7">Config error</Label>
+  <Grid Grid.Column="1" Grid.Row="7" VerticalAlignment="Center">
+    <TextBlock Text="{Binding Breakpoint.ErrorText}" Foreground="DarkRed" IsVisible="{Binding Breakpoint.HasErrors}"/>
+    <TextBlock Text="All good" IsVisible="{Binding !Breakpoint.HasErrors}"/>
+  </Grid>
+
+  <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="8" Classes="error" Text="{Binding SaveError}"
+    IsVisible="{Binding SaveError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+  <StackPanel  Grid.Column="1" Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right"
+    VerticalAlignment="Bottom" Margin="0,0,8,0">
+    <Button Margin="0,0,8,0" IsVisible="{Binding HasSaveButton, Mode=OneTime}" Command="{Binding SaveCommand}">Save</Button>
+    <Button Margin="0,0,8,0" IsVisible="{Binding HasCreateButton, Mode=OneTime}" Command="{Binding CreateCommand}">Create</Button>
+    <Button Margin="0,0,8,0" Command="{Binding CancelCommand, Mode=OneTime}">Cancel</Button>
+    <Button IsVisible="{Binding HasApplyButton, Mode=OneTime}">Apply</Button>
+  </StackPanel>
+</Grid>
+</UserControl>

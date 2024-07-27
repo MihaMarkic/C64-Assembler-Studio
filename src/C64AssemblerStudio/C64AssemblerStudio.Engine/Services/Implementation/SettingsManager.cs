@@ -70,6 +70,27 @@ public class SettingsManager : ISettingsManager
             throw new Exception($"Failed saving settings:{ex.Message}", ex);
         }
     }
+    public async Task SaveAsync<T>(T settings, string path, bool createDirectory, CancellationToken ct = default)
+    {
+        var data = JsonSerializer.Serialize(settings);
+        try
+        {
+            if (createDirectory)
+            {
+                string? directory = Path.GetDirectoryName(path);
+                if (directory is not null)
+                {
+                    Directory.CreateDirectory(directory);
+                }
+            }
+            await File.WriteAllTextAsync(path, data, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed saving settings:{ex.Message}");
+            throw new Exception($"Failed saving settings:{ex.Message}", ex);
+        }
+    }
     //public void Save(BreakpointsSettings breakpointsSettings, string filePath) => Save(breakpointsSettings, filePath, false);
     //public BreakpointsSettings LoadBreakpointsSettings(string filePath)
     //{

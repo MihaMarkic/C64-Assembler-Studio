@@ -1,0 +1,14 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:C64AssemblerStudio.Engine.Models;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="models:BreakpointLineBind"
+             x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints.BreakpoinLineBind">
+    <StackPanel Orientation="Horizontal">
+        <TextBox Text="{Binding FilePath}" Width="200" IsEnabled="False" />
+        <Label Margin="4,0">line</Label>
+        <TextBox Text="{Binding LineNumber}"  IsEnabled="False" Width="100" HorizontalContentAlignment="Right" />
+    </StackPanel>
+</UserControl>
