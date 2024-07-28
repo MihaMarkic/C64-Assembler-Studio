@@ -17,10 +17,11 @@ namespace C64AssemblerStudio.Desktop.Views.Files;
 
 public partial class AssemblerFile : UserControl
 {
-    readonly LineNumbers _lineNumbers;
+    private readonly LineNumbers _lineNumbers;
     private SyntaxColorizer? _syntaxColorizer;
-    ISolidColorBrush? _lineNumberForeground;
+    private ISolidColorBrush? _lineNumberForeground;
     private AssemblerFileViewModel? _oldViewModel;
+    private BreakpointsMargin? _breakpointsMargin;
 
     public AssemblerFile()
     {
@@ -54,6 +55,8 @@ public partial class AssemblerFile : UserControl
             fileViewModel.PropertyChanged += FileViewModelOnPropertyChanged;
             fileViewModel.MoveCaretRequest += FileViewModelOnMoveCaretRequest;
             Editor.Text = fileViewModel.Content;
+            _breakpointsMargin = new BreakpointsMargin(fileViewModel);
+            Editor.TextArea.LeftMargins.Add(_breakpointsMargin);
             _oldViewModel = fileViewModel;
         }
         else
@@ -63,6 +66,11 @@ public partial class AssemblerFile : UserControl
                 Editor.TextArea.TextView.LineTransformers.Remove(_syntaxColorizer);
             }
 
+            if (_breakpointsMargin is not null)
+            {
+                Editor.TextArea.LeftMargins.Remove(_breakpointsMargin);
+            }
+            _breakpointsMargin = null;
             _syntaxColorizer = null;
             _oldViewModel = null;
         }

@@ -18,7 +18,7 @@ public class HexValidator : StringValidator<ushort?>
         TextValue = ConvertTo(initialValue);
     }
 
-    public override (bool IsValid, ushort? Value, string? error) ConvertFrom(string? text)
+    protected override (bool IsValid, ushort? Value, string? error) ConvertFrom(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
         {

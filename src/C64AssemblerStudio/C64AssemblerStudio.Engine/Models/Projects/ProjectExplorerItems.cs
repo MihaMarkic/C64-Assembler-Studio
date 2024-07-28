@@ -63,5 +63,6 @@ public class ProjectDirectory : ProjectItem
 public class ProjectFile : ProjectItem
 {
     public required FileType FileType { get; init; }
+    public string GetRelativeFilePath() => Path.Combine(GetRelativeDirectory(), Name);
     public bool CanOpen => FileType == FileType.Assembler;
 }

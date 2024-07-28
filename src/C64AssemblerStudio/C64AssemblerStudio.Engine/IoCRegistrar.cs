@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Engine.Services.Abstract;
+﻿using C64AssemblerStudio.Engine.BindingValidators;
+using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
@@ -23,6 +24,7 @@ public static class IoCRegistrar
             .AddSingleton<StatusInfoViewModel>()
             .AddSingleton<IVice, Vice>()
             .AddSingleton<RegistersMapping>()
+            .AddSingleton<IAddressEntryGrammarService, AddressEntryGrammarService>()
             // ViewModels
             .AddSingleton<MainViewModel>()
             .AddScoped<StartPageViewModel>()
@@ -39,6 +41,8 @@ public static class IoCRegistrar
             .AddScoped<BuildOutputViewModel>()
             .AddScoped<DebugOutputViewModel>()
             .AddSingleton<CompilerErrorsOutputViewModel>()
+            // Misc
+            .AddTransient<AddressEntryValidator>()
             // Dialogs
             .AddTransient<AddFileDialogViewModel>()
             .AddTransient<AddDirectoryDialogViewModel>()

@@ -1,12 +1,16 @@
 ﻿using System.Collections;
+using System.Collections.Frozen;
 using System.ComponentModel;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Engine.BindingValidators;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PropertyChanged;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 
@@ -24,7 +28,6 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
     private readonly BreakpointsViewModel _breakpoints;
     private readonly BreakpointViewModel _sourceBreakpoint;
     public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
-    
     public string? SaveError { get; private set; }
     public BreakpointViewModel Breakpoint { get; }
     public Action<SimpleDialogResult>? Close { get; set; }
@@ -43,15 +46,26 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
         false; // Mode == BreakpointDetailDialogMode.Update; // disabled for now, perhaps enabled in the future
 
     public bool HasSaveButton => Mode == BreakpointDetailDialogMode.Update;
-    public string? StartAddress { get; set; }
-    public string? EndAddress { get; set; }
+    public string? StartAddress
+    {
+        get => _startAddressEntryValidator.TextValue;
+        set => _startAddressEntryValidator.Update(value);
+    }
+    public string? EndAddress
+    {
+        get => _endAddressEntryValidator.TextValue;
+        set => _endAddressEntryValidator.Update(value);
+    }
     public bool IsAddressRangeReadOnly => IsBreakpointBound;
     public bool IsBreakpointBound => Breakpoint.Bind is not BreakpointNoBind;
     public bool IsModeEnabled => Breakpoint.Bind is not BreakpointLineBind;
     public bool IsExecModeEnabled => Breakpoint.Bind is BreakpointLineBind || Breakpoint.Bind is BreakpointNoBind;
     public bool IsLoadStoreModeEnabled => Breakpoint.Bind is not BreakpointLineBind;
-
-    public BreakpointDetailViewModel(ILogger<BreakpointDetailViewModel> logger, Globals globals, IVice vice,
+    private readonly FrozenDictionary<string, ImmutableArray<IBindingValidator>> _validators;
+    private readonly AddressEntryValidator _startAddressEntryValidator;
+    private readonly AddressEntryValidator _endAddressEntryValidator;
+    public BreakpointDetailViewModel(ILogger<BreakpointDetailViewModel> logger, IServiceScope serviceScope,
+        Globals globals, IVice vice,
         BreakpointsViewModel breakpoints, BreakpointViewModel breakpoint, BreakpointDetailDialogMode mode)
     {
         _logger = logger;
@@ -66,7 +80,19 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
         CancelCommand = new RelayCommand(Cancel);
         ClearBindingCommand = new RelayCommand(ClearBinding, () => Breakpoint.Bind is not BreakpointNoBind);
         Breakpoint.PropertyChanged += Breakpoint_PropertyChanged;
-
+        _startAddressEntryValidator = serviceScope.CreateAddressEntryValidator(nameof(StartAddress), isMandatory: true);
+        _endAddressEntryValidator = serviceScope.CreateAddressEntryValidator(nameof(EndAddress), isMandatory: false);
+        var validatorsBuilder = new Dictionary<string, ImmutableArray<IBindingValidator>>
+        {
+            { nameof(StartAddress), ImmutableArray<IBindingValidator>.Empty.Add(_startAddressEntryValidator) },
+            { nameof(EndAddress), ImmutableArray<IBindingValidator>.Empty.Add(_endAddressEntryValidator) }
+        };
+        _validators = validatorsBuilder.ToFrozenDictionary();
+        // bind all validators
+        foreach (var validator in _validators.Values.SelectMany(a => a))
+        {
+            validator.HasErrorsChanged += ValidatorHasErrorsChanged;
+        }
         switch (Breakpoint.Bind)
         {
             case BreakpointNoBind noBind:
@@ -97,6 +123,34 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
         EndAddress = noBind.EndAddress;
     }
     internal bool CanSave() => !HasErrors && Breakpoint.IsChangedFrom(_sourceBreakpoint);
+    [SuppressPropertyChangedWarnings]
+    void OnErrorsChanged(DataErrorsChangedEventArgs e) => ErrorsChanged?.Invoke(this, e);
+    void ValidatorHasErrorsChanged(object? sender, EventArgs e)
+    {
+        var validator = (IBindingValidator)sender!;
+        HasErrors = _validators.Values
+            .SelectMany(a => a)
+            .Any(v => v.HasErrors);
+        OnErrorsChanged(new DataErrorsChangedEventArgs(validator.SourcePropertyName));
+    }
+    
+    public IEnumerable GetErrors(string? propertyName)
+    {
+        if (!string.IsNullOrEmpty(propertyName) && _validators.TryGetValue(propertyName, out var propertyValidators))
+        {
+            var errors = new List<string>();
+            foreach (var pv in propertyValidators)
+            {
+                errors.AddRange(pv.Errors);
+            }
+            HasErrors = errors.Count > 0;
+            return errors.ToImmutableArray();
+        }
+        else
+        {
+            return Enumerable.Empty<string>();
+        }
+    }
     void Breakpoint_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         HasChanges = true;
@@ -112,28 +166,12 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
                 OnPropertyChanged(nameof(IsAddressRangeReadOnly));
                 OnPropertyChanged(nameof(IsExecModeEnabled));
                 OnPropertyChanged(nameof(IsLoadStoreModeEnabled));
-                // switch (Breakpoint.Bind)
-                // {
-                //     case BreakpointNoBind noBind:
-                //         Breakpoint.AddressRanges = ImmutableHashSet<BreakpointAddressRange>
-                //             .Empty.Add(new(noBind.StartAddress, noBind.EndAddress));
-                //         break;
-                //     case BreakpointGlobalVariableBind variableBind:
-                //         Breakpoint.AddressRanges = ImmutableHashSet<BreakpointAddressRange>.Empty;
-                //         globalVariableBindValidator.Update(null);
-                //         break;
-                // };
-                // // clear no bind (address) validators when type is changed
-                // if (Breakpoint.Bind is not BreakpointNoBind)
-                // {
-                //     startAddressValidator.Clear();
-                //     endAddressValidator.Clear();
-                //     endAddressHigherThanStartValidator.Clear();
-                // }
-                // if (Breakpoint.Bind is not BreakpointGlobalVariableBind)
-                // {
-                //     GlobalVariable = null;
-                // }
+                // clear no bind (address) validators when type is changed
+                if (Breakpoint.Bind is not BreakpointNoBind)
+                {
+                    _startAddressEntryValidator.Clear();
+                    _endAddressEntryValidator.Clear();
+                }
                 break;
         }
     }
@@ -172,29 +210,30 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
         switch (name)
         {
             case nameof(HasErrors):
+            case nameof(StartAddress):
+            case nameof(EndAddress):
                 SaveCommand.RaiseCanExecuteChanged();
                 CreateCommand.RaiseCanExecuteChanged();
                 break;
         }
+
+        switch (name)
+        {
+            case nameof(StartAddress) when StartAddress is not null:
+                {
+                    var bind = (BreakpointNoBind)Breakpoint.Bind.ValueOrThrow();
+                    Breakpoint.Bind = bind with { StartAddress = StartAddress };
+                }
+                break;
+            case nameof(EndAddress):
+                {
+                    var bind = (BreakpointNoBind)Breakpoint.Bind.ValueOrThrow();
+                    Breakpoint.Bind = bind with { EndAddress = EndAddress };
+                }
+                break;
+        }
     }
-    public IEnumerable GetErrors(string? propertyName)
-    {
-        // if (!string.IsNullOrEmpty(propertyName) && validators.TryGetValue(propertyName, out var propertyValidators))
-        // {
-        //     var errors = new List<string>();
-        //     foreach (var pv in propertyValidators)
-        //     {
-        //         errors.AddRange(pv.Errors);
-        //     }
-        //     HasErrors = errors.Count > 0;
-        //     return errors.ToImmutableArray();
-        // }
-        // else
-        // {
-        //     return Enumerable.Empty<string>();
-        // }
-        return Enumerable.Empty<string>();
-    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)

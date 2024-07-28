@@ -26,6 +26,7 @@ public record AddressRange(ushort StartAddress, ushort Length)
     public bool IsAddressInRange(ushort address) => address >= StartAddress && address <= EndAddress;
 }
 
+public record BreakpointLineKey(string FilePath, int Line);
 public class BreakpointsViewModel : NotifiableObject, IToolView
 {
     public enum BreakPointContextColumn
@@ -51,11 +52,11 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     /// Maps breakpoints by checkpoint number
     /// </summary>
     private readonly Dictionary<uint, BreakpointViewModel> _breakpointsMap = new ();
-    private readonly Dictionary<int, List<BreakpointViewModel>> _breakpointsLinesMap = new();
+    private readonly Dictionary<BreakpointLineKey, List<BreakpointViewModel>> _breakpointsLinesMap = new();
 
     // readonly Dictionary<PdbLine, List<BreakpointViewModel>> breakpointsLinesMap;
     // readonly Dictionary<uint, BreakpointViewModel> breakpointsMap;
-    readonly TaskFactory _uiFactory;
+    private readonly TaskFactory _uiFactory;
     public RelayCommandWithParameterAsync<BreakpointViewModel> ToggleBreakpointEnabledCommand { get; }
     public RelayCommandWithParameterAsync<BreakpointViewModel> ShowBreakpointPropertiesCommand { get; }
     public RelayCommandWithParameterAsync<BreakPointContext> BreakPointContextCommand { get; }
@@ -112,22 +113,39 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         await SaveLocalSettingsAsync();
     }
 
-    public ImmutableArray<BreakpointViewModel> GetBreakpointsAssociatedWithLine(int lineNumber)
+    /// <summary>
+    /// Returns all breakpoints associated with given line.
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="lineNumber"></param>
+    /// <returns>An array of breakpoint viewmodel associated with line</returns>
+    /// <remarks>While a line can have only one line breakpoint, it can have multiple unbound ones (TBD)</remarks>
+    public ImmutableArray<BreakpointViewModel> GetBreakpointsAssociatedWithLine(string filePath, int lineNumber)
     {
-        if (_breakpointsLinesMap.TryGetValue(lineNumber, out var breakpoints))
+        if (_breakpointsLinesMap.TryGetValue(new BreakpointLineKey(filePath, lineNumber), out var breakpoints))
         {
             return [..breakpoints];
         }
         return ImmutableArray<BreakpointViewModel>.Empty;
     }
 
-    void Globals_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    public BreakpointViewModel? GetLineBreakpointForLine(string filePath, int lineNumber)
+    {
+        var breakpoints = GetBreakpointsAssociatedWithLine(filePath, lineNumber);
+        return breakpoints.SingleOrDefault(b => b.Bind is BreakpointLineBind);
+    }
+
+    async void Globals_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
             case nameof(Globals.Project):
                 _ = RemoveAllBreakpointsAsync(false);
                 OnPropertiesChanged(nameof(IsProjectOpen));
+                if (_globals.IsProjectOpen)
+                {
+                    await LoadBreakpointsAsync(CancellationToken.None);
+                }
                 break;
             // should happen only on start debug 
             //case nameof(Globals.ProjectDebugSymbols):
@@ -205,7 +223,11 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
                     new ShowModalDialogMessage<BreakpointDetailViewModel, SimpleDialogResult>(
                         "Breakpoint properties", 
                         DialogButton.OK | DialogButton.Cancel, 
-                        detailViewModel);
+                        detailViewModel)
+                    {
+                        MinSize = new Size(400, 350),
+                        DesiredSize = new Size(600, 350),
+                    };
                 _dispatcher.DispatchShowModalDialog(message);
                 var result = await message.Result;
             }
@@ -373,7 +395,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     public async Task AddLineBreakpointAsync(string filePath, int lineNumber,
         string? condition, CancellationToken ct = default)
     {
-        if (!_breakpointsLinesMap.TryGetValue(lineNumber, out var breakpoint))
+        if (!_breakpointsLinesMap.TryGetValue(new BreakpointLineKey(filePath, lineNumber), out var breakpoint))
         {
             var bind = new BreakpointLineBind(filePath, lineNumber, null);
             await AddBreakpointAsync(true, true, BreakpointMode.Exec, bind, ImmutableArray<AddressRange>.Empty, null,
@@ -450,14 +472,15 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
             if (breakpoint.Bind is BreakpointLineBind lineBind)
             {
-                if (!_breakpointsLinesMap.TryGetValue(lineBind.LineNumber, out var breakpoints))
+                var key = new BreakpointLineKey(lineBind.FilePath, lineBind.LineNumber);
+                if (!_breakpointsLinesMap.TryGetValue(key, out var breakpoints))
                 {
                     breakpoints = new List<BreakpointViewModel> { breakpoint };
-                    _breakpointsLinesMap.Add(lineBind.LineNumber, breakpoints);
+                    _breakpointsLinesMap.Add(key, breakpoints);
                 }
                 else
                 {
-                    _breakpointsLinesMap[lineBind.LineNumber].Add(breakpoint);
+                    _breakpointsLinesMap[key].Add(breakpoint);
                 }
             }
         }
@@ -484,7 +507,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             {
                 if (breakpoint.Bind is BreakpointLineBind lineBind)
                 {
-                    _breakpointsLinesMap.Remove(lineBind.LineNumber);
+                    _breakpointsLinesMap.Remove(new BreakpointLineKey(lineBind.FilePath, lineBind.LineNumber));
                 }
                 Breakpoints.Remove(breakpoint);
                 return true;
@@ -572,20 +595,37 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         };
     }
 
-    public async Task LoadBreakpointsFromSettingsAsync(BreakpointsSettings settings, CancellationToken ct = default)
+    public async Task AddBreakpointsFromCodeAsync(CancellationToken ct = default)
     {
-        foreach (var b in settings.Breakpoints)
+        var project = (KickAssProjectViewModel)_globals.Project.ValueOrThrow();
+        foreach (var b in project.DbgData.ValueOrThrow().Breakpoints)
         {
-            BreakpointViewModel? breakpoint = b.Bind switch
+            // TODO add kickass breakpoints and watchpoints
+        }
+    }
+
+    public void LoadBreakpointsFromSettings(BreakpointsSettings settings)
+    {
+        _suppressLocalPersistence = true;
+        try
+        {
+            foreach (var b in settings.Breakpoints)
             {
-                BreakpointInfoLineBind lineBind => LoadLineBreakpoint(b, lineBind),
-                BreakpointInfoNoBind noBind => LoadUnboundBreakpoint(b, noBind),
-                _ => throw new Exception($"Unknown breakpoint bind type {b.Bind?.GetType().Name}"),
-            };
-            if (breakpoint is not null)
-            {
-                Breakpoints.Add(breakpoint);
+                BreakpointViewModel? breakpoint = b.Bind switch
+                {
+                    BreakpointInfoLineBind lineBind => LoadLineBreakpoint(b, lineBind),
+                    BreakpointInfoNoBind noBind => LoadUnboundBreakpoint(b, noBind),
+                    _ => throw new Exception($"Unknown breakpoint bind type {b.Bind?.GetType().Name}"),
+                };
+                if (breakpoint is not null)
+                {
+                    Breakpoints.Add(breakpoint);
+                }
             }
+        }
+        finally
+        {
+            _suppressLocalPersistence = false;
         }
     }
 
@@ -612,7 +652,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         }
     }
 
-    public async Task<BreakpointsSettings> LoadBreakpointsAsync(CancellationToken ct = default)
+    public async Task LoadBreakpointsAsync(CancellationToken ct = default)
     {
         var project = _globals.Project;
         if (project?.BreakpointsSettingsPath is not null)
@@ -620,11 +660,9 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             var settings = await _settingsManager.LoadAsync<BreakpointsSettings>(project.BreakpointsSettingsPath, ct);
             if (settings is not null)
             {
-                return settings;
+                LoadBreakpointsFromSettings(settings);
             }
         }
-
-        return BreakpointsSettings.Empty;
     }
 
     protected override void Dispose(bool disposing)
@@ -633,6 +671,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         {
             _vice.CheckpointInfoUpdated -= ViceOnCheckpointInfoUpdated;
             _globals.PropertyChanged -= Globals_PropertyChanged;
+            _commandsManager.Dispose();
         }
 
         base.Dispose(disposing);

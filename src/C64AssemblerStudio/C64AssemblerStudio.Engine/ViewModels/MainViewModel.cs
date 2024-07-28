@@ -194,6 +194,8 @@ public class MainViewModel : ViewModel
                         StatusInfo.BuildingStatus = BuildStatus.Idle;
                         return;
                     }
+
+                    await Breakpoints.AddBreakpointsFromCodeAsync();
                     DebugOutput.AddLine("Starting debugging");
                     await Vice.StartDebuggingAsync();
                 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Engine.BindingValidators;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
@@ -48,5 +49,13 @@ public static class ServiceProviderExtension
             serviceScope.ServiceProvider.GetRequiredService<BreakpointsViewModel>(),
             breakpointViewModel, mode);
         return viewModel;
+    }
+
+    public static AddressEntryValidator CreateAddressEntryValidator(this IServiceScope serviceScope,
+        string sourcePropertyName,
+        bool isMandatory)
+    {
+        return ActivatorUtilities.CreateInstance<AddressEntryValidator>(serviceScope.ServiceProvider,
+            sourcePropertyName, isMandatory);
     }
 }

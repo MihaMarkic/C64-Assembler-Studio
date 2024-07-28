@@ -66,7 +66,7 @@
   <Label Grid.Row="5" VerticalAlignment="Top" Margin="0,4,4,10">Binding</Label>
   <StackPanel Grid.Column="1" Grid.Row="5" Orientation="Vertical" VerticalAlignment="Center">
     <StackPanel Orientation="Horizontal">
-      <TextBlock Text="{Binding Breakpoint.Mode}" HorizontalAlignment="Left" VerticalAlignment="Center"
+      <TextBlock Text="{Binding Breakpoint.BindMode}" HorizontalAlignment="Left" VerticalAlignment="Center"
       FontWeight="Bold" />
       <Button Margin="10,0,4,0" Command="{Binding ClearBindingCommand}">Clear</Button>
     </StackPanel>

@@ -12,6 +12,7 @@ public class BreakpointViewModel : NotifiableObject, ICloneable
     public uint IgnoreCount { get; set; }
     public BreakpointMode Mode { get; set; }
     public BreakpointBind? Bind { get; set; }
+    public bool IsPersistent { get; init; } = true;
     public string? Condition { get; set; }
     /// <summary>
     /// Flag that signals breakpoint not enabled due to errors, i.e. global variable not found.

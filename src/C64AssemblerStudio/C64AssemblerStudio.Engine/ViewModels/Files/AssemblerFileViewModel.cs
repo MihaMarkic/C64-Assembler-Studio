@@ -2,8 +2,12 @@
 using System.Collections.Specialized;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Services.Abstract;
+using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
+using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
@@ -30,31 +34,76 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     }
     public record LineItem(int Start, int End, TokenType TokenType);
     public record Line(ImmutableArray<LineItem> Items);
+    private static readonly FrozenDictionary<int, TokenType> Map;
     private readonly CompilerErrorsOutputViewModel _compilerErrors;
+    public event EventHandler? BreakpointsChanged;
+    public BreakpointsViewModel Breakpoints { get; }
     private ImmutableArray<ImmutableArray<IToken>> _tokens = ImmutableArray<ImmutableArray<IToken>>.Empty;
     public ImmutableArray<Line?> Lines { get; private set; } = ImmutableArray<Line?>.Empty;
     public FrozenDictionary<int, ImmutableArray<SyntaxError>> Errors { get; private set; }
-    private static readonly FrozenDictionary<int, TokenType> Map;
+    public RelayCommandWithParameterAsync<int> AddOrRemoveBreakpointCommand { get; }
 
     static AssemblerFileViewModel()
     {
         Map = BuildMap();
     }
 
+    private void OnBreakpointsChanged(EventArgs e) => BreakpointsChanged?.Invoke(this, e);
     public AssemblerFileViewModel(ILogger<AssemblerFileViewModel> logger, IFileService fileService,
-        IDispatcher dispatcher, StatusInfoViewModel statusInfo,
+        IDispatcher dispatcher, StatusInfoViewModel statusInfo, BreakpointsViewModel breakpoints,
         Globals globals, CompilerErrorsOutputViewModel compilerErrors, ProjectFile file) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {
+        Breakpoints = breakpoints;
         _compilerErrors = compilerErrors;
         Errors = FrozenDictionary<int, ImmutableArray<SyntaxError>>.Empty;
+        AddOrRemoveBreakpointCommand = new RelayCommandWithParameterAsync<int>(AddOrRemoveBreakpoint);
+        Breakpoints.Breakpoints.CollectionChanged += BreakpointsOnCollectionChanged;
         UpdateErrors();
         _compilerErrors.Lines.CollectionChanged += CompilerErrors_LinesOnCollectionChanged;
+    }
+
+    private void BreakpointsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        string filePath = File.GetRelativeFilePath();
+        bool IsMatch(BreakpointViewModel b)
+        {
+            return b.Bind is BreakpointLineBind lineBind &&
+                   filePath.Equals(lineBind.FilePath, OSDependent.FileStringComparison);
+        }
+
+        bool hasChanges = e.NewItems is IList<BreakpointViewModel> newItems && newItems.Any(IsMatch)
+                || e.OldItems is IList<BreakpointViewModel> oldItems && oldItems.Any(IsMatch);
+        if (hasChanges)
+        {
+            OnBreakpointsChanged(EventArgs.Empty);
+        }
+    }
+
+    private async Task AddOrRemoveBreakpoint(int lineNumber)
+    {
+        string filePath = File.GetRelativeFilePath();
+        var breakpoint = Breakpoints.GetLineBreakpointForLine(filePath, lineNumber);
+        if (breakpoint is not null)
+        {
+            Logger.LogDebug("Removing breakpoint in {File} at {Line}", filePath, lineNumber);
+            await Breakpoints.RemoveBreakpointAsync(breakpoint);
+        }
+        else
+        {
+            Logger.LogDebug("Adding breakpoint in {File} at {Line}", filePath, lineNumber);
+            await Breakpoints.AddLineBreakpointAsync(File.GetRelativeFilePath(), lineNumber, null);
+        }
     }
 
     private void CompilerErrors_LinesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         UpdateErrors();
+    }
+
+    public bool HasBreakPointAtLine(int lineNumber)
+    {
+        return Breakpoints.GetLineBreakpointForLine(File.GetRelativeFilePath(), lineNumber) is not null;
     }
 
     void UpdateErrors()
@@ -434,6 +483,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     {
         if (disposing)
         {
+            Breakpoints.Breakpoints.CollectionChanged -= BreakpointsOnCollectionChanged;
             _compilerErrors.Lines.CollectionChanged -= CompilerErrors_LinesOnCollectionChanged;
         }
         base.Dispose(disposing);

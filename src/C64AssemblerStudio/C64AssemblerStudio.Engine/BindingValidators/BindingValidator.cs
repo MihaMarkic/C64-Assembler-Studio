@@ -8,7 +8,8 @@ public abstract class BindingValidator : NotifiableObject, IBindingValidator
     public event EventHandler? HasErrorsChanged;
     public ImmutableArray<string> Errors { get; protected set; } = ImmutableArray<string>.Empty;
     public bool HasErrors => !Errors.IsDefaultOrEmpty;
-    public BindingValidator(string sourcePropertyName)
+
+    protected BindingValidator(string sourcePropertyName)
     {
         SourcePropertyName = sourcePropertyName;
     }
@@ -22,7 +23,7 @@ public abstract class BindingValidator : NotifiableObject, IBindingValidator
             OnHasErrorsChanged(EventArgs.Empty);
         }
     }
-    protected override void OnPropertyChanged(string name)
+    protected override void OnPropertyChanged(string name = default!)
     {
         switch (name)
         {

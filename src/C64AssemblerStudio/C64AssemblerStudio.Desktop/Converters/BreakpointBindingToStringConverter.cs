@@ -5,11 +5,22 @@ public class BreakpointBindingToStringConverter : ParameterlessValueConverter<Br
 {
     public override string? Convert(BreakpointBind? value, Type targetType, CultureInfo culture)
     {
-        if (value is not null && value is not BreakpointNoBind)
+        return value switch
         {
-            return value.ToString();
+            BreakpointNoBind noBind => FormatNoBind(noBind),
+            BreakpointLineBind lineBind => $"Line {lineBind.LineNumber}",
+            _ => "no bind"
+        };
+    }
+
+    string FormatNoBind(BreakpointNoBind bind)
+    {
+        if (bind.EndAddress is not null)
+        {
+            return $"From {bind.StartAddress} to {bind.StartAddress}";
         }
-        return null;
+
+        return $"{bind.StartAddress}";
     }
 
     public override BreakpointBind? ConvertBack(string? value, Type targetType, CultureInfo culture)

@@ -7,20 +7,21 @@
 /// <typeparam name="TSource">Source type for UI string value.</typeparam>
 public abstract class StringValidator<TSource> : BindingValidator, IBindingValidator
 {
-    readonly Action<TSource> assignToSource;
+    readonly Action<TSource> _assignToSource;
     public string? TextValue { get; protected set; }
     public abstract string? ConvertTo(TSource source);
-    public abstract (bool IsValid, TSource Value, string? error) ConvertFrom(string? text);
-    public StringValidator(string sourcePropertyName, Action<TSource> assignToSource): base(sourcePropertyName)
+    protected abstract (bool IsValid, TSource Value, string? error) ConvertFrom(string? text);
+
+    protected StringValidator(string sourcePropertyName, Action<TSource> assignToSource): base(sourcePropertyName)
     {
-        this.assignToSource = assignToSource;
+        _assignToSource = assignToSource;
     }
     public void UpdateText(string? text)
     {
         var (isValid, value, error) = ConvertFrom(text);
         if (isValid)
         {
-            assignToSource(value);
+            _assignToSource(value);
             Errors = ImmutableArray<string>.Empty;
         }
         else
