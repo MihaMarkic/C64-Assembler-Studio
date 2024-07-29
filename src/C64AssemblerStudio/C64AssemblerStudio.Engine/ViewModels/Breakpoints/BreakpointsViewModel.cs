@@ -335,7 +335,10 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         var sourceFiles = MapDebugSourceFileNameToBlockItems(project);
         foreach (var b in Breakpoints)
         {
-            await ArmBreakpointAsync(sourceFiles, b, ct);
+            if (!await ArmBreakpointAsync(sourceFiles, b, ct))
+            {
+                b.HasErrors = true;
+            }
         }
         _logger.LogDebug("Breakpoints armed");
     }
@@ -483,9 +486,10 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         foreach (var b in Breakpoints)
         {
             b.ClearCheckpointNumbers();
+            b.AddressRanges = null;
+            b.HasErrors = false;
         }
 
-        _breakpointsLinesMap.Clear();
         _breakpointsMap.Clear();
     }
 

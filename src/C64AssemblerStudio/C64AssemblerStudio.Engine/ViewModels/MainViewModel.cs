@@ -159,8 +159,8 @@ public class MainViewModel : ViewModel
     internal async Task StopDebuggingAsync()
     {
         DebugOutput.AddLine("Stopping");
-        await Vice.StopDebuggingAsync();
         await Breakpoints.DisarmAllBreakpointsAsync();
+        await Vice.StopDebuggingAsync();
         DebugOutput.AddLine("Stopped");
     }
     async Task StartDebuggingAsync()
