@@ -80,7 +80,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
     }
 
-    private async Task AddOrRemoveBreakpoint(int lineNumber)
+    public async Task AddOrRemoveBreakpoint(int lineNumber)
     {
         string filePath = File.GetRelativeFilePath();
         var breakpoint = Breakpoints.GetLineBreakpointForLine(filePath, lineNumber);

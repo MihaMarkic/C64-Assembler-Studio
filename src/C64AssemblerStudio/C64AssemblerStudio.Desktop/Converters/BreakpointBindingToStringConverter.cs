@@ -8,7 +8,7 @@ public class BreakpointBindingToStringConverter : ParameterlessValueConverter<Br
         return value switch
         {
             BreakpointNoBind noBind => FormatNoBind(noBind),
-            BreakpointLineBind lineBind => $"Line {lineBind.LineNumber}",
+            BreakpointLineBind lineBind => $"Line {lineBind.LineNumber + 1}",
             _ => "no bind"
         };
     }

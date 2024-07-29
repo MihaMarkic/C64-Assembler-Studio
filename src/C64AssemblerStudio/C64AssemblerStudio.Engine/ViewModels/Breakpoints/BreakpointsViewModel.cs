@@ -379,12 +379,6 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         }
     }
 
-    public async Task AddBreakpointForLabelAsync(string labelName, string? condition, CancellationToken ct = default)
-    {
-        // doesn't make sense that there is no line for given label's address
-        //await AddBreakpointAsync(true, true, BreakpointMode.Exec, line, lineNumber, file, label, line.Addresses, null);
-    }
-
     /// <summary>
     /// Adds breakpoint linked to line in the file.
     /// </summary>
@@ -395,12 +389,9 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     public async Task AddLineBreakpointAsync(string filePath, int lineNumber,
         string? condition, CancellationToken ct = default)
     {
-        if (!_breakpointsLinesMap.TryGetValue(new BreakpointLineKey(filePath, lineNumber), out var breakpoint))
-        {
-            var bind = new BreakpointLineBind(filePath, lineNumber, null);
-            await AddBreakpointAsync(true, true, BreakpointMode.Exec, bind, ImmutableArray<AddressRange>.Empty, null,
-                ct);
-        }
+        var bind = new BreakpointLineBind(filePath, lineNumber, null);
+        await AddBreakpointAsync(true, true, BreakpointMode.Exec, bind, ImmutableArray<AddressRange>.Empty, null,
+            ct);
     }
 
     internal async Task ToggleBreakpointEnabledAsync(BreakpointViewModel? breakpoint)
@@ -413,13 +404,15 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
                 bool allRemoved = true;
                 foreach (var cn in checkpointNumbers)
                 {
-                    bool success = await _vice.ToggleCheckpointAsync(cn, !breakpoint.IsEnabled, CancellationToken.None); 
+                    bool success = await _vice.ToggleCheckpointAsync(cn, !breakpoint.IsEnabled, CancellationToken.None);
                     if (!success)
                     {
                         allRemoved = false;
-                        _logger.Log(LogLevel.Error, "Failed toggling breakpoint for CheckpointNumber {CheckpointNumber}", cn);
+                        _logger.Log(LogLevel.Error,
+                            "Failed toggling breakpoint for CheckpointNumber {CheckpointNumber}", cn);
                     }
                 }
+
                 if (allRemoved)
                 {
                     breakpoint.IsEnabled = !breakpoint.IsEnabled;
@@ -469,21 +462,21 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             {
                 _breakpointsMap.Add(cp, breakpoint);
             }
-
-            if (breakpoint.Bind is BreakpointLineBind lineBind)
+        }
+        if (breakpoint.Bind is BreakpointLineBind lineBind)
+        {
+            var key = new BreakpointLineKey(lineBind.FilePath, lineBind.LineNumber);
+            if (!_breakpointsLinesMap.TryGetValue(key, out var breakpoints))
             {
-                var key = new BreakpointLineKey(lineBind.FilePath, lineBind.LineNumber);
-                if (!_breakpointsLinesMap.TryGetValue(key, out var breakpoints))
-                {
-                    breakpoints = new List<BreakpointViewModel> { breakpoint };
-                    _breakpointsLinesMap.Add(key, breakpoints);
-                }
-                else
-                {
-                    _breakpointsLinesMap[key].Add(breakpoint);
-                }
+                breakpoints = new List<BreakpointViewModel> { breakpoint };
+                _breakpointsLinesMap.Add(key, breakpoints);
+            }
+            else
+            {
+                _breakpointsLinesMap[key].Add(breakpoint);
             }
         }
+
     }
 
     public async Task<bool> RemoveBreakpointAsync(BreakpointViewModel breakpoint, bool forceRemove,
@@ -507,7 +500,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             {
                 if (breakpoint.Bind is BreakpointLineBind lineBind)
                 {
-                    _breakpointsLinesMap.Remove(new BreakpointLineKey(lineBind.FilePath, lineBind.LineNumber));
+                    RemoveBreakpointFromLinesMap(breakpoint, lineBind.FilePath, lineBind.LineNumber);
                 }
                 Breakpoints.Remove(breakpoint);
                 return true;
@@ -516,8 +509,26 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         }
         else
         {
+            if (breakpoint.Bind is BreakpointLineBind lineBind)
+            {
+                if (!RemoveBreakpointFromLinesMap(breakpoint, lineBind.FilePath, lineBind.LineNumber))
+                {
+                    _logger.LogWarning("Failed to remove breakpoint from line map");
+                }
+            }
             return Breakpoints.Remove(breakpoint);
         }
+    }
+
+    internal bool RemoveBreakpointFromLinesMap(BreakpointViewModel breakpoint, string filePath, int lineNumber)
+    {
+        var key = new BreakpointLineKey(filePath, lineNumber);
+        if (_breakpointsLinesMap.TryGetValue(key, out var breakpoints))
+        {
+            return breakpoints.Remove(breakpoint);
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -604,7 +615,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         }
     }
 
-    public void LoadBreakpointsFromSettings(BreakpointsSettings settings)
+    public async Task LoadBreakpointsFromSettings(BreakpointsSettings settings, CancellationToken ct = default)
     {
         _suppressLocalPersistence = true;
         try
@@ -619,7 +630,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
                 };
                 if (breakpoint is not null)
                 {
-                    Breakpoints.Add(breakpoint);
+                    await AddBreakpointAsync(breakpoint, ct);
                 }
             }
         }
@@ -642,6 +653,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             var settings = new BreakpointsSettings(items);
             try
             {
+                _logger.LogDebug("Saving breakpoints settings");
                 await _settingsManager.SaveAsync(settings, project.BreakpointsSettingsPath, false, ct);
                 _logger.LogDebug("Saved breakpoints settings");
             }
@@ -660,7 +672,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             var settings = await _settingsManager.LoadAsync<BreakpointsSettings>(project.BreakpointsSettingsPath, ct);
             if (settings is not null)
             {
-                LoadBreakpointsFromSettings(settings);
+                await LoadBreakpointsFromSettings(settings, ct);
             }
         }
     }

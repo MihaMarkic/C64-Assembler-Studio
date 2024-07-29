@@ -51,7 +51,7 @@ public class BreakpointsMargin : AdditionalLineInfoMargin
         var renderSize = Bounds.Size;
         // necessary to capture pointer
         drawingContext.FillRectangle(Brushes.Transparent, new Rect(new Point(0, 0), renderSize));
-        if (textView != null && textView.VisualLinesValid)
+        if (textView is { VisualLinesValid: true })
         {
             foreach (var visualLine in textView.VisualLines)
             {
@@ -74,7 +74,7 @@ public class BreakpointsMargin : AdditionalLineInfoMargin
         drawingContext.DrawGeometry(brush, null, new EllipseGeometry(new Rect(0, y - D / 2 - TextView.VerticalOffset, D, D)));
     }
 
-    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    protected override async void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
         if (!e.Handled && TextView is not null && TextArea is not null)
@@ -83,10 +83,7 @@ public class BreakpointsMargin : AdditionalLineInfoMargin
             if (visualLine is not null)
             {
                 var lineNumber = visualLine.FirstDocumentLine.LineNumber;
-                if (_sourceFileViewModel.AddOrRemoveBreakpointCommand.CanExecute(lineNumber-1))
-                {
-                    _sourceFileViewModel.AddOrRemoveBreakpointCommand.Execute(lineNumber-1);
-                }
+                await _sourceFileViewModel.AddOrRemoveBreakpoint(lineNumber - 1);
             }
         }
         e.Handled = true;

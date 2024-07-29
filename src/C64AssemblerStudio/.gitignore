@@ -267,3 +267,5 @@ paket-files/
 __pycache__/
 *.pyc
 *.nogit.*
+
+NLog.config

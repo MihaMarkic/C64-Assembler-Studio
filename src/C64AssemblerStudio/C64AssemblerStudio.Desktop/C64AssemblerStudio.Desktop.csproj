@@ -45,6 +45,9 @@
       <DependentUpon>RenameFileDialog.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Globalization" />
