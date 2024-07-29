@@ -199,7 +199,7 @@ public class ProjectExplorerViewModel : ViewModel
     public ProjectFile? GetProjectFileFromFullPath(string fullPath)
     {
         var directory = _globals.Project.Directory;
-        if (directory is not null && fullPath.StartsWith(directory, OSDependent.FileStringComparison))
+        if (directory is not null && fullPath.StartsWith(directory, OsDependent.FileStringComparison))
         {
             var relativePath = fullPath[(directory.Length)..].TrimStart(System.IO.Path.DirectorySeparatorChar);
             return FindProjectFile(relativePath);
@@ -220,7 +220,7 @@ public class ProjectExplorerViewModel : ViewModel
         foreach (string part in parts[0..^1])
         {
             var dir = items.OfType<ProjectDirectory>()
-                .FirstOrDefault(i => part.Equals(i.Name, OSDependent.FileStringComparison));
+                .FirstOrDefault(i => part.Equals(i.Name, OsDependent.FileStringComparison));
             if (dir is null)
             {
                 return null;
@@ -230,7 +230,7 @@ public class ProjectExplorerViewModel : ViewModel
 
         string fileName = parts.Last();
         return items.OfType<ProjectFile>()
-            .FirstOrDefault(i => fileName.Equals(i.Name, OSDependent.FileStringComparison));
+            .FirstOrDefault(i => fileName.Equals(i.Name, OsDependent.FileStringComparison));
     }
 
     protected override void Dispose(bool disposing)

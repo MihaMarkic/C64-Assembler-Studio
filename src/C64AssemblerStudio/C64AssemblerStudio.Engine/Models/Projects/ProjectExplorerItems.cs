@@ -39,11 +39,11 @@ public abstract class ProjectItem: NotifiableObject
 
         string thisDirectory = GetRelativeDirectory();
         string otherDirectory = other.GetRelativeDirectory();
-        if (!thisDirectory.Equals(otherDirectory, OSDependent.FileStringComparison))
+        if (!thisDirectory.Equals(otherDirectory, OsDependent.FileStringComparison))
         {
             return false;
         }
-        return Name.Equals(other.Name, OSDependent.FileStringComparison);
+        return Name.Equals(other.Name, OsDependent.FileStringComparison);
     }
 }
 

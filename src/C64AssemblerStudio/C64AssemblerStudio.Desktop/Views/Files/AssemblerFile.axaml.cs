@@ -50,7 +50,10 @@ public partial class AssemblerFile : UserControl
         DetachOldViewModel();
         if (DataContext is AssemblerFileViewModel fileViewModel)
         {
-            _syntaxColorizer = new SyntaxColorizer(fileViewModel);
+            _syntaxColorizer = new SyntaxColorizer(fileViewModel)
+            {
+                ExecutionLine = fileViewModel.ExecutionLineRange
+            };
             Editor.TextArea.TextView.LineTransformers.Add(_syntaxColorizer);
             fileViewModel.PropertyChanged += FileViewModelOnPropertyChanged;
             fileViewModel.MoveCaretRequest += FileViewModelOnMoveCaretRequest;
@@ -108,6 +111,13 @@ public partial class AssemblerFile : UserControl
                 break;
             case nameof(AssemblerFileViewModel.Errors):
                 Editor.TextArea.TextView.Redraw();
+                break;
+            case nameof(AssemblerFileViewModel.ExecutionLineRange):
+                if (_syntaxColorizer is not null)
+                {
+                    _syntaxColorizer.ExecutionLine = ViewModel.ValueOrThrow().ExecutionLineRange;
+                    Editor.TextArea.TextView.Redraw();
+                }
                 break;
         }
     }

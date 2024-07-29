@@ -160,6 +160,7 @@ public class MainViewModel : ViewModel
     {
         DebugOutput.AddLine("Stopping");
         await Vice.StopDebuggingAsync();
+        await Breakpoints.DisarmAllBreakpointsAsync();
         DebugOutput.AddLine("Stopped");
     }
     async Task StartDebuggingAsync()
@@ -195,7 +196,10 @@ public class MainViewModel : ViewModel
                         return;
                     }
 
+                    DebugOutput.AddLine("Adding breakpoints from code");
                     await Breakpoints.AddBreakpointsFromCodeAsync();
+                    DebugOutput.AddLine("Arming breakpoints");
+                    await Breakpoints.ArmBreakpointsAsync();
                     DebugOutput.AddLine("Starting debugging");
                     await Vice.StartDebuggingAsync();
                 }

@@ -16,6 +16,10 @@ public abstract class ProjectFileViewModel : FileViewModel
     public BusyIndicator BusyIndicator { get; } = new();
     public string Content { get; set; }
     public bool IsReadOnly => string.IsNullOrEmpty(Content);
+    /// <summary>
+    /// When set defines execution line in paused state
+    /// </summary>
+    public (int Start, int End)? ExecutionLineRange { get; set; }
     public event EventHandler<MoveCaretEventArgs>? MoveCaretRequest;
 
     protected ProjectFileViewModel(ILogger<ProjectFileViewModel> logger, IFileService fileService,

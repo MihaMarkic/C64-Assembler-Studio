@@ -7,15 +7,15 @@ namespace C64AssemblerStudio.Desktop.Views.Files;
 
 public class SyntaxColorizer : DocumentColorizingTransformer
 {
-    public int? LineNumber { get; set; }
+    public (int Start, int End)? ExecutionLine { get; set; }
     private readonly AssemblerFileViewModel _file;
     public ImmutableHashSet<int> CallStackLineNumbers { get; set; }
-    private static readonly TextDecorationCollection _squiggle;
+    private static readonly TextDecorationCollection Squiggle;
 
     static SyntaxColorizer()
     {
-        _squiggle = TextDecorations.Underline;
-        _squiggle.Add(new TextDecoration { StrokeThickness = 4, Stroke = Brushes.Red});
+        Squiggle = TextDecorations.Underline;
+        Squiggle.Add(new TextDecoration { StrokeThickness = 4, Stroke = Brushes.Red});
     }
     public SyntaxColorizer(AssemblerFileViewModel file)
     {
@@ -66,17 +66,19 @@ public class SyntaxColorizer : DocumentColorizingTransformer
 
             bool isBackgroundAssigned = false;
 
-            if (LineNumber.HasValue && LineNumber == line.LineNumber)
+            if (ExecutionLine.HasValue && ExecutionLine.Value.Start <= line.LineNumber - 1 &&
+                ExecutionLine.Value.End >= line.LineNumber - 1)
             {
                 ChangeLinePart(line.Offset, line.EndOffset, ApplyExecutionLineChanges);
                 isBackgroundAssigned = true;
             }
+
             if (!isBackgroundAssigned)
             {
                 // switch (sourceLine)
                 // {
-                    // case LineViewModel lineViewModel:
-                    //     if (lineViewModel.HasBreakpoint)
+                // case LineViewModel lineViewModel:
+                //     if (lineViewModel.HasBreakpoint)
                     //     {
                     //         ChangeLinePart(line.Offset, line.EndOffset, ApplyBreakpointLineChanges);
                     //     }
@@ -124,7 +126,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
 
     void ApplySyntaxErrorChanges(VisualLineElement element)
     {
-        element.TextRunProperties.SetTextDecorations(_squiggle);
+        element.TextRunProperties.SetTextDecorations(Squiggle);
     }
 
     void ApplyExecutionLineChanges(VisualLineElement element)

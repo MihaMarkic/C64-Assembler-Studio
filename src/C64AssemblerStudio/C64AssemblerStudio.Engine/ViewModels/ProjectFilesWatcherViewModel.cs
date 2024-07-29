@@ -236,7 +236,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
             Path.GetDirectoryName(e.Name).ValueOrThrow());
         ObservableCollection<ProjectItem> target = directory is null ? Items : directory.Items;
 
-        if (target.Any(i => string.Equals(i.Name, e.Name, OSDependent.FileStringComparison)))
+        if (target.Any(i => string.Equals(i.Name, e.Name, OsDependent.FileStringComparison)))
         {
             _logger.LogError("File {File} already exists", e.FullPath);
             return;
@@ -264,12 +264,12 @@ public class ProjectFilesWatcherViewModel: ViewModel
             return null;
         }
 
-        current = Items.OfType<ProjectDirectory>().SingleOrDefault(d => string.Equals(d.Name, parts[0], OSDependent.FileStringComparison));
+        current = Items.OfType<ProjectDirectory>().SingleOrDefault(d => string.Equals(d.Name, parts[0], OsDependent.FileStringComparison));
         if (current is not null)
         {
             foreach (string part in parts.Skip(1))
             {
-                current = current.GetSubdirectories().SingleOrDefault(d => string.Equals(d.Name, part, OSDependent.FileStringComparison));
+                current = current.GetSubdirectories().SingleOrDefault(d => string.Equals(d.Name, part, OsDependent.FileStringComparison));
                 if (current is null)
                 {
                     break;
@@ -295,7 +295,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
         ObservableCollection<ProjectItem> target = directory is null ? Items : directory.Items;
 
         var fileName = Path.GetFileName(e.Name);
-        var item = target.SingleOrDefault(i => string.Equals(i.Name, fileName, OSDependent.FileStringComparison)); 
+        var item = target.SingleOrDefault(i => string.Equals(i.Name, fileName, OsDependent.FileStringComparison)); 
         if (item is null)
         {
             _logger.LogError("Couldn't find {Item} to delete", e.FullPath);
@@ -319,7 +319,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
         ObservableCollection<ProjectItem> target = directory is null ? Items : directory.Items;
 
         var oldFileName = Path.GetFileName(e.OldName);
-        var item = target.SingleOrDefault(i => string.Equals(i.Name, oldFileName, OSDependent.FileStringComparison)); 
+        var item = target.SingleOrDefault(i => string.Equals(i.Name, oldFileName, OsDependent.FileStringComparison)); 
         if (item is null)
         {
             _logger.LogError("Couldn't find {Item} to rename", e.FullPath);

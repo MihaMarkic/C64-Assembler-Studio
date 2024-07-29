@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
+using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Righthand.ViceMonitor.Bridge.Responses;
 
 namespace C64AssemblerStudio.Engine.Services.Abstract;
@@ -10,6 +11,7 @@ public interface IVice: INotifyPropertyChanged
     bool IsConnected { get; }
     bool IsPaused { get; }
     bool IsDebugging { get; }
+    RegistersViewModel Registers { get; }
     event EventHandler<RegistersEventArgs>? RegistersUpdated;
     event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated;
     Task ConnectAsync(CancellationToken ct = default);

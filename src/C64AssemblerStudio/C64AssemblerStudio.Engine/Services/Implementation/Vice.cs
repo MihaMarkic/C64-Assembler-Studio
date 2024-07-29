@@ -21,7 +21,8 @@ public class Vice : NotifiableObject, IVice
     private readonly IViceBridge _bridge;
     private readonly Globals _globals;
     private readonly IDispatcher _dispatcher;
-    private readonly RegistersViewModel _registers;
+    private readonly TaskFactory _uiFactory;
+    public RegistersViewModel Registers { get; }
     private Process? _process;
     public event EventHandler<RegistersEventArgs>? RegistersUpdated;
     public event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated; 
@@ -36,31 +37,37 @@ public class Vice : NotifiableObject, IVice
         _bridge = bridge;
         _globals = globals;
         _dispatcher = dispatcher;
-        _registers = registers;
+        Registers = registers;
+        _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _bridge.ConnectedChanged += BridgeOnConnectedChanged;
         _bridge.ViceResponse += BridgeOnViceResponse;
         _bridge.Start();
     }
 
+    private void OnRegistersUpdated(RegistersEventArgs e) => RegistersUpdated?.Invoke(this, e);
     private void OnCheckpointInfoUpdated(CheckpointInfoEventArgs e) => CheckpointInfoUpdated?.Invoke(this, e);
     private async void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
     {
-        switch (e.Response)
+        // handle all responses in UI thread
+        await _uiFactory.StartNewTyped(r =>
         {
-            case RegistersResponse registersResponse:
-                await _registers.UpdateAsync(registersResponse, CancellationToken.None);
-                break;
-            case CheckpointInfoResponse checkpointInfoResponse:
-                OnCheckpointInfoUpdated(new CheckpointInfoEventArgs((checkpointInfoResponse)));
-                break;
-            case ResumedResponse:
-                IsPaused = false;
-                break;
-            case StoppedResponse:
-                IsPaused = true;
-                break;
-        }
-
+            switch (r!)
+            {
+                case RegistersResponse registersResponse:
+                    Registers.UpdateRegistersFromResponse(registersResponse);
+                    OnRegistersUpdated(new RegistersEventArgs(registersResponse));
+                    break;
+                case CheckpointInfoResponse checkpointInfoResponse:
+                    OnCheckpointInfoUpdated(new CheckpointInfoEventArgs((checkpointInfoResponse)));
+                    break;
+                case ResumedResponse:
+                    IsPaused = false;
+                    break;
+                case StoppedResponse:
+                    IsPaused = true;
+                    break;
+            }
+        }, e.Response, CancellationToken.None);
         Debug.WriteLine($"Got {e.Response.GetType().Name}");
     }
 
@@ -70,7 +77,7 @@ public class Vice : NotifiableObject, IVice
         var response = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         if (response is not null)
         {
-            _registers.Init(response);
+            Registers.Init(response);
         }
         else
         {
@@ -297,6 +304,7 @@ public class Vice : NotifiableObject, IVice
                     // in case condition set fails, remove the checkpoint
                     if (conditionSetResponse is null)
                     {
+                        _logger.LogError("Failed setting {Condition}", breakpoint.Condition);
                         var checkpointDeleteCommand = _bridge.EnqueueCommand(
                             new CheckpointDeleteCommand(checkpointSetResponse.CheckpointNumber),
                                 resumeOnStopped: true);

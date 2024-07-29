@@ -14,7 +14,6 @@ public class RegistersViewModel : NotifiableObject, IToolView
     private readonly RegistersMapping _mapping;
     // private readonly CommandsManager _commandsManager;
     private readonly IDispatcher _dispatcher;
-    private readonly TaskFactory _uiFactory;
     public event EventHandler? RegistersUpdated;
     public Registers6510 Current { get; private set; } = Registers6510.Empty;
     public Registers6510 Previous { get; private set; } = Registers6510.Empty;
@@ -30,7 +29,6 @@ public class RegistersViewModel : NotifiableObject, IToolView
         this._logger = logger;
         this._mapping = mapping;
         this._dispatcher = dispatcher;
-        _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         // _commandsManager = new CommandsManager(this, new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext()));
         // UpdateCommand = _commandsManager.CreateRelayCommandAsync(Update, () => !IsLoadingMappings && IsLoadingRegisters);
     }
@@ -43,12 +41,7 @@ public class RegistersViewModel : NotifiableObject, IToolView
         PcRegisterId = _mapping.GetRegisterId(Register6510.PC);
     }
 
-    public async Task UpdateAsync(RegistersResponse response, CancellationToken ct = default)
-    {
-        await _uiFactory.StartNewTyped(r => UpdateRegistersFromResponse(r!), response, ct);
-    }
-
-    void UpdateRegistersFromResponse(RegistersResponse response)
+    public void UpdateRegistersFromResponse(RegistersResponse response)
     {
         if (_mapping.IsMappingAvailable)
         {

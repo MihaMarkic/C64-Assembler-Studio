@@ -69,7 +69,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         bool IsMatch(BreakpointViewModel b)
         {
             return b.Bind is BreakpointLineBind lineBind &&
-                   filePath.Equals(lineBind.FilePath, OSDependent.FileStringComparison);
+                   filePath.Equals(lineBind.FilePath, OsDependent.FileStringComparison);
         }
 
         bool hasChanges = e.NewItems is IList<BreakpointViewModel> newItems && newItems.Any(IsMatch)

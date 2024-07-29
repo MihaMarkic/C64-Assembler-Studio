@@ -28,7 +28,7 @@ public static class TaskExtension
         TArg state,
         CancellationToken ct)
     {
-        return factory.StartNew(o => function((TArg?)o), state, ct);
+        return factory.StartNew(async o => await function((TArg?)o), state, ct);
     }
     public static Task StartNewTyped<TArg>(this TaskFactory factory, Action<TArg?> action,
         TArg state,
