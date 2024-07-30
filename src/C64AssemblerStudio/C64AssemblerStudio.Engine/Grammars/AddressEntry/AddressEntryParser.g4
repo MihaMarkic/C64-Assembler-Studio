@@ -5,15 +5,17 @@ options {
 }
 
 arguments
-    : OPEN_PARENS arguments CLOSE_PARENS 
-    | argument PLUS argument
-    | argument MINUS argument
-    | argument STAR argument
-    | argument DIV argument   
-    | argument;
+    : OPEN_PARENS arguments CLOSE_PARENS        # Parens
+    | left=arguments STAR right=arguments       # Multiplication
+    | left=arguments DIV right=arguments        # Division
+    | left=arguments PLUS right=arguments       # Plus
+    | left=arguments MINUS right=arguments      # Minus
+    | argument                                  # Arg
+    ; 
 
 argument 
-    : UNQUOTED_STRING 
-    | DEC_NUMBER 
-    | HEX_NUMBER 
-    | BIN_NUMBER;
+    : UNQUOTED_STRING           # Label
+    | DEC_NUMBER                # DecNumber
+    | HEX_NUMBER                # HexNumber
+    | BIN_NUMBER                # BinNumber
+    ;

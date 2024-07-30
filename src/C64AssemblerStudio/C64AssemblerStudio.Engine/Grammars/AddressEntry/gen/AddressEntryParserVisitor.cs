@@ -32,15 +32,73 @@ using IToken = Antlr4.Runtime.IToken;
 [System.CLSCompliant(false)]
 public interface IAddressEntryParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="AddressEntryParser.arguments"/>.
+	/// Visit a parse tree produced by the <c>Multiplication</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitArguments([NotNull] AddressEntryParser.ArgumentsContext context);
+	Result VisitMultiplication([NotNull] AddressEntryParser.MultiplicationContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="AddressEntryParser.argument"/>.
+	/// Visit a parse tree produced by the <c>Parens</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitArgument([NotNull] AddressEntryParser.ArgumentContext context);
+	Result VisitParens([NotNull] AddressEntryParser.ParensContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>Arg</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArg([NotNull] AddressEntryParser.ArgContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>Division</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDivision([NotNull] AddressEntryParser.DivisionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>Plus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPlus([NotNull] AddressEntryParser.PlusContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>Minus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMinus([NotNull] AddressEntryParser.MinusContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>Label</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLabel([NotNull] AddressEntryParser.LabelContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>DecNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDecNumber([NotNull] AddressEntryParser.DecNumberContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>HexNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitHexNumber([NotNull] AddressEntryParser.HexNumberContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>BinNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitBinNumber([NotNull] AddressEntryParser.BinNumberContext context);
 }

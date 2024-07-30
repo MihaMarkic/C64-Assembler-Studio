@@ -93,6 +93,14 @@ public class BreakpointViewModel : NotifiableObject, ICloneable
             }
         }
     }
+
+    public void MarkDisarmed()
+    {
+        ClearCheckpointNumbers();
+        IsCurrentlyHit = false;
+        AddressRanges = null;
+        HasErrors = false;
+    }
     object ICloneable.Clone() => Clone();
     public BreakpointViewModel Clone()
     {

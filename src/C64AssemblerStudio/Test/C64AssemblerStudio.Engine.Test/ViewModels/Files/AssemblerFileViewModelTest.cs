@@ -19,7 +19,8 @@ public class AssemblerFileViewModelTest: BaseTest<AssemblerFileViewModel>
         {
             var actual = AssemblerFileViewModel.ParseText(Substitute.For<ILogger>(), "");
 
-            Assert.That(actual, Is.Empty);
+            Assert.That(actual.Lines, Is.Empty);
+            Assert.That(actual.Tokens, Is.Empty);
         }
     }
 

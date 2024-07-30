@@ -36,29 +36,145 @@ using ParserRuleContext = Antlr4.Runtime.ParserRuleContext;
 [System.CLSCompliant(false)]
 public partial class AddressEntryParserBaseListener : IAddressEntryParserListener {
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="AddressEntryParser.arguments"/>.
+	/// Enter a parse tree produced by the <c>Multiplication</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterArguments([NotNull] AddressEntryParser.ArgumentsContext context) { }
+	public virtual void EnterMultiplication([NotNull] AddressEntryParser.MultiplicationContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="AddressEntryParser.arguments"/>.
+	/// Exit a parse tree produced by the <c>Multiplication</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitArguments([NotNull] AddressEntryParser.ArgumentsContext context) { }
+	public virtual void ExitMultiplication([NotNull] AddressEntryParser.MultiplicationContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="AddressEntryParser.argument"/>.
+	/// Enter a parse tree produced by the <c>Parens</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterArgument([NotNull] AddressEntryParser.ArgumentContext context) { }
+	public virtual void EnterParens([NotNull] AddressEntryParser.ParensContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="AddressEntryParser.argument"/>.
+	/// Exit a parse tree produced by the <c>Parens</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitArgument([NotNull] AddressEntryParser.ArgumentContext context) { }
+	public virtual void ExitParens([NotNull] AddressEntryParser.ParensContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Arg</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterArg([NotNull] AddressEntryParser.ArgContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Arg</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitArg([NotNull] AddressEntryParser.ArgContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Division</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterDivision([NotNull] AddressEntryParser.DivisionContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Division</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitDivision([NotNull] AddressEntryParser.DivisionContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Plus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterPlus([NotNull] AddressEntryParser.PlusContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Plus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitPlus([NotNull] AddressEntryParser.PlusContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Minus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterMinus([NotNull] AddressEntryParser.MinusContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Minus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitMinus([NotNull] AddressEntryParser.MinusContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Label</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterLabel([NotNull] AddressEntryParser.LabelContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Label</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitLabel([NotNull] AddressEntryParser.LabelContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>DecNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterDecNumber([NotNull] AddressEntryParser.DecNumberContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>DecNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitDecNumber([NotNull] AddressEntryParser.DecNumberContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>HexNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterHexNumber([NotNull] AddressEntryParser.HexNumberContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>HexNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitHexNumber([NotNull] AddressEntryParser.HexNumberContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>BinNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterBinNumber([NotNull] AddressEntryParser.BinNumberContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>BinNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitBinNumber([NotNull] AddressEntryParser.BinNumberContext context) { }
 
 	/// <inheritdoc/>
 	/// <remarks>The default implementation does nothing.</remarks>

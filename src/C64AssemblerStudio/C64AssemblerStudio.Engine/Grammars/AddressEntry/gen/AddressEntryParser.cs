@@ -84,114 +84,296 @@ public partial class AddressEntryParser : Parser {
 	}
 
 	public partial class ArgumentsContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode OPEN_PARENS() { return GetToken(AddressEntryParser.OPEN_PARENS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext arguments() {
-			return GetRuleContext<ArgumentsContext>(0);
-		}
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CLOSE_PARENS() { return GetToken(AddressEntryParser.CLOSE_PARENS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ArgumentContext[] argument() {
-			return GetRuleContexts<ArgumentContext>();
-		}
-		[System.Diagnostics.DebuggerNonUserCode] public ArgumentContext argument(int i) {
-			return GetRuleContext<ArgumentContext>(i);
-		}
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode PLUS() { return GetToken(AddressEntryParser.PLUS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode MINUS() { return GetToken(AddressEntryParser.MINUS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode STAR() { return GetToken(AddressEntryParser.STAR, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DIV() { return GetToken(AddressEntryParser.DIV, 0); }
 		public ArgumentsContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
 		public override int RuleIndex { get { return RULE_arguments; } }
+	 
+		public ArgumentsContext() { }
+		public virtual void CopyFrom(ArgumentsContext context) {
+			base.CopyFrom(context);
+		}
+	}
+	public partial class MultiplicationContext : ArgumentsContext {
+		public ArgumentsContext left;
+		public ArgumentsContext right;
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode STAR() { return GetToken(AddressEntryParser.STAR, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext[] arguments() {
+			return GetRuleContexts<ArgumentsContext>();
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext arguments(int i) {
+			return GetRuleContext<ArgumentsContext>(i);
+		}
+		public MultiplicationContext(ArgumentsContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override void EnterRule(IParseTreeListener listener) {
 			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
-			if (typedListener != null) typedListener.EnterArguments(this);
+			if (typedListener != null) typedListener.EnterMultiplication(this);
 		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override void ExitRule(IParseTreeListener listener) {
 			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
-			if (typedListener != null) typedListener.ExitArguments(this);
+			if (typedListener != null) typedListener.ExitMultiplication(this);
 		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitArguments(this);
+			if (typedVisitor != null) return typedVisitor.VisitMultiplication(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+	public partial class ParensContext : ArgumentsContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode OPEN_PARENS() { return GetToken(AddressEntryParser.OPEN_PARENS, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext arguments() {
+			return GetRuleContext<ArgumentsContext>(0);
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CLOSE_PARENS() { return GetToken(AddressEntryParser.CLOSE_PARENS, 0); }
+		public ParensContext(ArgumentsContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.EnterParens(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.ExitParens(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitParens(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+	public partial class ArgContext : ArgumentsContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentContext argument() {
+			return GetRuleContext<ArgumentContext>(0);
+		}
+		public ArgContext(ArgumentsContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.EnterArg(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.ExitArg(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitArg(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+	public partial class DivisionContext : ArgumentsContext {
+		public ArgumentsContext left;
+		public ArgumentsContext right;
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DIV() { return GetToken(AddressEntryParser.DIV, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext[] arguments() {
+			return GetRuleContexts<ArgumentsContext>();
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext arguments(int i) {
+			return GetRuleContext<ArgumentsContext>(i);
+		}
+		public DivisionContext(ArgumentsContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.EnterDivision(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.ExitDivision(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDivision(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+	public partial class PlusContext : ArgumentsContext {
+		public ArgumentsContext left;
+		public ArgumentsContext right;
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode PLUS() { return GetToken(AddressEntryParser.PLUS, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext[] arguments() {
+			return GetRuleContexts<ArgumentsContext>();
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext arguments(int i) {
+			return GetRuleContext<ArgumentsContext>(i);
+		}
+		public PlusContext(ArgumentsContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.EnterPlus(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.ExitPlus(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPlus(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+	public partial class MinusContext : ArgumentsContext {
+		public ArgumentsContext left;
+		public ArgumentsContext right;
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode MINUS() { return GetToken(AddressEntryParser.MINUS, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext[] arguments() {
+			return GetRuleContexts<ArgumentsContext>();
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext arguments(int i) {
+			return GetRuleContext<ArgumentsContext>(i);
+		}
+		public MinusContext(ArgumentsContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.EnterMinus(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.ExitMinus(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMinus(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
 	public ArgumentsContext arguments() {
-		ArgumentsContext _localctx = new ArgumentsContext(Context, State);
-		EnterRule(_localctx, 0, RULE_arguments);
+		return arguments(0);
+	}
+
+	private ArgumentsContext arguments(int _p) {
+		ParserRuleContext _parentctx = Context;
+		int _parentState = State;
+		ArgumentsContext _localctx = new ArgumentsContext(Context, _parentState);
+		ArgumentsContext _prevctx = _localctx;
+		int _startState = 0;
+		EnterRecursionRule(_localctx, 0, RULE_arguments, _p);
 		try {
-			State = 25;
+			int _alt;
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 10;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,0,Context) ) {
-			case 1:
-				EnterOuterAlt(_localctx, 1);
+			switch (TokenStream.LA(1)) {
+			case OPEN_PARENS:
 				{
-				State = 4;
-				Match(OPEN_PARENS);
+				_localctx = new ParensContext(_localctx);
+				Context = _localctx;
+				_prevctx = _localctx;
+
 				State = 5;
-				arguments();
+				Match(OPEN_PARENS);
 				State = 6;
+				arguments(0);
+				State = 7;
 				Match(CLOSE_PARENS);
 				}
 				break;
-			case 2:
-				EnterOuterAlt(_localctx, 2);
+			case DEC_NUMBER:
+			case HEX_NUMBER:
+			case BIN_NUMBER:
+			case UNQUOTED_STRING:
 				{
-				State = 8;
-				argument();
+				_localctx = new ArgContext(_localctx);
+				Context = _localctx;
+				_prevctx = _localctx;
 				State = 9;
-				Match(PLUS);
-				State = 10;
 				argument();
 				}
 				break;
-			case 3:
-				EnterOuterAlt(_localctx, 3);
-				{
-				State = 12;
-				argument();
-				State = 13;
-				Match(MINUS);
-				State = 14;
-				argument();
+			default:
+				throw new NoViableAltException(this);
+			}
+			Context.Stop = TokenStream.LT(-1);
+			State = 26;
+			ErrorHandler.Sync(this);
+			_alt = Interpreter.AdaptivePredict(TokenStream,2,Context);
+			while ( _alt!=2 && _alt!=global::Antlr4.Runtime.Atn.ATN.INVALID_ALT_NUMBER ) {
+				if ( _alt==1 ) {
+					if ( ParseListeners!=null )
+						TriggerExitRuleEvent();
+					_prevctx = _localctx;
+					{
+					State = 24;
+					ErrorHandler.Sync(this);
+					switch ( Interpreter.AdaptivePredict(TokenStream,1,Context) ) {
+					case 1:
+						{
+						_localctx = new MultiplicationContext(new ArgumentsContext(_parentctx, _parentState));
+						((MultiplicationContext)_localctx).left = _prevctx;
+						PushNewRecursionContext(_localctx, _startState, RULE_arguments);
+						State = 12;
+						if (!(Precpred(Context, 5))) throw new FailedPredicateException(this, "Precpred(Context, 5)");
+						State = 13;
+						Match(STAR);
+						State = 14;
+						((MultiplicationContext)_localctx).right = arguments(6);
+						}
+						break;
+					case 2:
+						{
+						_localctx = new DivisionContext(new ArgumentsContext(_parentctx, _parentState));
+						((DivisionContext)_localctx).left = _prevctx;
+						PushNewRecursionContext(_localctx, _startState, RULE_arguments);
+						State = 15;
+						if (!(Precpred(Context, 4))) throw new FailedPredicateException(this, "Precpred(Context, 4)");
+						State = 16;
+						Match(DIV);
+						State = 17;
+						((DivisionContext)_localctx).right = arguments(5);
+						}
+						break;
+					case 3:
+						{
+						_localctx = new PlusContext(new ArgumentsContext(_parentctx, _parentState));
+						((PlusContext)_localctx).left = _prevctx;
+						PushNewRecursionContext(_localctx, _startState, RULE_arguments);
+						State = 18;
+						if (!(Precpred(Context, 3))) throw new FailedPredicateException(this, "Precpred(Context, 3)");
+						State = 19;
+						Match(PLUS);
+						State = 20;
+						((PlusContext)_localctx).right = arguments(4);
+						}
+						break;
+					case 4:
+						{
+						_localctx = new MinusContext(new ArgumentsContext(_parentctx, _parentState));
+						((MinusContext)_localctx).left = _prevctx;
+						PushNewRecursionContext(_localctx, _startState, RULE_arguments);
+						State = 21;
+						if (!(Precpred(Context, 2))) throw new FailedPredicateException(this, "Precpred(Context, 2)");
+						State = 22;
+						Match(MINUS);
+						State = 23;
+						((MinusContext)_localctx).right = arguments(3);
+						}
+						break;
+					}
+					} 
 				}
-				break;
-			case 4:
-				EnterOuterAlt(_localctx, 4);
-				{
-				State = 16;
-				argument();
-				State = 17;
-				Match(STAR);
-				State = 18;
-				argument();
-				}
-				break;
-			case 5:
-				EnterOuterAlt(_localctx, 5);
-				{
-				State = 20;
-				argument();
-				State = 21;
-				Match(DIV);
-				State = 22;
-				argument();
-				}
-				break;
-			case 6:
-				EnterOuterAlt(_localctx, 6);
-				{
-				State = 24;
-				argument();
-				}
-				break;
+				State = 28;
+				ErrorHandler.Sync(this);
+				_alt = Interpreter.AdaptivePredict(TokenStream,2,Context);
+			}
 			}
 		}
 		catch (RecognitionException re) {
@@ -200,35 +382,100 @@ public partial class AddressEntryParser : Parser {
 			ErrorHandler.Recover(this, re);
 		}
 		finally {
-			ExitRule();
+			UnrollRecursionContexts(_parentctx);
 		}
 		return _localctx;
 	}
 
 	public partial class ArgumentContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode UNQUOTED_STRING() { return GetToken(AddressEntryParser.UNQUOTED_STRING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DEC_NUMBER() { return GetToken(AddressEntryParser.DEC_NUMBER, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode HEX_NUMBER() { return GetToken(AddressEntryParser.HEX_NUMBER, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BIN_NUMBER() { return GetToken(AddressEntryParser.BIN_NUMBER, 0); }
 		public ArgumentContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
 		public override int RuleIndex { get { return RULE_argument; } }
+	 
+		public ArgumentContext() { }
+		public virtual void CopyFrom(ArgumentContext context) {
+			base.CopyFrom(context);
+		}
+	}
+	public partial class DecNumberContext : ArgumentContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DEC_NUMBER() { return GetToken(AddressEntryParser.DEC_NUMBER, 0); }
+		public DecNumberContext(ArgumentContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override void EnterRule(IParseTreeListener listener) {
 			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
-			if (typedListener != null) typedListener.EnterArgument(this);
+			if (typedListener != null) typedListener.EnterDecNumber(this);
 		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override void ExitRule(IParseTreeListener listener) {
 			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
-			if (typedListener != null) typedListener.ExitArgument(this);
+			if (typedListener != null) typedListener.ExitDecNumber(this);
 		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitArgument(this);
+			if (typedVisitor != null) return typedVisitor.VisitDecNumber(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+	public partial class LabelContext : ArgumentContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode UNQUOTED_STRING() { return GetToken(AddressEntryParser.UNQUOTED_STRING, 0); }
+		public LabelContext(ArgumentContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.EnterLabel(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.ExitLabel(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLabel(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+	public partial class HexNumberContext : ArgumentContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode HEX_NUMBER() { return GetToken(AddressEntryParser.HEX_NUMBER, 0); }
+		public HexNumberContext(ArgumentContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.EnterHexNumber(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.ExitHexNumber(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHexNumber(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+	public partial class BinNumberContext : ArgumentContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BIN_NUMBER() { return GetToken(AddressEntryParser.BIN_NUMBER, 0); }
+		public BinNumberContext(ArgumentContext context) { CopyFrom(context); }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.EnterBinNumber(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.ExitBinNumber(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBinNumber(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
@@ -237,19 +484,44 @@ public partial class AddressEntryParser : Parser {
 	public ArgumentContext argument() {
 		ArgumentContext _localctx = new ArgumentContext(Context, State);
 		EnterRule(_localctx, 2, RULE_argument);
-		int _la;
 		try {
-			EnterOuterAlt(_localctx, 1);
-			{
-			State = 27;
-			_la = TokenStream.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 1920L) != 0)) ) {
-			ErrorHandler.RecoverInline(this);
-			}
-			else {
-				ErrorHandler.ReportMatch(this);
-			    Consume();
-			}
+			State = 33;
+			ErrorHandler.Sync(this);
+			switch (TokenStream.LA(1)) {
+			case UNQUOTED_STRING:
+				_localctx = new LabelContext(_localctx);
+				EnterOuterAlt(_localctx, 1);
+				{
+				State = 29;
+				Match(UNQUOTED_STRING);
+				}
+				break;
+			case DEC_NUMBER:
+				_localctx = new DecNumberContext(_localctx);
+				EnterOuterAlt(_localctx, 2);
+				{
+				State = 30;
+				Match(DEC_NUMBER);
+				}
+				break;
+			case HEX_NUMBER:
+				_localctx = new HexNumberContext(_localctx);
+				EnterOuterAlt(_localctx, 3);
+				{
+				State = 31;
+				Match(HEX_NUMBER);
+				}
+				break;
+			case BIN_NUMBER:
+				_localctx = new BinNumberContext(_localctx);
+				EnterOuterAlt(_localctx, 4);
+				{
+				State = 32;
+				Match(BIN_NUMBER);
+				}
+				break;
+			default:
+				throw new NoViableAltException(this);
 			}
 		}
 		catch (RecognitionException re) {
@@ -263,16 +535,34 @@ public partial class AddressEntryParser : Parser {
 		return _localctx;
 	}
 
+	public override bool Sempred(RuleContext _localctx, int ruleIndex, int predIndex) {
+		switch (ruleIndex) {
+		case 0: return arguments_sempred((ArgumentsContext)_localctx, predIndex);
+		}
+		return true;
+	}
+	private bool arguments_sempred(ArgumentsContext _localctx, int predIndex) {
+		switch (predIndex) {
+		case 0: return Precpred(Context, 5);
+		case 1: return Precpred(Context, 4);
+		case 2: return Precpred(Context, 3);
+		case 3: return Precpred(Context, 2);
+		}
+		return true;
+	}
+
 	private static int[] _serializedATN = {
-		4,1,12,30,2,0,7,0,2,1,7,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,
-		1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,3,0,26,8,0,1,1,1,1,1,1,0,0,2,0,
-		2,0,1,1,0,7,10,32,0,25,1,0,0,0,2,27,1,0,0,0,4,5,5,1,0,0,5,6,3,0,0,0,6,
-		7,5,2,0,0,7,26,1,0,0,0,8,9,3,2,1,0,9,10,5,3,0,0,10,11,3,2,1,0,11,26,1,
-		0,0,0,12,13,3,2,1,0,13,14,5,4,0,0,14,15,3,2,1,0,15,26,1,0,0,0,16,17,3,
-		2,1,0,17,18,5,5,0,0,18,19,3,2,1,0,19,26,1,0,0,0,20,21,3,2,1,0,21,22,5,
-		6,0,0,22,23,3,2,1,0,23,26,1,0,0,0,24,26,3,2,1,0,25,4,1,0,0,0,25,8,1,0,
-		0,0,25,12,1,0,0,0,25,16,1,0,0,0,25,20,1,0,0,0,25,24,1,0,0,0,26,1,1,0,0,
-		0,27,28,7,0,0,0,28,3,1,0,0,0,1,25
+		4,1,12,36,2,0,7,0,2,1,7,1,1,0,1,0,1,0,1,0,1,0,1,0,3,0,11,8,0,1,0,1,0,1,
+		0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,5,0,25,8,0,10,0,12,0,28,9,0,1,1,
+		1,1,1,1,1,1,3,1,34,8,1,1,1,0,1,0,2,0,2,0,0,41,0,10,1,0,0,0,2,33,1,0,0,
+		0,4,5,6,0,-1,0,5,6,5,1,0,0,6,7,3,0,0,0,7,8,5,2,0,0,8,11,1,0,0,0,9,11,3,
+		2,1,0,10,4,1,0,0,0,10,9,1,0,0,0,11,26,1,0,0,0,12,13,10,5,0,0,13,14,5,5,
+		0,0,14,25,3,0,0,6,15,16,10,4,0,0,16,17,5,6,0,0,17,25,3,0,0,5,18,19,10,
+		3,0,0,19,20,5,3,0,0,20,25,3,0,0,4,21,22,10,2,0,0,22,23,5,4,0,0,23,25,3,
+		0,0,3,24,12,1,0,0,0,24,15,1,0,0,0,24,18,1,0,0,0,24,21,1,0,0,0,25,28,1,
+		0,0,0,26,24,1,0,0,0,26,27,1,0,0,0,27,1,1,0,0,0,28,26,1,0,0,0,29,34,5,10,
+		0,0,30,34,5,7,0,0,31,34,5,8,0,0,32,34,5,9,0,0,33,29,1,0,0,0,33,30,1,0,
+		0,0,33,31,1,0,0,0,33,32,1,0,0,0,34,3,1,0,0,0,4,10,24,26,33
 	};
 
 	public static readonly ATN _ATN =

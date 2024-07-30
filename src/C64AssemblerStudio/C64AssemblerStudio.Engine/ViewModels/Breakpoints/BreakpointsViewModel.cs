@@ -9,6 +9,7 @@ using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +21,7 @@ using Righthand.ViceMonitor.Bridge.Responses;
 namespace C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 
 using SourceLineBlockItemsMap = FrozenDictionary<string, FrozenDictionary<int, ImmutableArray<BlockItem>>>;
+using LabelsNameMap = FrozenDictionary<string, Righthand.RetroDbgDataProvider.Models.Program.Label>;
 
 public record AddressRange(ushort StartAddress, ushort Length)
 {
@@ -52,7 +54,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     private readonly ISettingsManager _settingsManager;
     private readonly CommandsManager _commandsManager;
     private readonly DebugOutputViewModel _debugOutput;
-
+    private readonly IAddressEntryGrammarService _addressEntryGrammar;
     public ObservableCollection<BreakpointViewModel> Breakpoints { get; }
 
     /// <summary>
@@ -81,7 +83,8 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
     public BreakpointsViewModel(ILogger<BreakpointsViewModel> logger, IVice vice, IDispatcher dispatcher,
         Globals globals,
-        IServiceScopeFactory serviceScopeFactory, ISettingsManager settingsManager, DebugOutputViewModel debugOutput)
+        IServiceScopeFactory serviceScopeFactory, ISettingsManager settingsManager, DebugOutputViewModel debugOutput,
+        IAddressEntryGrammarService addressEntryGrammar)
     {
         _logger = logger;
         _dispatcher = dispatcher;
@@ -90,6 +93,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         _serviceScopeFactory = serviceScopeFactory;
         _settingsManager = settingsManager;
         _debugOutput = debugOutput;
+        _addressEntryGrammar = addressEntryGrammar;
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _commandsManager = new CommandsManager(this, _uiFactory);
         Breakpoints = new ObservableCollection<BreakpointViewModel>();
@@ -175,13 +179,6 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
                 }
 
                 break;
-            // should happen only on start debug 
-            //case nameof(Globals.ProjectDebugSymbols):
-            //    if (!executionStatusViewModel.IsOpeningProject)
-            //    {
-            //        _ = ApplyOriginalBreakpointsOnNewPdbAsync(CancellationToken.None);
-            //    }
-            //    break;
         }
     }
 
@@ -316,17 +313,6 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         }
     }
 
-    void ExecutionStatusViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        // switch (e.PropertyName)
-        // {
-        //     case nameof(ExecutionStatusViewModel.IsDebugging) when !executionStatusViewModel.IsDebugging:
-        //     case nameof(ExecutionStatusViewModel.IsDebuggingPaused) when !executionStatusViewModel.IsDebuggingPaused:
-        //         ClearHitBreakpoint();
-        //         break;
-        // }
-    }
-
     internal void ClearHitBreakpoint()
     {
         foreach (var breakpoint in Breakpoints)
@@ -347,14 +333,22 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         Debug.Assert(_vice.IsConnected);
         var project = (KickAssProjectViewModel)_globals.Project.ValueOrThrow();
         var sourceFiles = MapDebugSourceFileNameToBlockItems(project);
+        var labels = MapLabelsToName(project);
         foreach (var b in Breakpoints)
         {
-            if (!await ArmBreakpointAsync(sourceFiles, b, ct))
+            if (!await ArmBreakpointAsync(sourceFiles, labels, b, ct))
             {
                 b.HasErrors = true;
             }
         }
         _logger.LogDebug("Breakpoints armed");
+    }
+
+    internal LabelsNameMap MapLabelsToName(KickAssProjectViewModel project)
+    {
+        Guard.IsNotNull(project.DbgData);
+        return project.AppInfo.SourceFiles.SelectMany(s => s.Value.Labels.Values)
+            .ToFrozenDictionary(l => l.Name);
     }
 
     /// <summary>
@@ -404,13 +398,13 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         return map;
     }
 
-    public async Task<bool> ArmBreakpointAsync(SourceLineBlockItemsMap sourceFiles,
+    public async Task<bool> ArmBreakpointAsync(SourceLineBlockItemsMap sourceFiles, LabelsNameMap labels,
         BreakpointViewModel breakpoint, CancellationToken ct)
     {
         breakpoint.AddressRanges = breakpoint.Bind switch
         {
             BreakpointLineBind lineBind => GetAddressRangesForLineBreakpoint(sourceFiles, lineBind),
-            BreakpointNoBind noBind => GetAddressRangesForUnboundBreakpoint(noBind),
+            BreakpointNoBind noBind => GetAddressRangesForUnboundBreakpoint(labels, noBind),
             _ => null,
         };
         if (breakpoint.AddressRanges is null || breakpoint.AddressRanges.Count == 0)
@@ -465,9 +459,25 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         return null;
     }
 
-    internal HashSet<BreakpointAddressRange>? GetAddressRangesForUnboundBreakpoint(BreakpointNoBind bind)
+    internal HashSet<BreakpointAddressRange>? GetAddressRangesForUnboundBreakpoint(LabelsNameMap labels,
+        BreakpointNoBind bind)
     {
-        return null;
+        try
+        {
+            ushort? start = _addressEntryGrammar.CalculateAddress(labels, bind.StartAddress);
+            if (!start.HasValue)
+            {
+                _debugOutput.AddLine($"Couldn't parse breakpoints {bind.StartAddress}");
+                return null;
+            }
+            ushort end = _addressEntryGrammar.CalculateAddress(labels, bind.StartAddress) ?? (ushort)(start.Value + 1);
+            return new HashSet<BreakpointAddressRange> { new (start.Value, end) };
+        }
+        catch (Exception e)
+        {
+            _debugOutput.AddLine($"Failed parsing breakpoints start {bind.StartAddress} or end {bind.EndAddress} address");
+            return null;
+        }
     }
 
     public async Task DisarmAllBreakpointsAsync(CancellationToken ct = default)
@@ -505,9 +515,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
         foreach (var b in Breakpoints)
         {
-            b.ClearCheckpointNumbers();
-            b.AddressRanges = null;
-            b.HasErrors = false;
+            b.MarkDisarmed();
         }
 
         _breakpointsMap.Clear();

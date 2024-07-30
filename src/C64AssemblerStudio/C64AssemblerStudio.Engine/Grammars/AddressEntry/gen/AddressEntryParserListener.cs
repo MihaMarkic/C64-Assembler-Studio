@@ -31,23 +31,123 @@ using IToken = Antlr4.Runtime.IToken;
 [System.CLSCompliant(false)]
 public interface IAddressEntryParserListener : IParseTreeListener {
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="AddressEntryParser.arguments"/>.
+	/// Enter a parse tree produced by the <c>Multiplication</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterArguments([NotNull] AddressEntryParser.ArgumentsContext context);
+	void EnterMultiplication([NotNull] AddressEntryParser.MultiplicationContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="AddressEntryParser.arguments"/>.
+	/// Exit a parse tree produced by the <c>Multiplication</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitArguments([NotNull] AddressEntryParser.ArgumentsContext context);
+	void ExitMultiplication([NotNull] AddressEntryParser.MultiplicationContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="AddressEntryParser.argument"/>.
+	/// Enter a parse tree produced by the <c>Parens</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterArgument([NotNull] AddressEntryParser.ArgumentContext context);
+	void EnterParens([NotNull] AddressEntryParser.ParensContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="AddressEntryParser.argument"/>.
+	/// Exit a parse tree produced by the <c>Parens</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitArgument([NotNull] AddressEntryParser.ArgumentContext context);
+	void ExitParens([NotNull] AddressEntryParser.ParensContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Arg</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterArg([NotNull] AddressEntryParser.ArgContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Arg</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitArg([NotNull] AddressEntryParser.ArgContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Division</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterDivision([NotNull] AddressEntryParser.DivisionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Division</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitDivision([NotNull] AddressEntryParser.DivisionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Plus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterPlus([NotNull] AddressEntryParser.PlusContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Plus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitPlus([NotNull] AddressEntryParser.PlusContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Minus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterMinus([NotNull] AddressEntryParser.MinusContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Minus</c>
+	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitMinus([NotNull] AddressEntryParser.MinusContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>Label</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterLabel([NotNull] AddressEntryParser.LabelContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>Label</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitLabel([NotNull] AddressEntryParser.LabelContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>DecNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterDecNumber([NotNull] AddressEntryParser.DecNumberContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>DecNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitDecNumber([NotNull] AddressEntryParser.DecNumberContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>HexNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterHexNumber([NotNull] AddressEntryParser.HexNumberContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>HexNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitHexNumber([NotNull] AddressEntryParser.HexNumberContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>BinNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterBinNumber([NotNull] AddressEntryParser.BinNumberContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>BinNumber</c>
+	/// labeled alternative in <see cref="AddressEntryParser.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitBinNumber([NotNull] AddressEntryParser.BinNumberContext context);
 }
