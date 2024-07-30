@@ -109,14 +109,28 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             _commandsManager.CreateRelayCommandAsync(RemoveAllBreakpointsAsync, () => IsProjectOpen);
         CreateBreakpointCommand = _commandsManager.CreateRelayCommandAsync(CreateBreakpoint, () => IsProjectOpen);
         _vice.CheckpointInfoUpdated += ViceOnCheckpointInfoUpdated;
+        _vice.PropertyChanged += ViceOnPropertyChanged;
         globals.PropertyChanged += Globals_PropertyChanged;
+    }
+
+    private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(IVice.IsPaused):
+                if (!_vice.IsPaused)
+                {
+                    ClearHitBreakpoint();
+                }
+                break;
+        }
     }
 
     private void ViceOnCheckpointInfoUpdated(object? sender, CheckpointInfoEventArgs e)
     {
         if (e.Response is not null)
         {
-            _uiFactory.StartNew(r => { UpdateBreakpointDataFromVice((CheckpointInfoResponse)r!); }, e.Response);
+            UpdateBreakpointDataFromVice(e.Response);
         }
     }
 
@@ -407,7 +421,13 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
         try
         {
-            return await _vice.ArmBreakpointAsync(breakpoint, ct);
+            bool result = await _vice.ArmBreakpointAsync(breakpoint, ct);
+            if (result)
+            {
+                AddBreakpointToMap(breakpoint);
+            }
+
+            return result;
         }
         catch (TimeoutException e)
         {
@@ -583,11 +603,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         if (_vice.IsDebugging)
         {
             await _vice.ArmBreakpointAsync(breakpoint, ct);
-            // updates checkpoint and lines maps
-            foreach (var cp in breakpoint.CheckpointNumbers)
-            {
-                _breakpointsMap.Add(cp, breakpoint);
-            }
+            AddBreakpointToMap(breakpoint);
         }
 
         if (breakpoint.Bind is BreakpointLineBind lineBind)
@@ -602,6 +618,14 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             {
                 _breakpointsLinesMap[key].Add(breakpoint);
             }
+        }
+    }
+
+    internal void AddBreakpointToMap(BreakpointViewModel breakpoint)
+    {
+        foreach (var cp in breakpoint.CheckpointNumbers)
+        {
+            _breakpointsMap.Add(cp, breakpoint);
         }
     }
 
