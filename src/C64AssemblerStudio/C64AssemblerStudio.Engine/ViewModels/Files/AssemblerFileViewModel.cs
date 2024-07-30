@@ -9,13 +9,16 @@ using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
+using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
-using Righthand.RetroDbgDataProvider.Models;
+using Righthand.RetroDbgDataProvider.KickAssembler.Models;
+using Righthand.RetroDbgDataProvider.Models.Program;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
 public record SyntaxError(string Text, int Line, int Start, int End);
+
 public class AssemblerFileViewModel : ProjectFileViewModel
 {
     public enum TokenType
@@ -42,6 +45,8 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public ImmutableArray<Line?> Lines { get; private set; } = ImmutableArray<Line?>.Empty;
     public FrozenDictionary<int, ImmutableArray<SyntaxError>> Errors { get; private set; }
     public RelayCommandWithParameterAsync<int> AddOrRemoveBreakpointCommand { get; }
+    public bool IsByteDumpVisible { get; set; }
+    public ImmutableArray<ByteDumpLineViewModel> ByteDumpLines { get; private set; }
 
     static AssemblerFileViewModel()
     {
@@ -171,9 +176,48 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             case nameof(Content):
                 _ = ParseTextAsync();
                 break;
+            case nameof(IsByteDumpVisible):
+                if (IsByteDumpVisible)
+                {
+                    LoadByteDump();
+                }
+                break;
         }
 
         base.OnPropertyChanged(name);
+    }
+
+    internal void LoadByteDump()
+    {
+        if (ByteDumpLines.IsEmpty)
+        {
+            var project = (KickAssProjectViewModel)Globals.Project;
+            Guard.IsNotNull(project.ByteDump);
+            Guard.IsNotNull(project.AppInfo);
+            var byteDumpLines = project.ByteDump.Values.SelectMany(s => s.Blocks)
+                .SelectMany(ab => ab.Lines)
+                .ToFrozenDictionary(ab => ab.Address);
+            if (!project.AppInfo.SourceFiles.TryGetValue(
+                    new SourceFilePath(File.GetRelativeFilePath(), IsRelative: true), out var sourceFile))
+            {
+                Logger.LogWarning("Couldn't find {File}", File.GetRelativeFilePath());
+                return;
+            }
+
+            var builder = ImmutableArray.CreateBuilder<ByteDumpLineViewModel>();
+            foreach (var bi in sourceFile.BlockItems)
+            {
+                if (byteDumpLines.TryGetValue(bi.Start, out var assemblyLine))
+                {
+                    builder.Add(new ByteDumpLineViewModel(assemblyLine));
+                }
+                else
+                {
+                    Logger.LogWarning("Failed matching bytedump at {Address}", bi.Start);
+                }
+            }
+            ByteDumpLines = builder.ToImmutableArray();
+        }
     }
 
     private CancellationTokenSource? _ctsParser;
