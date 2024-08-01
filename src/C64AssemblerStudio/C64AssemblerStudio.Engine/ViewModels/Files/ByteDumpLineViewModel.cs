@@ -10,13 +10,16 @@ namespace C64AssemblerStudio.Engine.ViewModels.Files;
 /// </summary>
 public class ByteDumpLineViewModel : NotifiableObject
 {
-    public bool IsHighlighted { get; set; }
     private readonly ByteDumpLine _byteDumpLine;
     public SourceFileLocation SourceFileLocation { get; } 
-    public ByteDumpLineViewModel(ByteDumpLine byteDumpLine)
+    public bool IsHighlighted { get; set; }
+    public bool IsExecutive { get; set; }
+    public bool BelongsToFile { get; }
+    public ByteDumpLineViewModel(ByteDumpLine byteDumpLine, bool belongsToFile)
     {
         _byteDumpLine = byteDumpLine;
         SourceFileLocation = new SourceFileLocation(SourceFile, FileLocation);
+        BelongsToFile = belongsToFile;
     }
 
     public SourceFile SourceFile => _byteDumpLine.SourceFile;

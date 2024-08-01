@@ -19,5 +19,5 @@ public static class AssemblerFileConverters
 
     public static readonly IValueConverter DataToString =
         new FuncValueConverter<IList<byte>, string?>(d =>
-            d is not null ? string.Join(",", d.Select(b => b.ToString("X2"))) : null);
+            d is not null ? string.Join(" ", d.Select(b => b.ToString("X2"))) : null);
 }

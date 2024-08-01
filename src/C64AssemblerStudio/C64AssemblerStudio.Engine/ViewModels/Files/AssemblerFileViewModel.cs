@@ -14,6 +14,7 @@ using C64AssemblerStudio.Engine.ViewModels.Tools;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.Models.Program;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -199,9 +200,31 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                     LoadByteDump();
                 }
                 break;
+            case nameof(ExecutionAddress):
+                UpdateByteDumpExecutionLine();
+                break;
         }
 
         base.OnPropertyChanged(name);
+    }
+
+    internal void UpdateByteDumpExecutionLine()
+    {
+        if (_vice.IsPaused)
+        {
+            var candidates = ByteDumpLines.Where(l => l.BelongsToFile);
+            foreach (var l in candidates)
+            {
+                l.IsHighlighted = l.Address <= ExecutionAddress && l.Address + l.Bytes.Length >= ExecutionAddress;
+            }
+        }
+        else
+        {
+            foreach (var bl in ByteDumpLines)
+            {
+                bl.IsExecutive = false;
+            }
+        }
     }
 
     internal void LoadByteDump()
@@ -210,8 +233,14 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         {
             var project = (KickAssProjectViewModel)Globals.Project;
             Guard.IsNotNull(project.ByteDumpLines);
-            ByteDumpLines = [..project.ByteDumpLines.ValueOrThrow().Select(l => new ByteDumpLineViewModel(l))];
+            Guard.IsNotNull(project.AppInfo);
+            if (project.AppInfo.SourceFiles.TryGetValue(
+                    new SourceFilePath(File.GetRelativeFilePath(), IsRelative: true), out var sourceFile))
+            {
+                ByteDumpLines = [..project.ByteDumpLines.ValueOrThrow().Select(l => new ByteDumpLineViewModel(l, l.SourceFile == sourceFile))];
+            }
         }
+        UpdateByteDumpExecutionLine();
     }
 
     private CancellationTokenSource? _ctsParser;

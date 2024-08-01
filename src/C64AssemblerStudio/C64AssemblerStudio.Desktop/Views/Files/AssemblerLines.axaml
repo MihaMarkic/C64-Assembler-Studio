@@ -8,6 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="120"
              x:Class="C64AssemblerStudio.Desktop.Views.Files.AssemblerLines">
     <DataGrid
+        Name="LinesGrid"
         x:DataType="vmf:ByteDumpLineViewModel"
         ItemsSource="{Binding $parent[files:AssemblerLines].Lines}"
         AutoGenerateColumns="False"
@@ -15,25 +16,48 @@
         IsReadOnly="True"
         CanUserSortColumns="False">
         <DataGrid.Styles>
-            <Style Selector="DataGridCell">
+            <Style Selector="TextBlock">
                 <Setter Property="FontSize" Value="12" />
             </Style>
+            <Style Selector="TextBlock.hidden">
+                <Setter Property="Foreground" Value="Gray" />
+            </Style>
+            <Style Selector="TextBlock.notfile">
+                <Setter Property="Foreground" Value="DarkGray" />
+            </Style>
+            <Style Selector="DataGridRow.highlight">
+                <Setter Property="Background" Value="WhiteSmoke" />
+            </Style>
+            <Style Selector="DataGridRow.executive">
+                <Setter Property="Background" Value="Yellow" />
+            </Style>
+            <Style Selector="DataGridCell">
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="MinHeight" Value="0" />
+            </Style>
         </DataGrid.Styles>
+        <!-- <DataGrid.> -->
+        <!--     <DataTemplate x:DataType="vmf:ByteDumpLineViewModel"> -->
+        <!--         <DataGridRow Classes.highlight="{Binding IsHighlighted}" Background="Red" -->
+        <!--                      Classes.executive="{Binding IsExecutive}" /> -->
+        <!--     </DataTemplate> -->
+        <!-- </DataGrid.> -->
         <DataGrid.Columns>
             <DataGridTemplateColumn Width="80">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                         <!-- <files:FileLocation Margin="0,12" DataContext="{Binding SourceFileLocation}" /> -->
-                        <TextBlock
-                            Text="{Binding SourceFileLocation.FileLocation, Converter={x:Static converters:AssemblerFileConverters.FileLocationToString}}"
-                            HorizontalAlignment="Right" />
+                        <TextBlock  Classes.notfile="{Binding !BelongsToFile}"
+                                    Text="{Binding SourceFileLocation.FileLocation, Converter={x:Static converters:AssemblerFileConverters.FileLocationToString}}"
+                                    HorizontalAlignment="Right" />
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="Address" Width="40">
+            <DataGridTemplateColumn Header="Address" Width="50">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Margin="2,0"
+                        <TextBlock Margin="2,0" 
+                                   Classes.notfile="{Binding !BelongsToFile}"
                                    Text="{Binding Address, Converter={x:Static converters:StudioConverters.ValueToHexAddress}}"
                                    HorizontalAlignment="Right" />
                     </DataTemplate>
@@ -42,7 +66,9 @@
             <DataGridTemplateColumn Header="Data" Width="100">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock TextTrimming="CharacterEllipsis"
+                        <TextBlock TextTrimming="CharacterEllipsis"  
+                                   Classes.notfile="{Binding !BelongsToFile}"
+                                   Classes="hidden"
                                    Text="{Binding Bytes, Converter={x:Static converters:AssemblerFileConverters.DataToString}}" />
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
@@ -51,14 +77,17 @@
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                         <TextBlock Margin="2,0"
+                                   Classes.notfile="{Binding !BelongsToFile}"
                                    Text="{Binding Labels, Converter={x:Static converters:AssemblerFileConverters.LabelsToString}}" />
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="Description">
+            <DataGridTemplateColumn Header="Description" Width="300">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Margin="2,0" Text="{Binding Description}" />
+                        <TextBlock 
+                            Classes.notfile="{Binding !BelongsToFile}" 
+                            Margin="2,0" Text="{Binding Description}" />
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
@@ -69,9 +98,7 @@
                             <!-- <TextBlock Margin="2,0" Text="{Binding SourceFile.Path.FileName}" /> -->
                             <!-- <TextBlock Margin="2,0" Text="{Binding SourceFile.Path.Directory}" /> -->
                             <TextBlock Margin="2,0">
-                                <Run Text="{Binding SourceFile.Path.Directory}" Background="Yellow" />
-                                <Run Text="/" Background="Red"></Run>
-                                <Run Text="{Binding SourceFile.Path.FileName}" />
+                                <Run Text="{Binding SourceFile.Path.Directory, Converter={x:Static converters:StudioConverters.AppendDirectorySeparator}}" Foreground="Gray" /><Run Text="{Binding SourceFile.Path.FileName}" />
                             </TextBlock>
                         </StackPanel>
                     </DataTemplate>

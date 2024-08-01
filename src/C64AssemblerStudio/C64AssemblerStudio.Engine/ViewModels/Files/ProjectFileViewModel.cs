@@ -20,6 +20,7 @@ public abstract class ProjectFileViewModel : FileViewModel
     /// When set defines execution line in paused state
     /// </summary>
     public (int Start, int End)? ExecutionLineRange { get; set; }
+    public ushort? ExecutionAddress { get; set; }
     public event EventHandler<MoveCaretEventArgs>? MoveCaretRequest;
 
     protected ProjectFileViewModel(ILogger<ProjectFileViewModel> logger, IFileService fileService,

@@ -1,11 +1,8 @@
 ﻿using System.Collections.Frozen;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
-using C64AssemblerStudio.Engine.ViewModels.Files;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
@@ -105,7 +102,7 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
         var dbgDataTask = DbgParser.LoadFileAsync(dbgFile, ct);
         ByteDump = await ByteDumpParser.LoadFileAsync(byteDumpFile, ct);
         DbgData = await dbgDataTask;
-        AppInfo = await ProgramInfoBuilder.BuildAppInfoAsync(DbgData, ct);
+        AppInfo = await ProgramInfoBuilder.BuildAppInfoAsync(Directory, DbgData, ct);
         ByteDumpLines = CreateByteDumpLines(ByteDump, AppInfo);
     }
 

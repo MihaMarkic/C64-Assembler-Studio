@@ -132,7 +132,7 @@ public class FilesViewModel : ViewModel
         {
             var (file, fileLocation) = result.Value;
             var message = new OpenFileMessage(file, fileLocation.Col1, fileLocation.Line1 - 1);
-            OpenFileCore(message, fileLocation);
+            OpenFileCore(message, fileLocation, address);
         }
     }
 
@@ -141,6 +141,7 @@ public class FilesViewModel : ViewModel
         foreach (var projectFile in Files.OfType<ProjectFileViewModel>())
         {
             projectFile.ExecutionLineRange = null;
+            projectFile.ExecutionAddress = null;
         }
     }
 
@@ -177,9 +178,10 @@ public class FilesViewModel : ViewModel
         var pc = _vice.Registers.Current.PC;
         var result = pc.HasValue ? GetExecutionLocation(pc.Value): null;
         FileLocation? executionLocation = result?.Location;
-        OpenFileCore(message, executionLocation);
+        OpenFileCore(message, executionLocation, address: null);
     }
-    internal ProjectFileViewModel? OpenFileCore(OpenFileMessage message, FileLocation? executionLocation)
+    internal ProjectFileViewModel? OpenFileCore(OpenFileMessage message, FileLocation? executionLocation,
+        ushort? address)
     {
         var viewModel = FindOpenFile(message.File);
         
@@ -226,6 +228,7 @@ public class FilesViewModel : ViewModel
         if (viewModel is not null && executionLocation is not null)
         {
             viewModel.ExecutionLineRange = (executionLocation.Line1 - 1, executionLocation.Line2 - 1);
+            viewModel.ExecutionAddress = address;
         }
 
         return viewModel;

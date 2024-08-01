@@ -15,6 +15,8 @@ public static class StudioConverters
         new FuncValueConverter<DebuggingStatus, string?>(bs => bs.GetDisplayText());
     public static readonly IValueConverter ValueToHexAddress =
         new FuncValueConverter<ushort?, string?>(s => s?.ToString("X4"));
+    public static readonly IValueConverter AppendDirectorySeparator =
+        new FuncValueConverter<string?, string?>(s => $"{s}/");
 
     public static readonly IValueConverter ToEditorLine =
         new FuncValueConverter<int, int>(l => l + 1);
