@@ -5,6 +5,7 @@ using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.ViewModels.Files;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
@@ -76,6 +77,7 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
     public IKickAssemblerByteDumpParser ByteDumpParser { get; }
     public DbgData? DbgData { get; private set; }
     public FrozenDictionary<string, AssemblySegment>? ByteDump { get; private set; }
+    public ImmutableArray<ByteDumpLine>? ByteDumpLines { get; private set; }
 
     public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject>> logger, ISettingsManager settingsManager,
         IDispatcher dispatcher, IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
@@ -100,9 +102,45 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
         string dbgFile = System.IO.Path.Combine(outDirectory, "main.dbg");
         string byteDumpFile = System.IO.Path.Combine(outDirectory, "bytedump.dmp");
                 
-        var byteDumpTask = ByteDumpParser.LoadFileAsync(byteDumpFile, ct);
-        DbgData = await DbgParser.LoadFileAsync(dbgFile, ct);
+        var dbgDataTask = DbgParser.LoadFileAsync(dbgFile, ct);
+        ByteDump = await ByteDumpParser.LoadFileAsync(byteDumpFile, ct);
+        DbgData = await dbgDataTask;
         AppInfo = await ProgramInfoBuilder.BuildAppInfoAsync(DbgData, ct);
-        ByteDump = await byteDumpTask;
+        ByteDumpLines = CreateByteDumpLines(ByteDump, AppInfo);
+    }
+
+    /// <summary>
+    /// Maps ByteDump lines to array of SourceFile, location within text and ByteDump line
+    /// </summary>
+    /// <param name="byteDump"></param>
+    /// <param name="appInfo"></param>
+    /// <returns></returns>
+    private ImmutableArray<ByteDumpLine>? CreateByteDumpLines(
+        FrozenDictionary<string, AssemblySegment> byteDump,
+        AssemblerAppInfo appInfo)
+    {
+        var appInfoBlockItems = from sf in appInfo.SourceFiles.Values
+            from bi in sf.BlockItems
+            select new { SourceFile = sf, BlockItem = bi };
+        var appInfoBlockItemsPerAddressMap = appInfoBlockItems
+            .ToFrozenDictionary(i => i.BlockItem.Start);
+        
+        var allByteDumpLines = byteDump.Values.SelectMany(s => s.Blocks).SelectMany(b => b.Lines)
+            .ToImmutableArray();
+        
+        var builder = ImmutableArray.CreateBuilder<ByteDumpLine>(allByteDumpLines.Length);
+
+        foreach (var line in allByteDumpLines)
+        {
+            if (appInfoBlockItemsPerAddressMap.TryGetValue(line.Address, out var mapItem))
+            {
+                builder.Add(new ByteDumpLine(line, mapItem.SourceFile, mapItem.BlockItem.FileLocation));
+            }
+            else
+            {
+                Logger.LogWarning("Failed matching bytedump at {Address} with {Description}", line.Address, line.Description);
+            }
+        }
+        return builder.ToImmutableArray();
     }
 }

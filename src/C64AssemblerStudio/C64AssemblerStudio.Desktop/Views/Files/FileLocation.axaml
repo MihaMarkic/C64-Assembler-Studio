@@ -1,0 +1,25 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:files="clr-namespace:C64AssemblerStudio.Engine.Models.Files;assembly=C64AssemblerStudio.Engine"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="40"
+             x:DataType="files:SourceFileLocation"
+             x:Class="C64AssemblerStudio.Desktop.Views.Files.FileLocation">
+    <Design.DataContext>
+        <files:SingleLineFileLocation />
+    </Design.DataContext>
+    <StackPanel Orientation="Vertical">
+        <StackPanel.Styles>
+            <Style Selector="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource CodeFont}" />
+                <Setter Property="FontSize" Value="12" />
+            </Style>
+        </StackPanel.Styles>
+        <TextBlock HorizontalAlignment="Right"
+                   Text="{Binding FileLocation, Converter={x:Static converters:AssemblerFileConverters.FileLocationToString}}" />
+        <TextBlock Text="{Binding SourceFile.Path.FileName}" TextTrimming="CharacterEllipsis"
+                   FontSize="10" Foreground="Gray"/>
+    </StackPanel>
+</UserControl>

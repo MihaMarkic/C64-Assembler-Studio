@@ -13,6 +13,8 @@ public static class StudioConverters
         new FuncValueConverter<DebuggingStatus, bool>(x => x != DebuggingStatus.Idle);
     public static readonly IValueConverter DebuggingStatusToString =
         new FuncValueConverter<DebuggingStatus, string?>(bs => bs.GetDisplayText());
+    public static readonly IValueConverter ValueToHexAddress =
+        new FuncValueConverter<ushort?, string?>(s => s?.ToString("X4"));
 
     public static readonly IValueConverter ToEditorLine =
         new FuncValueConverter<int, int>(l => l + 1);

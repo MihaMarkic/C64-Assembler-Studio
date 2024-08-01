@@ -1,5 +1,6 @@
 ﻿using System.Collections.Frozen;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using C64AssemblerStudio.Core;
@@ -7,13 +8,12 @@ using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
+using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
-using Righthand.RetroDbgDataProvider.KickAssembler.Models;
-using Righthand.RetroDbgDataProvider.Models.Program;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -39,13 +39,15 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public record Line(ImmutableArray<LineItem> Items);
     private static readonly FrozenDictionary<int, TokenType> Map;
     private readonly CompilerErrorsOutputViewModel _compilerErrors;
-    public event EventHandler? BreakpointsChanged;
+    private readonly IVice _vice;
     public BreakpointsViewModel Breakpoints { get; }
+    public event EventHandler? BreakpointsChanged;
     private ImmutableArray<ImmutableArray<IToken>> _tokens = ImmutableArray<ImmutableArray<IToken>>.Empty;
     public ImmutableArray<Line?> Lines { get; private set; } = ImmutableArray<Line?>.Empty;
     public FrozenDictionary<int, ImmutableArray<SyntaxError>> Errors { get; private set; }
     public RelayCommandWithParameterAsync<int> AddOrRemoveBreakpointCommand { get; }
     public bool IsByteDumpVisible { get; set; }
+    public bool IsByteDumpToggleVisible => _vice.IsDebugging;
     public ImmutableArray<ByteDumpLineViewModel> ByteDumpLines { get; private set; }
 
     static AssemblerFileViewModel()
@@ -54,18 +56,33 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     }
 
     private void OnBreakpointsChanged(EventArgs e) => BreakpointsChanged?.Invoke(this, e);
+
     public AssemblerFileViewModel(ILogger<AssemblerFileViewModel> logger, IFileService fileService,
         IDispatcher dispatcher, StatusInfoViewModel statusInfo, BreakpointsViewModel breakpoints,
+        IVice vice,
         Globals globals, CompilerErrorsOutputViewModel compilerErrors, ProjectFile file) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {
         Breakpoints = breakpoints;
         _compilerErrors = compilerErrors;
+        _vice = vice;
+        ByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         Errors = FrozenDictionary<int, ImmutableArray<SyntaxError>>.Empty;
         AddOrRemoveBreakpointCommand = new RelayCommandWithParameterAsync<int>(AddOrRemoveBreakpoint);
         Breakpoints.Breakpoints.CollectionChanged += BreakpointsOnCollectionChanged;
         UpdateErrors();
         _compilerErrors.Lines.CollectionChanged += CompilerErrors_LinesOnCollectionChanged;
+        _vice.PropertyChanged += ViceOnPropertyChanged;
+    }
+
+    private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(IVice.IsDebugging):
+                OnPropertyChanged(nameof(IsByteDumpToggleVisible));
+                break;
+        }
     }
 
     private void BreakpointsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -192,36 +209,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         if (ByteDumpLines.IsEmpty)
         {
             var project = (KickAssProjectViewModel)Globals.Project;
-            Guard.IsNotNull(project.ByteDump);
-            Guard.IsNotNull(project.AppInfo);
-            var byteDumpLines = project.ByteDump.Values.SelectMany(s => s.Blocks)
-                .SelectMany(ab => ab.Lines)
-                .ToFrozenDictionary(ab => ab.Address);
-            if (!project.AppInfo.SourceFiles.TryGetValue(
-                    new SourceFilePath(File.GetRelativeFilePath(), IsRelative: true), out var sourceFile))
-            {
-                Logger.LogWarning("Couldn't find {File}", File.GetRelativeFilePath());
-                return;
-            }
-
-            var builder = ImmutableArray.CreateBuilder<ByteDumpLineViewModel>();
-            foreach (var bi in sourceFile.BlockItems)
-            {
-                if (byteDumpLines.TryGetValue(bi.Start, out var assemblyLine))
-                {
-                    builder.Add(new ByteDumpLineViewModel(assemblyLine));
-                }
-                else
-                {
-                    Logger.LogWarning("Failed matching bytedump at {Address}", bi.Start);
-                }
-            }
-            ByteDumpLines = builder.ToImmutableArray();
+            Guard.IsNotNull(project.ByteDumpLines);
+            ByteDumpLines = [..project.ByteDumpLines.ValueOrThrow().Select(l => new ByteDumpLineViewModel(l))];
         }
     }
 
     private CancellationTokenSource? _ctsParser;
-
     internal async Task ParseTextAsync(CancellationToken ct = default)
     {
         await _ctsParser.CancelNullableAsync(ct: ct);
@@ -529,6 +522,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         {
             Breakpoints.Breakpoints.CollectionChanged -= BreakpointsOnCollectionChanged;
             _compilerErrors.Lines.CollectionChanged -= CompilerErrors_LinesOnCollectionChanged;
+            _vice.PropertyChanged -= ViceOnPropertyChanged;
         }
         base.Dispose(disposing);
     }

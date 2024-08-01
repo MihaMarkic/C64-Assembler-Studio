@@ -1,0 +1,82 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:files="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:vmf="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="120"
+             x:Class="C64AssemblerStudio.Desktop.Views.Files.AssemblerLines">
+    <DataGrid
+        x:DataType="vmf:ByteDumpLineViewModel"
+        ItemsSource="{Binding $parent[files:AssemblerLines].Lines}"
+        AutoGenerateColumns="False"
+        FontFamily="{StaticResource CodeFont}"
+        IsReadOnly="True"
+        CanUserSortColumns="False">
+        <DataGrid.Styles>
+            <Style Selector="DataGridCell">
+                <Setter Property="FontSize" Value="12" />
+            </Style>
+        </DataGrid.Styles>
+        <DataGrid.Columns>
+            <DataGridTemplateColumn Width="80">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <!-- <files:FileLocation Margin="0,12" DataContext="{Binding SourceFileLocation}" /> -->
+                        <TextBlock
+                            Text="{Binding SourceFileLocation.FileLocation, Converter={x:Static converters:AssemblerFileConverters.FileLocationToString}}"
+                            HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Address" Width="40">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Margin="2,0"
+                                   Text="{Binding Address, Converter={x:Static converters:StudioConverters.ValueToHexAddress}}"
+                                   HorizontalAlignment="Right" />
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Data" Width="100">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock TextTrimming="CharacterEllipsis"
+                                   Text="{Binding Bytes, Converter={x:Static converters:AssemblerFileConverters.DataToString}}" />
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Labels" Width="140">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Margin="2,0"
+                                   Text="{Binding Labels, Converter={x:Static converters:AssemblerFileConverters.LabelsToString}}" />
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Description">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <TextBlock Margin="2,0" Text="{Binding Description}" />
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="File">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <!-- <TextBlock Margin="2,0" Text="{Binding SourceFile.Path.FileName}" /> -->
+                            <!-- <TextBlock Margin="2,0" Text="{Binding SourceFile.Path.Directory}" /> -->
+                            <TextBlock Margin="2,0">
+                                <Run Text="{Binding SourceFile.Path.Directory}" Background="Yellow" />
+                                <Run Text="/" Background="Red"></Run>
+                                <Run Text="{Binding SourceFile.Path.FileName}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+        </DataGrid.Columns>
+    </DataGrid>
+</UserControl>

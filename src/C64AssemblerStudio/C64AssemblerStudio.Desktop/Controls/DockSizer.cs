@@ -17,26 +17,26 @@ public class DockSizer : Panel
        o => o.MinSizedWidth,
        (o, v) => o.MinSizedWidth = v
     );
-    DockSizerOrientation orientation = DockSizerOrientation.Horizontal;
-    double minSizedWidth = 80;
-    Control? related;
-    Panel? parent;
+    private DockSizerOrientation _orientation = DockSizerOrientation.Horizontal;
+    private double _minSizedWidth = 80;
+    private Control? _related;
+    private Panel? _parent;
     public DockSizerOrientation Orientation
     {
-        get => orientation;
+        get => _orientation;
         set
         {
             if (value != Orientation)
             {
-                SetAndRaise(OrientationProperty, ref orientation, value);
+                SetAndRaise(OrientationProperty, ref _orientation, value);
                 UpdateCursor();
             }
         }
     }
     public double MinSizedWidth
     {
-        get => minSizedWidth;
-        set => SetAndRaise(MinSizedWidthProperty, ref minSizedWidth, value);
+        get => _minSizedWidth;
+        set => SetAndRaise(MinSizedWidthProperty, ref _minSizedWidth, value);
     }
 
     protected override void OnInitialized()
@@ -57,13 +57,13 @@ public class DockSizer : Panel
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        parent = Parent as Panel;
-        if (parent is not null)
+        _parent = Parent as Panel;
+        if (_parent is not null)
         {
-            int index = parent.Children.IndexOf(this);
+            int index = _parent.Children.IndexOf(this);
             if (index > 0)
             {
-                related = parent.Children[index - 1];
+                _related = _parent.Children[index - 1];
                 e.Pointer.Capture(this);
             }
         }
@@ -72,26 +72,26 @@ public class DockSizer : Panel
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        if (related is not null && parent is not null)
+        if (_related is not null && _parent is not null)
         {
-            var newPosition = e.GetPosition(parent);
+            var newPosition = e.GetPosition(_parent);
             switch (Orientation)
             {
                 case DockSizerOrientation.Vertical:
                     double newWidth = Math.Max(MinSizedWidth, newPosition.X);
-                    if (newWidth > parent.Bounds.Width + Width)
+                    if (newWidth > _parent.Bounds.Width + Width)
                     {
-                        newWidth = parent.Bounds.Width - Width;
+                        newWidth = _parent.Bounds.Width - Width;
                     }
-                    related.Width = newWidth;
+                    _related.Width = newWidth;
                     break;
                 case DockSizerOrientation.Horizontal:
-                    double newHeight = Math.Max(MinSizedWidth, parent.Bounds.Height - newPosition.Y);
-                    if (newHeight > parent.Bounds.Height - Height)
+                    double newHeight = Math.Max(MinSizedWidth, _parent.Bounds.Height - newPosition.Y);
+                    if (newHeight > _parent.Bounds.Height - Height)
                     {
-                        newHeight = parent.Bounds.Height - Height;
+                        newHeight = _parent.Bounds.Height - Height;
                     }
-                    related.Height = newHeight;
+                    _related.Height = newHeight;
                     break;
             }
         }
@@ -100,11 +100,11 @@ public class DockSizer : Panel
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        if (e.Pointer.Captured == this)
+        if (Equals(e.Pointer.Captured, this))
         {
             e.Pointer.Capture(null);
-            parent = null;
-            related = null;
+            _parent = null;
+            _related = null;
         }
     }
 }

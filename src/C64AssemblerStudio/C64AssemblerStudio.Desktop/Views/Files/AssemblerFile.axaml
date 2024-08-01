@@ -4,38 +4,52 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
              xmlns:aee="clr-namespace:AvaloniaEdit.Editing;assembly=AvaloniaEdit"
-             xmlns:files="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
+             xmlns:vmf="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:controls="clr-namespace:C64AssemblerStudio.Desktop.Controls"
+             xmlns:files="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="files:AssemblerFileViewModel"
+             x:DataType="vmf:AssemblerFileViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Files.AssemblerFile">
-    <ae:TextEditor Name="Editor"
-                   FontFamily="{StaticResource CodeFont}"
-                   Background="#FFFDF6E3"
-                   ShowLineNumbers="False"
-                   Margin="12,4,4,4"
-                   Foreground="Black"
-                   HorizontalScrollBarVisibility="Auto"
-                   VerticalScrollBarVisibility="Auto"
-                   FontWeight="Light"
-                   FontSize="14"
-                   PointerHover="Editor_PointerHover"
-                   PointerPressed="Editor_PointerPressed"
-                   HorizontalAlignment="Stretch"
-                   VerticalAlignment="Stretch">
-        <ae:TextEditor.Styles>
-            <Style Selector="aee|TextArea">
-                <Setter Property="SelectionBrush" Value="#66ffff80" />
-            </Style>
-        </ae:TextEditor.Styles>
-        <ae:TextEditor.Options>
-            <ae:TextEditorOptions ShowTabs="False" />
-        </ae:TextEditor.Options>
-        <FlyoutBase.AttachedFlyout>
-            <Flyout ShowMode="TransientWithDismissOnPointerMoveAway">
-                <StackPanel Name="FlyoutContent" Orientation="Horizontal" x:DataType="files:SyntaxError">
-                    <TextBlock Text="{Binding Text}" />
-                </StackPanel>
-            </Flyout>
-        </FlyoutBase.AttachedFlyout>
-    </ae:TextEditor>
+    <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+        <StackPanel Grid.ColumnSpan="3" Orientation="Horizontal" IsVisible="{Binding IsByteDumpToggleVisible}">
+            <CheckBox IsChecked="{Binding IsByteDumpVisible}">Assembly</CheckBox>
+        </StackPanel>
+        <ae:TextEditor Name="Editor"
+                       Grid.Row="1" Grid.Column="0"
+                       Grid.ColumnSpan="{Binding IsByteDumpVisible, Converter={x:Static converters:AssemblerFileConverters.EditorColumnSpan}}"
+                       FontFamily="{StaticResource CodeFont}"
+                       Background="#FFFDF6E3"
+                       ShowLineNumbers="False"
+                       Margin="12,4,4,4"
+                       Foreground="Black"
+                       HorizontalScrollBarVisibility="Auto"
+                       VerticalScrollBarVisibility="Auto"
+                       FontWeight="Light"
+                       FontSize="14"
+                       PointerHover="Editor_PointerHover"
+                       PointerPressed="Editor_PointerPressed"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch">
+            <ae:TextEditor.Styles>
+                <Style Selector="aee|TextArea">
+                    <Setter Property="SelectionBrush" Value="#66ffff80" />
+                </Style>
+            </ae:TextEditor.Styles>
+            <ae:TextEditor.Options>
+                <ae:TextEditorOptions ShowTabs="False" />
+            </ae:TextEditor.Options>
+            <FlyoutBase.AttachedFlyout>
+                <Flyout ShowMode="TransientWithDismissOnPointerMoveAway">
+                    <StackPanel Name="FlyoutContent" Orientation="Horizontal" x:DataType="vmf:SyntaxError">
+                        <TextBlock Text="{Binding Text}" />
+                    </StackPanel>
+                </Flyout>
+            </FlyoutBase.AttachedFlyout>
+        </ae:TextEditor>
+        <GridSplitter Grid.Column="1" Grid.Row="1" Background="LightGray" ResizeDirection="Columns"
+                      IsVisible="{Binding IsByteDumpVisible}" />
+        <files:AssemblerLines Grid.Row="1" Grid.Column="2" Lines="{Binding ByteDumpLines}"
+                              IsVisible="{Binding IsByteDumpVisible}" />
+    </Grid>
 </UserControl>

@@ -1,5 +1,7 @@
 ﻿using C64AssemblerStudio.Core;
-using Righthand.RetroDbgDataProvider.KickAssembler.Models;
+using C64AssemblerStudio.Engine.Models.Files;
+using C64AssemblerStudio.Engine.Models.Projects;
+using Righthand.RetroDbgDataProvider.Models.Program;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -9,15 +11,19 @@ namespace C64AssemblerStudio.Engine.ViewModels.Files;
 public class ByteDumpLineViewModel : NotifiableObject
 {
     public bool IsHighlighted { get; set; }
-    private readonly AssemblyLine _assemblyLine;
-    public ByteDumpLineViewModel(AssemblyLine assemblyLine)
+    private readonly ByteDumpLine _byteDumpLine;
+    public SourceFileLocation SourceFileLocation { get; } 
+    public ByteDumpLineViewModel(ByteDumpLine byteDumpLine)
     {
-        _assemblyLine = assemblyLine;
+        _byteDumpLine = byteDumpLine;
+        SourceFileLocation = new SourceFileLocation(SourceFile, FileLocation);
     }
 
-    public ushort Address => _assemblyLine.Address;
-    public ImmutableArray<byte> Bytes => _assemblyLine.Data;
-    public ImmutableArray<string> Labels => _assemblyLine.Labels;
-    public string? Description => _assemblyLine.Description;
+    public SourceFile SourceFile => _byteDumpLine.SourceFile;
+    public TextRange FileLocation => _byteDumpLine.FileLocation;
+    public ushort Address => _byteDumpLine.AssemblyLine.Address;
+    public ImmutableArray<byte> Bytes => _byteDumpLine.AssemblyLine.Data;
+    public ImmutableArray<string> Labels => _byteDumpLine.AssemblyLine.Labels;
+    public string? Description => _byteDumpLine.AssemblyLine.Description;
 
 }

@@ -250,12 +250,12 @@ public class MainViewModel : ViewModel
             if (errorCode != 0)
             {
                 StatusInfo.BuildingStatus = BuildStatus.Failure;
-                var fileErorrs = errors.Select(e =>
+                var fileErrors = errors.Select(e =>
                     new FileCompilerError(ProjectExplorer.GetProjectFileFromFullPath(e.Path), e))
                     .ToImmutableArray();
-                if (!fileErorrs.IsEmpty)
+                if (!fileErrors.IsEmpty)
                 {
-                    CompilerErrors.AddLines(fileErorrs);
+                    CompilerErrors.AddLines(fileErrors);
                     SelectedBottomTool = CompilerErrors;
                 }
             }
