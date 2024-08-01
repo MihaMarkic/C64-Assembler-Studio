@@ -240,7 +240,7 @@ public class Vice : NotifiableObject, IVice
         string? realVicePath = _globals.Settings.RealVicePath;
         if (!string.IsNullOrWhiteSpace(realVicePath))
         {
-            string path = Path.Combine(realVicePath, "x64sc.exe");
+            string path = Path.Combine(realVicePath, OsDependent.ViceExeName);
             try
             {
                 string arguments = _globals.Settings.BinaryMonitorArgument;

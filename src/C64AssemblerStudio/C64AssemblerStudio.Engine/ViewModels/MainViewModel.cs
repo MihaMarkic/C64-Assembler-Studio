@@ -9,6 +9,7 @@ using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using Righthand.MessageBus;
@@ -25,6 +26,7 @@ public class MainViewModel : ViewModel
     private readonly ISettingsManager _settingsManager;
     private readonly CommandsManager _commandsManager;
     private readonly TaskFactory _uiFactory;
+    private readonly IHostEnvironment _hostEnvironment;
     public IVice Vice { get; }
     // subscriptions
     private readonly ISubscription _closeOverlaySubscription;
@@ -81,13 +83,14 @@ public class MainViewModel : ViewModel
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
         ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput,DebugOutputViewModel debugOutput, 
         CompilerErrorsOutputViewModel compilerErrors, BreakpointsViewModel breakpoints,
-        StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice)
+        StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment)
     {
         _logger = logger;
         _globals = globals;
         _dispatcher = dispatcher;
         _scope = scope;
         Vice = vice;
+        _hostEnvironment = hostEnvironment;
         _settingsManager = settingsManager;
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _closeOverlaySubscription = dispatcher.Subscribe<CloseOverlayMessage>(CloseOverlay);
@@ -241,7 +244,7 @@ public class MainViewModel : ViewModel
             var project = (KickAssProjectViewModel)Project;
             var settings =
                 new KickAssemblerCompilerSettings(
-                    @"D:\Git\Righthand\C64\C64-Assembler-Studio\binaries\KickAss\KickAss.jar");
+                    Path.Combine(_hostEnvironment.ContentRootPath!, "..","..","..","..","..","..","binaries", "KickAss","KickAss.jar"));
             string directory = Project.Directory.ValueOrThrow();
             string file = "main.asm";
             await saveAllTask;

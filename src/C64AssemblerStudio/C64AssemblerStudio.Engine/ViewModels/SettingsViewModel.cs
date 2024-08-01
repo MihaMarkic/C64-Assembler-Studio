@@ -4,6 +4,7 @@ using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using System.ComponentModel;
+using C64AssemblerStudio.Core;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -51,7 +52,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel
         string pathToVerify = Settings.ViceFilesInBinDirectory ? binPath : Settings.VicePath;
         try
         {
-            IsVicePathGood = Directory.GetFiles(pathToVerify, "x64sc.exe").Any();
+            IsVicePathGood = Directory.GetFiles(pathToVerify, OsDependent.ViceExeName).Any();
         }
         catch (Exception ex)
         {

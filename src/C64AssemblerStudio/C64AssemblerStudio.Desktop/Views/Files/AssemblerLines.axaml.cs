@@ -1,6 +1,10 @@
 ﻿using System.Collections.Frozen;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
+using Avalonia.Xaml.Interactivity;
+using C64AssemblerStudio.Desktop.Behaviors;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
@@ -44,51 +48,23 @@ public partial class AssemblerLines : UserControl
     private void LinesGridOnLoadingRow(object? sender, DataGridRowEventArgs e)
     {
         var row = e.Row;
-        UpdateDataGridRowClasses(row);
-        row.DataContextChanged += RowOnDataContextChanged;
-        row.DetachedFromVisualTree += RowOnDetachedFromVisualTree;
+        RowOnDataContextChanged(row);
     }
 
-    private void RowOnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+    private void RowOnDataContextChanged(DataGridRow? row)
     {
-        var row = (DataGridRow)sender.ValueOrThrow();
-        row.DataContextChanged -= RowOnDataContextChanged;
-        row.DetachedFromVisualTree -= RowOnDetachedFromVisualTree;
-
-    }
-
-    private void RowOnDataContextChanged(object? sender, EventArgs e)
-    {
-        var row = (DataGridRow?)sender;
         if (row is not null)
         {
-            var context = (ByteDumpLineViewModel?)row.DataContext;
-            if (context is not null)
-            {
-                _rowsMap.Add(context, row);
-                _rowsInverseMap.Add(row, context);
-            }
-            else
-            {
-                context = _rowsInverseMap[row];
-                _rowsMap.Remove(context);
-                _rowsInverseMap.Remove(row);
-            }
-        }
-    }
+            var binder = new ToggleClassOnBoolChangeBehavior();
 
-    private void UpdateDataGridRowClasses(DataGridRow? row)
-    {
-        var context = (ByteDumpLineViewModel?)row?.DataContext;
-        if (context is not null)
-        {
-            Classes.Set("executive", context.IsExecutive);
-            Classes.Set("highlight", context.IsHighlighted);
-        }
-        else
-        {
-            Classes.Remove("executive");
-            Classes.Remove("highlight");
+            binder.Bind(ToggleClassOnBoolChangeBehavior.TriggerProperty,
+                new Binding
+                {
+                    Path = nameof(ByteDumpLineViewModel.IsHighlighted),
+                    Source = row.DataContext,
+                });
+            ToggleClassOnBoolChangeBehavior.SetClass(row, "highlight");
+            Interaction.GetBehaviors(row).Add(binder);
         }
     }
 
