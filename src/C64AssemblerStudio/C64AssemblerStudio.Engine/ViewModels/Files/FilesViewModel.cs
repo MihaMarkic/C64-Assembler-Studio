@@ -76,57 +76,10 @@ public class FilesViewModel : ViewModel
                 break;
         }
     }
-
-    internal (ProjectFile File, FileLocation Location)? GetExecutionLocation(ushort address)
-    {
-        // don't care until there is no debug data
-        if (_debugData is null)
-        {
-            return null;
-        }
-        var blockItems = _debugData.Segments.SelectMany(s => s.Blocks).SelectMany(b => b.Items);
-        var fileLocation = blockItems.SingleOrDefault(bi => bi.Start <= address && bi.End >= address)?.FileLocation;
-        if (fileLocation is not null)
-        {
-            var source = _debugData.Sources.Where(s => s.Origin == SourceOrigin.User)
-                .SingleOrDefault(s => s.Index == fileLocation.SourceIndex);
-            if (source is not null)
-            {
-                string? relativePath = source.GetRelativePath(_globals.Project.Directory.ValueOrThrow());
-                if (relativePath is not null)
-                {
-                    var file = _projectExplorer.FindProjectFile(relativePath);
-                    if (file is not null)
-                    {
-                        return (file, fileLocation);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Couldn't get {File} from project explorer", source.FullPath);
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("Couldn't get relative path for {File}", source.FullPath);
-                }
-            }
-            else
-            {
-                _logger.LogDebug("No line at address {Address:X4} within {SourceIndex} when execution paused", address,
-                    fileLocation.SourceIndex);
-            }
-        }
-        else
-        {
-            _logger.LogDebug("No source at address {Address:X4} when execution paused", address);
-        }
-
-        return null;
-    }
     
     internal void SetExecutionPaused(ushort address)
     {
-        var result = GetExecutionLocation(address);
+        var result = _projectExplorer.GetExecutionLocation(address);
 
         if (result.HasValue)
         {
@@ -176,7 +129,7 @@ public class FilesViewModel : ViewModel
     internal void OpenFile(OpenFileMessage message)
     {
         var pc = _vice.Registers.Current.PC;
-        var result = pc.HasValue ? GetExecutionLocation(pc.Value): null;
+        var result = pc.HasValue ?  _projectExplorer.GetExecutionLocation(pc.Value): null;
         FileLocation? executionLocation = result?.Location;
         OpenFileCore(message, executionLocation, address: null);
     }

@@ -24,6 +24,7 @@ public class Vice : NotifiableObject, IVice
     private readonly TaskFactory _uiFactory;
     public RegistersViewModel Registers { get; }
     public ViceMemoryViewModel Memory { get; }
+    public CallStackViewModel CallStack { get; }
     private Process? _process;
     public event EventHandler<RegistersEventArgs>? RegistersUpdated;
     public event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated;
@@ -33,7 +34,7 @@ public class Vice : NotifiableObject, IVice
     public bool IsPaused { get; private set; }
 
     public Vice(ILogger<Vice> logger, IViceBridge bridge, Globals globals, IDispatcher dispatcher,
-        RegistersViewModel registers, ViceMemoryViewModel viceMemory)
+        RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack)
     {
         _logger = logger;
         _bridge = bridge;
@@ -41,6 +42,7 @@ public class Vice : NotifiableObject, IVice
         _dispatcher = dispatcher;
         Registers = registers;
         Memory = viceMemory;
+        CallStack = callStack;
         
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _bridge.ConnectedChanged += BridgeOnConnectedChanged;
@@ -79,6 +81,7 @@ public class Vice : NotifiableObject, IVice
                         try
                         {
                             await GetMemoryAsync(CancellationToken.None);
+                            CallStack.Update();
                         }
                         finally
                         {

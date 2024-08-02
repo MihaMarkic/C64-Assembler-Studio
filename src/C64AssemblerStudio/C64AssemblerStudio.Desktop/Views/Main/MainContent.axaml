@@ -56,7 +56,8 @@
                                 </DataTemplate>
                                 <DataTemplate DataType="tvm:RegistersViewModel" />
                                 <DataTemplate DataType="breakpoints:BreakpointsViewModel" />
-                                <DataTemplate DataType="tvm:MemoryViewerViewModel" />
+                                <DataTemplate DataType="tvm:MemoryViewerViewModel" /> 
+                                <DataTemplate DataType="tvm:CallStackViewModel" />
                             </ContentControl.DataTemplates>
                         </ContentControl>
                     </ctl:DockTool.HeaderContext>
@@ -86,6 +87,9 @@
                                             </DataTemplate>
                                             <DataTemplate DataType="tvm:MemoryViewerViewModel">
                                                 <tools:MemoryViewer />
+                                            </DataTemplate>
+                                            <DataTemplate DataType="tvm:CallStackViewModel">
+                                                <tools:CallStack />
                                             </DataTemplate>
                                         </ContentControl.DataTemplates>
                                     </ContentControl>

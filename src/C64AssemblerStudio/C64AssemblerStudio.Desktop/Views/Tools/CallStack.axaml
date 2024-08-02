@@ -1,0 +1,30 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:tools="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="tools:CallStackViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Tools.CallStack">
+    <DataGrid Name="Grid" ItemsSource="{Binding CallStack}" AutoGenerateColumns="False" FontFamily="{StaticResource CodeFont}"> 
+        <DataGrid.Resources>
+            <converters:HexAddressConverter x:Key="HexAddressConverter" />
+        </DataGrid.Resources>
+        <Interaction.Behaviors>
+            <EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #Grid}">
+                <InvokeCommandAction Command="{Binding GoToLineCommand}" CommandParameter="{Binding #Grid.SelectedItem}"/>
+            </EventTriggerBehavior>
+        </Interaction.Behaviors>
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Address" Binding="{Binding Address, Converter={StaticResource HexAddressConverter}, Mode=OneWay}"
+                                IsReadOnly="True" Width="100" />
+            <DataGridTextColumn Header="Line" Binding="{Binding FileLocation.Line1, Mode=OneWay}"
+                                IsReadOnly="True" Width="80" />
+            <DataGridTextColumn Header="File" Binding="{Binding File.Name, Mode=OneWay}"
+                                IsReadOnly="True" Width="140" />
+            <DataGridTextColumn Header="Source" Binding="{Binding LineText, Mode=OneWay}"
+                                IsReadOnly="True" Width="300" />
+        </DataGrid.Columns>
+    </DataGrid>
+</UserControl>

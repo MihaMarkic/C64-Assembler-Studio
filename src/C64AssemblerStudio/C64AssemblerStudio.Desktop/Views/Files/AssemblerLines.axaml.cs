@@ -1,9 +1,7 @@
 ﻿using System.Collections.Frozen;
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
-using C64AssemblerStudio.Desktop.Behaviors;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
@@ -15,11 +13,9 @@ namespace C64AssemblerStudio.Desktop.Views.Files;
 
 public partial class AssemblerLines : UserControl
 {
-    private static readonly FrozenDictionary<ByteDumpLineStatus, string> _classesMap;
     private IList<ByteDumpLineViewModel>? _lines;
     private ByteDumpLineViewModel? _contextLine;
     private ByteDumpLineViewModel? _executionLine;
-    private readonly HashSet<DataGridRow> _rows = new();
 
     public static readonly DirectProperty<AssemblerLines, IList<ByteDumpLineViewModel>?> LinesProperty =
         AvaloniaProperty.RegisterDirect<AssemblerLines, IList<ByteDumpLineViewModel>?>(nameof(Lines), o => o.Lines,
@@ -34,14 +30,6 @@ public partial class AssemblerLines : UserControl
             o => o.ExecutionLine,
             (o, v) => o.ExecutionLine = v);
 
-    static AssemblerLines()
-    {
-        _classesMap = new Dictionary<ByteDumpLineStatus, string>
-        {
-            { ByteDumpLineStatus.Highlight, "highlight" },
-            { ByteDumpLineStatus.Executive, "executive" },
-        }.ToFrozenDictionary();
-    }
     public AssemblerLines()
     {
         InitializeComponent();
@@ -55,34 +43,17 @@ public partial class AssemblerLines : UserControl
     private void LinesGridOnLoadingRow(object? sender, DataGridRowEventArgs e)
     {
         var row = e.Row;
-        RowOnDataContextChanged(row);
-        _rows.Add(row);
-    }
-
-    public void InvalidateRows()
-    {
-        foreach (var row in _rows)
+        //RowOnDataContextChanged(row);
+        row.BindClass("highlight", new Binding
         {
-            if (row.Classes.Contains("highlight"))
-            {
-                var vm = (ByteDumpLineViewModel)row.DataContext!;
-                Debug.WriteLine(vm.Description);
-            }
-        }
-    }
-
-    private void RowOnDataContextChanged(DataGridRow? row)
-    {
-        if (row is not null)
+            Path = nameof(ByteDumpLineViewModel.IsHighlighted),
+            Source = row.DataContext,
+        }, null!);
+        row.BindClass("executive", new Binding
         {
-            row.Bind(ByteDumpLineStatusClassesBehavior.TriggerProperty,
-                new Binding
-                {
-                    Path = nameof(ByteDumpLineViewModel.Status),
-                    Source = row.DataContext,
-                });
-            ByteDumpLineStatusClassesBehavior.SetClasses(row, _classesMap);
-        }
+            Path = nameof(ByteDumpLineViewModel.IsExecutive),
+            Source = row.DataContext,
+        }, null!);
     }
 
     public IList<ByteDumpLineViewModel>? Lines

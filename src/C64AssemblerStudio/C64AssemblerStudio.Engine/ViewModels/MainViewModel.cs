@@ -62,6 +62,7 @@ public class MainViewModel : ViewModel
     public RegistersViewModel Registers { get; }
     public BreakpointsViewModel Breakpoints { get; }
     public MemoryViewerViewModel MemoryViewer { get; }
+    public CallStackViewModel CallStack { get; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
@@ -84,7 +85,8 @@ public class MainViewModel : ViewModel
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
         ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput,DebugOutputViewModel debugOutput, 
         CompilerErrorsOutputViewModel compilerErrors, BreakpointsViewModel breakpoints, MemoryViewerViewModel memoryViewer,
-        StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment)
+        StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment,
+        CallStackViewModel callStack)
     {
         _logger = logger;
         _globals = globals;
@@ -106,14 +108,18 @@ public class MainViewModel : ViewModel
         Registers = registers;
         Breakpoints = breakpoints;
         MemoryViewer = memoryViewer;
-        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer];
+        CallStack = callStack;
+        BottomTools =
+            [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer, CallStack];
         StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
         StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
-        OpenProjectFromPathCommand = _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);
+        OpenProjectFromPathCommand =
+            _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);
         OpenProjectCommand = _commandsManager.CreateRelayCommand(OpenProject, () => !IsBusy && !IsDebugging);
-        ShowProjectSettingsCommand = _commandsManager.CreateRelayCommand(ShowProjectSettings, () => !IsShowingProject && IsProjectOpen);
+        ShowProjectSettingsCommand =
+            _commandsManager.CreateRelayCommand(ShowProjectSettings, () => !IsShowingProject && IsProjectOpen);
         CloseProjectCommand = _commandsManager.CreateRelayCommand(CloseProject, () => IsProjectOpen && !IsDebugging);
         ShowSettingsCommand = _commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
         ExitCommand = _commandsManager.CreateRelayCommand(() => CloseApp?.Invoke(), () => true);
