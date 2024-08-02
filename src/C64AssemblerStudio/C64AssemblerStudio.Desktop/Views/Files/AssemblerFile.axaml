@@ -49,7 +49,8 @@
         </ae:TextEditor>
         <GridSplitter Grid.Column="1" Grid.Row="1" Background="LightGray" ResizeDirection="Columns"
                       IsVisible="{Binding IsByteDumpVisible}" />
-        <files:AssemblerLines Grid.Row="1" Grid.Column="2" Lines="{Binding ByteDumpLines}"
+        <files:AssemblerLines Name="ByteDumpLines"
+                              Grid.Row="1" Grid.Column="2" Lines="{Binding ByteDumpLines}"
                               IsVisible="{Binding IsByteDumpVisible}" />
     </Grid>
 </UserControl>

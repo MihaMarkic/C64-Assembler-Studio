@@ -22,11 +22,34 @@ public class ByteDumpLineViewModel : NotifiableObject
         BelongsToFile = belongsToFile;
     }
 
+    public ByteDumpLineStatus Status
+    {
+        get
+        {
+            ByteDumpLineStatus result = ByteDumpLineStatus.None;
+            if (IsHighlighted)
+            {
+                result |= ByteDumpLineStatus.Highlight;
+            }
+
+            if (IsExecutive)
+            {
+                result |= ByteDumpLineStatus.Executive;
+            }
+            return result;
+        }
+    }
     public SourceFile SourceFile => _byteDumpLine.SourceFile;
     public TextRange FileLocation => _byteDumpLine.FileLocation;
     public ushort Address => _byteDumpLine.AssemblyLine.Address;
     public ImmutableArray<byte> Bytes => _byteDumpLine.AssemblyLine.Data;
     public ImmutableArray<string> Labels => _byteDumpLine.AssemblyLine.Labels;
     public string? Description => _byteDumpLine.AssemblyLine.Description;
-
+}
+[Flags]
+public enum ByteDumpLineStatus
+{
+    None = 0,
+    Highlight = 1,
+    Executive = 2,
 }

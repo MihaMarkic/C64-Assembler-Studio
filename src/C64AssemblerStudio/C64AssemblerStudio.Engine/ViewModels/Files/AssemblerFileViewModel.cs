@@ -49,7 +49,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public RelayCommandWithParameterAsync<int> AddOrRemoveBreakpointCommand { get; }
     public bool IsByteDumpVisible { get; set; }
     public bool IsByteDumpToggleVisible => _vice.IsDebugging;
+    public int CaretRow { get; set; }
     public ImmutableArray<ByteDumpLineViewModel> ByteDumpLines { get; private set; }
+    /// <summary>
+    /// A list of <see cref="ByteDumpLineViewModel"/> for this file.
+    /// </summary>
+    public ImmutableArray<ByteDumpLineViewModel> MatchingByteDumpLines { get; private set; }
 
     static AssemblerFileViewModel()
     {
@@ -68,6 +73,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         _compilerErrors = compilerErrors;
         _vice = vice;
         ByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
+        MatchingByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         Errors = FrozenDictionary<int, ImmutableArray<SyntaxError>>.Empty;
         AddOrRemoveBreakpointCommand = new RelayCommandWithParameterAsync<int>(AddOrRemoveBreakpoint);
         Breakpoints.Breakpoints.CollectionChanged += BreakpointsOnCollectionChanged;
@@ -82,6 +88,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         {
             case nameof(IVice.IsDebugging):
                 OnPropertyChanged(nameof(IsByteDumpToggleVisible));
+                break;
+            case nameof(IVice.IsPaused):
+                UpdateByteDumpExecutionLine();
                 break;
         }
     }
@@ -203,6 +212,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             case nameof(ExecutionAddress):
                 UpdateByteDumpExecutionLine();
                 break;
+            case nameof(CaretRow):
+                UpdateByteDumpHighlight();
+                break;
         }
 
         base.OnPropertyChanged(name);
@@ -212,18 +224,25 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     {
         if (_vice.IsPaused)
         {
-            var candidates = ByteDumpLines.Where(l => l.BelongsToFile);
-            foreach (var l in candidates)
+            foreach (var l in MatchingByteDumpLines)
             {
-                l.IsHighlighted = l.Address <= ExecutionAddress && l.Address + l.Bytes.Length >= ExecutionAddress;
+                l.IsExecutive = l.Address <= ExecutionAddress && l.Address + l.Bytes.Length > ExecutionAddress;
             }
         }
         else
         {
-            foreach (var bl in ByteDumpLines)
+            foreach (var bl in MatchingByteDumpLines)
             {
                 bl.IsExecutive = false;
             }
+        }
+    }
+
+    internal void UpdateByteDumpHighlight()
+    {
+        foreach (var l in MatchingByteDumpLines)
+        {
+            l.IsHighlighted = l.FileLocation.Start.Row <= CaretRow + 1 && l.FileLocation.End.Row >= CaretRow + 1;
         }
     }
 
@@ -239,8 +258,10 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             {
                 ByteDumpLines = [..project.ByteDumpLines.ValueOrThrow().Select(l => new ByteDumpLineViewModel(l, l.SourceFile == sourceFile))];
             }
+            MatchingByteDumpLines = [..ByteDumpLines.Where(l => l.BelongsToFile)];
         }
         UpdateByteDumpExecutionLine();
+        UpdateByteDumpHighlight();
     }
 
     private CancellationTokenSource? _ctsParser;

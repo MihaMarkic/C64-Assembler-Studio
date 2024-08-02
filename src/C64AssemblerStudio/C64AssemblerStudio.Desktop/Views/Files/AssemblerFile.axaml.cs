@@ -34,6 +34,21 @@ public partial class AssemblerFile : UserControl
         };
         leftMargins.Add(_lineNumbers);
         Editor.TextChanged += EditorOnTextChanged;
+        Editor.TextArea.Caret.PositionChanged += CaretOnPositionChanged;
+    }
+
+    private void CaretOnPositionChanged(object? sender, EventArgs e)
+    {
+        UpdateCurrentLine();
+    }
+
+    private void UpdateCurrentLine()
+    {
+        var currentLine = Editor.Document.GetLineByOffset(Editor.CaretOffset).LineNumber;
+        if (ViewModel is not null)
+        {
+            ViewModel.CaretRow = currentLine - 1;
+        }
     }
 
     void DetachOldViewModel()
@@ -60,6 +75,7 @@ public partial class AssemblerFile : UserControl
             Editor.Text = fileViewModel.Content;
             _breakpointsMargin = new BreakpointsMargin(fileViewModel);
             Editor.TextArea.LeftMargins.Add(_breakpointsMargin);
+            UpdateCurrentLine();
             _oldViewModel = fileViewModel;
         }
         else
