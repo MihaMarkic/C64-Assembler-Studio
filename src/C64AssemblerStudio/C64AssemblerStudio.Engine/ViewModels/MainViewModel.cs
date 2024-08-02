@@ -61,6 +61,7 @@ public class MainViewModel : ViewModel
     public StatusInfoViewModel StatusInfo { get; }
     public RegistersViewModel Registers { get; }
     public BreakpointsViewModel Breakpoints { get; }
+    public MemoryViewerViewModel MemoryViewer { get; }
     // TODO implement
     public bool IsBusy => false;
     // TODO implement
@@ -82,7 +83,7 @@ public class MainViewModel : ViewModel
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
         ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput,DebugOutputViewModel debugOutput, 
-        CompilerErrorsOutputViewModel compilerErrors, BreakpointsViewModel breakpoints,
+        CompilerErrorsOutputViewModel compilerErrors, BreakpointsViewModel breakpoints, MemoryViewerViewModel memoryViewer,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment)
     {
         _logger = logger;
@@ -104,7 +105,8 @@ public class MainViewModel : ViewModel
         StatusInfo = statusInfo;
         Registers = registers;
         Breakpoints = breakpoints;
-        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers, Breakpoints];
+        MemoryViewer = memoryViewer;
+        BottomTools = [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer];
         StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
         StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
         _commandsManager = new CommandsManager(this, _uiFactory);

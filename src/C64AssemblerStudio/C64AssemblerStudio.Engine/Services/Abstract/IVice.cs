@@ -14,6 +14,7 @@ public interface IVice: INotifyPropertyChanged
     RegistersViewModel Registers { get; }
     event EventHandler<RegistersEventArgs>? RegistersUpdated;
     event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated;
+    event EventHandler<MemoryGetEventArgs>? MemoryUpdated;
     Task ConnectAsync(CancellationToken ct = default);
     Task StartDebuggingAsync(CancellationToken ct = default);
     Task StopDebuggingAsync(CancellationToken ct = default);

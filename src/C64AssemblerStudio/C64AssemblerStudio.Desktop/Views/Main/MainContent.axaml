@@ -56,6 +56,7 @@
                                 </DataTemplate>
                                 <DataTemplate DataType="tvm:RegistersViewModel" />
                                 <DataTemplate DataType="breakpoints:BreakpointsViewModel" />
+                                <DataTemplate DataType="tvm:MemoryViewerViewModel" />
                             </ContentControl.DataTemplates>
                         </ContentControl>
                     </ctl:DockTool.HeaderContext>
@@ -83,6 +84,9 @@
                                             <DataTemplate DataType="breakpoints:BreakpointsViewModel">
                                                 <tools:Breakpoints />
                                             </DataTemplate>
+                                            <DataTemplate DataType="tvm:MemoryViewerViewModel">
+                                                <tools:MemoryViewer />
+                                            </DataTemplate>
                                         </ContentControl.DataTemplates>
                                     </ContentControl>
                                 </DataTemplate>
@@ -92,39 +96,6 @@
                                     <TextBlock Text="{Binding Header}" />
                                 </DataTemplate>
                             </TabControl.ItemTemplate>
-                            <!-- <TabItem Header="Errors"> -->
-                            <!--     <tools:ErrorMessages -->
-                            <!--         DataContext="{Binding #Source.((vm:MainViewModel)DataContext).ErrorMessages}" /> -->
-                            <!-- </TabItem> -->
-                            <!-- <TabItem Header="Error List"> -->
-                            <!--     <tools:CompilerErrors -->
-                            <!--         DataContext="{Binding #Source.((vm:MainViewModel)DataContext).CompilerErrors}" /> -->
-                            <!-- </TabItem> -->
-                            <!-- <TabItem Header="Build"> -->
-                            <!--     <tools:BuildOutput -->
-                            <!--         DataContext="{Binding #Source.((vm:MainViewModel)DataContext).BuildOutput}" /> -->
-                            <!-- </TabItem> -->
-                            <!--   <TabItem Header="Registers"> -->
-                            <!--     <v:Registers DataContext="{Binding #Source.DataContext.RegistersViewModel}" /> -->
-                            <!--   </TabItem> -->
-                            <!--   <TabItem Header="Breakpoints"> -->
-                            <!--     <v:Breakpoints DataContext="{Binding #Source.DataContext.BreakpointsViewModel}" /> -->
-                            <!--   </TabItem> -->
-                            <!--   <TabItem Header="Variables"> -->
-                            <!--     <v:Variables DataContext="{Binding #Source.DataContext.VariablesViewModel}" /> -->
-                            <!--   </TabItem> -->
-                            <!--   <TabItem Header="Watch"> -->
-                            <!--     <v:Variables DataContext="{Binding #Source.DataContext.WatchedVariablesViewModel}" /> -->
-                            <!--   </TabItem> -->
-                            <!--   <TabItem Header="Trace"> -->
-                            <!--     <v:TraceOutput DataContext="{Binding #Source.DataContext.TraceOutputViewModel}" /> -->
-                            <!--   </TabItem> -->
-                            <!--   <TabItem Header="Memory"> -->
-                            <!--     <v:MemoryViewer DataContext="{Binding #Source.DataContext.MemoryViewerViewModel}" /> -->
-                            <!--   </TabItem> -->
-                            <!--   <TabItem Header="Call Stack"> -->
-                            <!--     <v:CallStack DataContext="{Binding #Source.DataContext.CallStackViewModel}" /> -->
-                            <!--   </TabItem> -->
                         </TabControl>
                         <v:StatusInfo DataContext="{Binding StatusInfo}" HorizontalAlignment="Right"
                           VerticalAlignment="Bottom" Margin="0,0,4,4"/>

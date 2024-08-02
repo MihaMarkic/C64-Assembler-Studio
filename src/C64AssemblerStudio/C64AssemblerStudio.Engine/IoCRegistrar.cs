@@ -36,6 +36,8 @@ public static class IoCRegistrar
             .AddSingleton<StatusInfoViewModel>()
             .AddSingleton<RegistersViewModel>()
             .AddSingleton<BreakpointsViewModel>()
+            .AddSingleton<ViceMemoryViewModel>()
+            .AddScoped<MemoryViewerViewModel>()
             // Tools
             .AddScoped<ErrorMessagesViewModel>()
             .AddScoped<BuildOutputViewModel>()

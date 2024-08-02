@@ -27,13 +27,16 @@ public class StatusInfoViewModel : ViewModel
                 OnPropertyChanged(nameof(IsViceConnected));
                 break;
             case nameof(IVice.IsDebugging):
-                DebuggingStatus = _vice.IsDebugging ? DebuggingStatus.Debugging: DebuggingStatus.Idle;
+                DebuggingStatus = _vice.IsDebugging
+                    ? (_vice.IsPaused ? DebuggingStatus.Paused : DebuggingStatus.Debugging)
+                    : DebuggingStatus.Idle;
                 break;
             case nameof(IVice.IsPaused):
                 if (_vice.IsDebugging)
                 {
                     DebuggingStatus = DebuggingStatus.Paused;
                 }
+
                 break;
         }
     }

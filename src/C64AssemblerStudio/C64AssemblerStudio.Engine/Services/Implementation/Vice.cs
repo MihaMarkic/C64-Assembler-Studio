@@ -23,21 +23,25 @@ public class Vice : NotifiableObject, IVice
     private readonly IDispatcher _dispatcher;
     private readonly TaskFactory _uiFactory;
     public RegistersViewModel Registers { get; }
+    public ViceMemoryViewModel Memory { get; }
     private Process? _process;
     public event EventHandler<RegistersEventArgs>? RegistersUpdated;
-    public event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated; 
+    public event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated;
+    public event EventHandler<MemoryGetEventArgs>? MemoryUpdated; 
     public bool IsConnected { get; private set; }
     public bool IsDebugging { get; private set; }
     public bool IsPaused { get; private set; }
 
     public Vice(ILogger<Vice> logger, IViceBridge bridge, Globals globals, IDispatcher dispatcher,
-        RegistersViewModel registers)
+        RegistersViewModel registers, ViceMemoryViewModel viceMemory)
     {
         _logger = logger;
         _bridge = bridge;
         _globals = globals;
         _dispatcher = dispatcher;
         Registers = registers;
+        Memory = viceMemory;
+        
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _bridge.ConnectedChanged += BridgeOnConnectedChanged;
         _bridge.ViceResponse += BridgeOnViceResponse;
@@ -46,10 +50,12 @@ public class Vice : NotifiableObject, IVice
 
     private void OnRegistersUpdated(RegistersEventArgs e) => RegistersUpdated?.Invoke(this, e);
     private void OnCheckpointInfoUpdated(CheckpointInfoEventArgs e) => CheckpointInfoUpdated?.Invoke(this, e);
+    private void OnMemoryUpdated(MemoryGetEventArgs e) => MemoryUpdated?.Invoke(this, e);
+    private bool _ignoreResumed;
     private async void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
     {
         // handle all responses in UI thread
-        await _uiFactory.StartNewTyped(r =>
+        await _uiFactory.StartNewTyped(async r =>
         {
             switch (r!)
             {
@@ -61,14 +67,39 @@ public class Vice : NotifiableObject, IVice
                     OnCheckpointInfoUpdated(new CheckpointInfoEventArgs((checkpointInfoResponse)));
                     break;
                 case ResumedResponse:
-                    IsPaused = false;
+                    if (!_ignoreResumed)
+                    {
+                        IsPaused = false;
+                    }
                     break;
                 case StoppedResponse:
-                    IsPaused = true;
+                    if (!_ignoreResumed)
+                    {
+                        _ignoreResumed = true;
+                        try
+                        {
+                            await GetMemoryAsync(CancellationToken.None);
+                        }
+                        finally
+                        {
+                            _ignoreResumed = false;
+                        }
+                        IsPaused = true;
+                    }
                     break;
             }
         }, e.Response, CancellationToken.None);
         Debug.WriteLine($"Got {e.Response.GetType().Name}");
+    }
+
+    private async Task GetMemoryAsync(CancellationToken ct)
+    {
+        var command = _bridge.EnqueueCommand(
+        new MemoryGetCommand(0, 0, ushort.MaxValue-1, MemSpace.MainMemory, 0),
+            true);
+        var response = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+        OnMemoryUpdated(new(response));
+        Memory.GetSnapshot(response.ValueOrThrow());
     }
 
     private async Task InitRegistersMappingAsync(CancellationToken ct = default)
@@ -120,11 +151,11 @@ public class Vice : NotifiableObject, IVice
             return;
         }
 
+        IsDebugging = true;
         var command = _bridge.EnqueueCommand(
             new AutoStartCommand(runAfterLoading: true, 0, _globals.Project.FullPrgPath!),
             resumeOnStopped: false);
         await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
-        IsDebugging = true;
     }
 
     public async Task StepIntoAsync(CancellationToken ct = default)
@@ -232,7 +263,9 @@ public class Vice : NotifiableObject, IVice
 
     private void ProcessOnExited(object? sender, EventArgs e)
     {
+        IsConnected = false;
         _process.ValueOrThrow().Exited -= ProcessOnExited;
+        _process = null;
     }
 
     internal Process? StartVice()
@@ -331,6 +364,19 @@ public class Vice : NotifiableObject, IVice
         var checkpointsListCommand = _bridge.EnqueueCommand(new CheckpointListCommand(), resumeOnStopped: true);
         return await checkpointsListCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, checkpointsListCommand, ct: ct);
     }
+
+    protected override void OnPropertyChanged(string name = default!)
+    {
+        switch (name)
+        {
+            case nameof(IsConnected) when !IsConnected:
+                IsPaused = false;
+                IsDebugging = false;
+                break;
+        }
+        base.OnPropertyChanged(name);
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)

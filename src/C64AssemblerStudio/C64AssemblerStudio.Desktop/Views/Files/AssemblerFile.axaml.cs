@@ -131,8 +131,13 @@ public partial class AssemblerFile : UserControl
             case nameof(AssemblerFileViewModel.ExecutionLineRange):
                 if (_syntaxColorizer is not null)
                 {
-                    _syntaxColorizer.ExecutionLine = ViewModel.ValueOrThrow().ExecutionLineRange;
+                    var range = ViewModel.ValueOrThrow().ExecutionLineRange;
+                    _syntaxColorizer.ExecutionLine = range;
                     Editor.TextArea.TextView.Redraw();
+                    if (range is not null)
+                    {
+                        Editor.ScrollTo(range.Value.Start-1, 1);
+                    }
                 }
                 break;
         }
