@@ -18,4 +18,7 @@ public static class OsDependent
     public static string JavaExeName { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         ? "java.exe"
         : "java";
+    public static string FileAppOpenName { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? "explorer.exe"
+        : "open";
 }

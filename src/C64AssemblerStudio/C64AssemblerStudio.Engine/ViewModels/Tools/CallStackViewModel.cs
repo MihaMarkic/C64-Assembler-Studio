@@ -1,4 +1,5 @@
 ﻿using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using CommunityToolkit.Diagnostics;
 using FuzzySharp;
@@ -42,9 +43,11 @@ public class CallStackViewModel : ViewModel, IToolView
         {
             switch (e)
             {
-                // case SourceCallStackItem lineItem:
-                //     _dispatcher.Dispatch(new OpenSourceLineNumberFileMessage(lineItem.File, lineItem.Line.LineNumber + 1, Column: 0, MoveCaret: true));
-                //     break;
+                case SourceCallStackItem lineItem:
+                    var message = new OpenFileMessage(lineItem.File!, Line: lineItem.FileLocation!.Line1, Column: 1,
+                        MoveCaret: true);
+                    _dispatcher.Dispatch(message);
+                    break;
                 // case UnknownCallStackItem unknownAddress:
                 //     _dispatcher.Dispatch(new OpenAddressMessage(unknownAddress.Address));
                 //     break;

@@ -58,7 +58,7 @@ public class ProjectExplorerViewModel : ViewModel
     private void OpenInExplorer(ProjectItem item)
     {
         string path = Path.Combine(_globals.Project.Directory.ValueOrThrow(), item.GetRelativeDirectory());
-        Process.Start("explorer.exe", path);
+        Process.Start(OsDependent.FileAppOpenName, path);
     }
     private void ProjectFilesWatcherOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
