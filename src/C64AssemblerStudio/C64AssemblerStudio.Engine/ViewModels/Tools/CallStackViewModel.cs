@@ -98,8 +98,10 @@ public class CallStackViewModel : ViewModel, IToolView
                         if (project.AppInfo.SourceFiles.TryGetValue(
                                 new SourceFilePath(file.GetRelativeFilePath(), IsRelative: true), out var sourceFile))
                         {
-                            var line = project.ByteDumpLines.Value.SingleOrDefault(l => l.SourceFile == sourceFile && l.AssemblyLine.Address <= sourceAddress &&
-                                l.AssemblyLine.Address + l.AssemblyLine.Data.Length < sourceAddress);
+                            var line = project.ByteDumpLines.Value
+                                .SingleOrDefault(l => l.AssemblyLine.Address <= sourceAddress &&
+                                                      l.AssemblyLine.Address + l.AssemblyLine.Data.Length >
+                                                      sourceAddress);
                             if (line is not null)
                             {
                                 code = line.AssemblyLine?.Description ?? "";

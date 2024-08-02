@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using C64AssemblerStudio.Core;
@@ -135,6 +136,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
         _fileWatcher.Renamed += OnFileRenamed;
         _fileWatcher.Error += OnError;
 
+        Debug.WriteLine("Watching files");
         _fileWatcher.IncludeSubdirectories = true;
         _fileWatcher.EnableRaisingEvents = true;
         
@@ -148,8 +150,10 @@ public class ProjectFilesWatcherViewModel: ViewModel
         _directoryWatcher.Renamed += OnDirectoryRenamed;
         _directoryWatcher.Error += OnError;
 
+        Debug.WriteLine("Watching directories");
         _directoryWatcher.IncludeSubdirectories = true;
         _directoryWatcher.EnableRaisingEvents = true;
+        Debug.WriteLine("Watching done");
     }
     IEnumerable<ProjectItem> CollectDirectoriesAndFiles(ProjectDirectory? parent, string path)
     {
