@@ -9,7 +9,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
 {
     public (int Start, int End)? ExecutionLine { get; set; }
     private readonly AssemblerFileViewModel _file;
-    public ImmutableHashSet<int> CallStackLineNumbers { get; set; }
+    private ImmutableHashSet<int> _callStackLineNumbers;
     private static readonly TextDecorationCollection Squiggle;
 
     static SyntaxColorizer()
@@ -20,8 +20,15 @@ public class SyntaxColorizer : DocumentColorizingTransformer
     public SyntaxColorizer(AssemblerFileViewModel file)
     {
         _file = file;
-        CallStackLineNumbers = ImmutableHashSet<int>.Empty;
+        _callStackLineNumbers = ImmutableHashSet<int>.Empty;
+        CreateCallStackLineNumberMap();
     }
+
+    public void CreateCallStackLineNumberMap()
+    {
+        _callStackLineNumbers = _file.CallStackItems.Select(i => i.FileLocation!.Line1).ToImmutableHashSet();
+    }
+
     protected override void ColorizeLine(DocumentLine line)
     {
         if (!line.IsDeleted && !_file.Lines.IsEmpty &&  line.LineNumber <= _file.Lines.Length)
@@ -29,10 +36,9 @@ public class SyntaxColorizer : DocumentColorizingTransformer
             var lineSyntax = _file.Lines[line.LineNumber-1];
             if (lineSyntax?.Items.IsEmpty == false)
             {
-                Action<VisualLineElement>? apply;
                 foreach (var syntax in lineSyntax.Items)
                 {
-                    apply = syntax.TokenType switch
+                    Action<VisualLineElement>? apply = syntax.TokenType switch
                     {
                         AssemblerFileViewModel.TokenType.String => ApplyStringChanges,
                         AssemblerFileViewModel.TokenType.Instruction => ApplyInstructionChanges,
@@ -45,7 +51,9 @@ public class SyntaxColorizer : DocumentColorizingTransformer
                     };
                     if (apply is not null)
                     {
-                        ChangeLinePart(Math.Max(line.Offset, syntax.Start), Math.Min(syntax.End + 1, line.EndOffset), apply);
+                        int startOffset = Math.Min(line.EndOffset, Math.Max(line.Offset, syntax.Start));
+                        int endOffset = Math.Min(syntax.End + 1, line.EndOffset);
+                        ChangeLinePart(startOffset, endOffset, apply);
                     }
                 }
             }
@@ -66,10 +74,17 @@ public class SyntaxColorizer : DocumentColorizingTransformer
 
             bool isBackgroundAssigned = false;
 
+            // execution line
             if (ExecutionLine.HasValue && ExecutionLine.Value.Start <= line.LineNumber - 1 &&
                 ExecutionLine.Value.End >= line.LineNumber - 1)
             {
                 ChangeLinePart(line.Offset, line.EndOffset, ApplyExecutionLineChanges);
+                isBackgroundAssigned = true;
+            }
+            // call stack 
+            else if (_callStackLineNumbers.Contains(line.LineNumber))
+            {
+                ChangeLinePart(line.Offset, line.EndOffset, ApplyCallStackChanges);
                 isBackgroundAssigned = true;
             }
 

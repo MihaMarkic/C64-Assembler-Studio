@@ -34,9 +34,8 @@ public class StatusInfoViewModel : ViewModel
             case nameof(IVice.IsPaused):
                 if (_vice.IsDebugging)
                 {
-                    DebuggingStatus = DebuggingStatus.Paused;
+                    DebuggingStatus = _vice.IsPaused ? DebuggingStatus.Paused: DebuggingStatus.Debugging;
                 }
-
                 break;
         }
     }

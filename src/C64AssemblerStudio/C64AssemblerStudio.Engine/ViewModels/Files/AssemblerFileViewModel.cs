@@ -41,6 +41,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private static readonly FrozenDictionary<int, TokenType> Map;
     private readonly CompilerErrorsOutputViewModel _compilerErrors;
     private readonly IVice _vice;
+    private readonly CallStackViewModel _callStack;
     public BreakpointsViewModel Breakpoints { get; }
     public event EventHandler? BreakpointsChanged;
     private ImmutableArray<ImmutableArray<IToken>> _tokens = ImmutableArray<ImmutableArray<IToken>>.Empty;
@@ -51,6 +52,10 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public bool IsByteDumpToggleVisible => _vice.IsDebugging;
     public int CaretRow { get; set; }
     public ImmutableArray<ByteDumpLineViewModel> ByteDumpLines { get; private set; }
+    /// <summary>
+    /// Keeps call stack lines
+    /// </summary>
+    public ImmutableArray<CallStackViewModel.SourceCallStackItem> CallStackItems { get; private set; }
     /// <summary>
     /// A list of <see cref="ByteDumpLineViewModel"/> for this file.
     /// </summary>
@@ -65,13 +70,14 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
     public AssemblerFileViewModel(ILogger<AssemblerFileViewModel> logger, IFileService fileService,
         IDispatcher dispatcher, StatusInfoViewModel statusInfo, BreakpointsViewModel breakpoints,
-        IVice vice,
+        IVice vice, CallStackViewModel callStack,
         Globals globals, CompilerErrorsOutputViewModel compilerErrors, ProjectFile file) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {
         Breakpoints = breakpoints;
         _compilerErrors = compilerErrors;
         _vice = vice;
+        _callStack = callStack;
         ByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         MatchingByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         Errors = FrozenDictionary<int, ImmutableArray<SyntaxError>>.Empty;
@@ -80,6 +86,18 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         UpdateErrors();
         _compilerErrors.Lines.CollectionChanged += CompilerErrors_LinesOnCollectionChanged;
         _vice.PropertyChanged += ViceOnPropertyChanged;
+        UpdateCallStackItems();
+        _callStack.PropertyChanged += CallStackOnPropertyChanged;
+    }
+
+    private void CallStackOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof (CallStackViewModel.CallStack):
+                UpdateCallStackItems();
+                break;
+        }
     }
 
     private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -95,6 +113,10 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
     }
 
+    private void UpdateCallStackItems()
+    {
+        CallStackItems = [.._callStack.CallStack.OfType<CallStackViewModel.SourceCallStackItem>().Where(i => i.File == File)];
+    }
     private void BreakpointsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         string filePath = File.GetRelativeFilePath();
@@ -104,8 +126,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                    filePath.Equals(lineBind.FilePath, OsDependent.FileStringComparison);
         }
 
-        bool hasChanges = e.NewItems is IList<BreakpointViewModel> newItems && newItems.Any(IsMatch)
-                || e.OldItems is IList<BreakpointViewModel> oldItems && oldItems.Any(IsMatch);
+        bool hasChanges =
+            (e.NewItems?.OfType<BreakpointViewModel>().Any(IsMatch) ?? false)
+            || (e.OldItems?.OfType<BreakpointViewModel>().Any(IsMatch) ?? false);
         if (hasChanges)
         {
             OnBreakpointsChanged(EventArgs.Empty);
@@ -573,6 +596,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             Breakpoints.Breakpoints.CollectionChanged -= BreakpointsOnCollectionChanged;
             _compilerErrors.Lines.CollectionChanged -= CompilerErrors_LinesOnCollectionChanged;
             _vice.PropertyChanged -= ViceOnPropertyChanged;
+            _callStack.PropertyChanged -= CallStackOnPropertyChanged;
         }
         base.Dispose(disposing);
     }

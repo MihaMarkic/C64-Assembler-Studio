@@ -65,8 +65,8 @@ public class MainViewModel : ViewModel
     public CallStackViewModel CallStack { get; }
     // TODO implement
     public bool IsBusy => false;
-    // TODO implement
-    public bool IsDebugging => Vice.IsDebugging;
+    public bool IsApplicationRunning { get; private set; }
+    public bool IsDebugging => Vice.IsDebugging || IsApplicationRunning;
     public bool IsDebuggingPaused => Vice.IsPaused;
     public bool IsBuilding { get; private set; }
     public bool IsProjectOpen => _globals.IsProjectOpen;
@@ -124,8 +124,8 @@ public class MainViewModel : ViewModel
         ShowSettingsCommand = _commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
         ExitCommand = _commandsManager.CreateRelayCommand(() => CloseApp?.Invoke(), () => true);
         BuildCommand = _commandsManager.CreateRelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
-        RunCommand = _commandsManager.CreateRelayCommandAsync(StartDebuggingAsync, () => IsProjectOpen && (!IsDebugging || IsDebuggingPaused));
-        StopCommand = _commandsManager.CreateRelayCommandAsync(StopDebuggingAsync, () => IsDebugging);
+        RunCommand = _commandsManager.CreateRelayCommandAsync(StartDebuggingAsync, () => IsProjectOpen && (!IsApplicationRunning || IsDebuggingPaused));
+        StopCommand = _commandsManager.CreateRelayCommandAsync(StopDebuggingAsync, () => IsApplicationRunning);
         PauseCommand = _commandsManager.CreateRelayCommandAsync(PauseDebuggingAsync, () => IsDebugging && !IsDebuggingPaused);
         StepIntoCommand = _commandsManager.CreateRelayCommandAsync(StepIntoAsync, () => IsDebugging && IsDebuggingPaused);
         StepOverCommand = _commandsManager.CreateRelayCommandAsync(StepOverAsync, () => IsDebugging && IsDebuggingPaused);
@@ -169,11 +169,19 @@ public class MainViewModel : ViewModel
     }
     internal async Task StopDebuggingAsync()
     {
+        if (IsApplicationRunning)
+        {
+            DebugOutput.AddLine("Stopping");
+            await _debuggingCts.CancelNullableAsync();
+        }
         DebugOutput.AddLine("Stopping");
         await Breakpoints.DisarmAllBreakpointsAsync();
         await Vice.StopDebuggingAsync();
         DebugOutput.AddLine("Stopped");
+        IsApplicationRunning = false;
     }
+
+    private CancellationTokenSource? _debuggingCts;
     async Task StartDebuggingAsync()
     {
         try
@@ -185,9 +193,12 @@ public class MainViewModel : ViewModel
             }
             else
             {
+                _debuggingCts = new CancellationTokenSource();
+                var ct = _debuggingCts.Token;
+                IsApplicationRunning = true;
                 DebugOutput.AddLine("Building");
                 StatusInfo.DebuggingStatus = DebuggingStatus.Idle;
-                var viceConnectTask = Vice.ConnectAsync();
+                var viceConnectTask = Vice.ConnectAsync(ct);
                 await BuildAsync();
                 if (StatusInfo.BuildingStatus == BuildStatus.Success)
                 {
@@ -201,6 +212,7 @@ public class MainViewModel : ViewModel
                     }
                     catch (TimeoutException ex)
                     {
+                        IsApplicationRunning = false;
                         DebugOutput.AddLine("Timeout while waiting for connection");
                         _logger.LogError(ex, "Failed debugging");
                         StatusInfo.BuildingStatus = BuildStatus.Idle;
@@ -208,16 +220,20 @@ public class MainViewModel : ViewModel
                     }
 
                     DebugOutput.AddLine("Adding breakpoints from code");
-                    await Breakpoints.AddBreakpointsFromCodeAsync();
+                    await Breakpoints.AddBreakpointsFromCodeAsync(ct);
                     DebugOutput.AddLine("Arming breakpoints");
-                    await Breakpoints.ArmBreakpointsAsync();
+                    _logger.LogDebug("Arming breakpoints");
+                    await Breakpoints.ArmBreakpointsAsync(ct);
                     DebugOutput.AddLine("Starting debugging");
-                    await Vice.StartDebuggingAsync();
+                    _logger.LogDebug("Starting debugging");
+                    await Vice.StartDebuggingAsync(ct);
+                    _logger.LogDebug("Debugging started");
                 }
             }
         }
         catch (Exception ex)
         {
+            IsApplicationRunning = false;
             DebugOutput.AddLine($"Debugging error: {ex.Message}");
             _logger.LogError(ex, "Failed debugging");
             StatusInfo.BuildingStatus = BuildStatus.Idle;

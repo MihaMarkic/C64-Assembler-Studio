@@ -140,6 +140,13 @@ public partial class AssemblerFile : UserControl
                     }
                 }
                 break;
+            case nameof(AssemblerFileViewModel.CallStackItems):
+                if (_syntaxColorizer is not null)
+                {
+                    _syntaxColorizer.CreateCallStackLineNumberMap();
+                    Editor.TextArea.TextView.Redraw();
+                }
+                break;
         }
     }
 

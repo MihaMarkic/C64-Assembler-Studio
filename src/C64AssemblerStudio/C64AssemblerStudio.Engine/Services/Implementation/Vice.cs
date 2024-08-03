@@ -54,11 +54,13 @@ public class Vice : NotifiableObject, IVice
     private void OnCheckpointInfoUpdated(CheckpointInfoEventArgs e) => CheckpointInfoUpdated?.Invoke(this, e);
     private void OnMemoryUpdated(MemoryGetEventArgs e) => MemoryUpdated?.Invoke(this, e);
     private bool _ignoreResumed;
+    private bool _retrieveMemory;
     private async void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
     {
         // handle all responses in UI thread
         await _uiFactory.StartNewTyped(async r =>
         {
+            _logger.LogDebug("Got {Response}", e.Response.GetType().Name);
             switch (r!)
             {
                 case RegistersResponse registersResponse:
@@ -67,15 +69,17 @@ public class Vice : NotifiableObject, IVice
                     break;
                 case CheckpointInfoResponse checkpointInfoResponse:
                     OnCheckpointInfoUpdated(new CheckpointInfoEventArgs((checkpointInfoResponse)));
+                    _retrieveMemory = true;
                     break;
                 case ResumedResponse:
                     if (!_ignoreResumed)
                     {
                         IsPaused = false;
                     }
+                    _retrieveMemory = false;
                     break;
                 case StoppedResponse:
-                    if (!_ignoreResumed)
+                    if (_retrieveMemory && !_ignoreResumed)
                     {
                         _ignoreResumed = true;
                         try
@@ -92,15 +96,16 @@ public class Vice : NotifiableObject, IVice
                     break;
             }
         }, e.Response, CancellationToken.None);
-        Debug.WriteLine($"Got {e.Response.GetType().Name}");
     }
 
     private async Task GetMemoryAsync(CancellationToken ct)
     {
+        _logger.LogDebug("Requesting memory");
         var command = _bridge.EnqueueCommand(
-        new MemoryGetCommand(0, 0, ushort.MaxValue-1, MemSpace.MainMemory, 0),
+            new MemoryGetCommand(0, 0, ushort.MaxValue-1, MemSpace.MainMemory, 0),
             true);
         var response = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+        _logger.LogDebug("Got memory");
         OnMemoryUpdated(new(response));
         Memory.GetSnapshot(response.ValueOrThrow());
     }
@@ -165,6 +170,7 @@ public class Vice : NotifiableObject, IVice
     {
         if (VerifyIsPaused("step into"))
         {
+            _retrieveMemory = true;
             ushort instructionsNumber = 1;
             var command =
                 _bridge.EnqueueCommand(new AdvanceInstructionCommand(StepOverSubroutine: false,
@@ -177,6 +183,7 @@ public class Vice : NotifiableObject, IVice
     {
         if (VerifyIsPaused("step over"))
         {
+            _retrieveMemory = true;
             ushort instructionsNumber = 1;
             var command =
                 _bridge.EnqueueCommand(new AdvanceInstructionCommand(StepOverSubroutine: true, instructionsNumber));
@@ -253,6 +260,7 @@ public class Vice : NotifiableObject, IVice
     {
         if (VerifyIsDebugging("pause"))
         {
+            _retrieveMemory = true;
             var command = _bridge.EnqueueCommand(new PingCommand(), resumeOnStopped: false);
             await command.Response;
         }
