@@ -20,7 +20,7 @@
                             Padding="4" Background="Transparent">
                         <Image Height="12">
                             <Image.Source>
-                                <SvgImage Source="/Assets/Icons/times.svg" />
+                                <SvgImage Source="/Assets/Icons/times .svg" />
                             </Image.Source>
                         </Image>
                     </Button>

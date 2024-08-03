@@ -12,6 +12,9 @@
              x:DataType="vmf:AssemblerFileViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Files.AssemblerFile">
     <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+        <Grid.KeyBindings>
+            <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}"></KeyBinding>
+        </Grid.KeyBindings>
         <StackPanel Grid.ColumnSpan="3" Orientation="Horizontal" IsVisible="{Binding IsByteDumpToggleVisible}">
             <CheckBox IsChecked="{Binding IsByteDumpVisible}">Assembly</CheckBox>
         </StackPanel>

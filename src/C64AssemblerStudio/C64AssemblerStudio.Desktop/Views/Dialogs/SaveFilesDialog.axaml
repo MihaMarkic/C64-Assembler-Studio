@@ -1,0 +1,19 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:files="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
+             x:DataType="files:SaveFileDialogViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.SaveFilesDialog">
+    <Grid RowDefinitions="Auto, *, Auto, Auto" Margin="4,4">
+        <TextBlock Classes="h1" HorizontalAlignment="Center" Margin="0,6">Save changes to the following items?</TextBlock>
+        
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom" Margin="0,0,8,0">
+            <Button Margin="0,0,8,0" IsDefault="True" Command="{Binding SaveCommand}">_Save</Button>
+            <Button Margin="0,0,8,0" IsDefault="True" Command="{Binding DoNotSaveCommand}">Do_n't Save</Button>
+            <Button Margin="0,0,8,0" IsCancel="True" Command="{Binding CancelCommand, Mode=OneTime}">Cancel</Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

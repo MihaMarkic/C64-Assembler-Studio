@@ -3,9 +3,11 @@ using System.ComponentModel;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
+using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using CommunityToolkit.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
@@ -18,29 +20,32 @@ public class FilesViewModel : ViewModel
     private readonly IDispatcher _dispatcher;
     private readonly ISubscription _openFileMessage;
     private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IVice _vice;
     private readonly Globals _globals;
     private readonly ProjectExplorerViewModel _projectExplorer;
     public ObservableCollection<FileViewModel> Files { get; }
     public BusyIndicator BusyIndicator { get; } = new();
     public FileViewModel? Selected { get; set; }
-    public RelayCommandWithParameter<FileViewModel> CloseFileCommand { get; }
+    public RelayCommandWithParameterAsync<FileViewModel> CloseFileCommand { get; }
     public RelayCommandAsync SaveAllCommand { get; }
     private DbgData? _debugData;
 
     public FilesViewModel(ILogger<FilesViewModel> logger, IDispatcher dispatcher, IServiceProvider serviceProvider,
+        IServiceScopeFactory serviceScopeFactory,
         IVice vice, Globals globals, ProjectExplorerViewModel projectExplorer)
     {
         _logger = logger;
         _dispatcher = dispatcher;
         _serviceProvider = serviceProvider;
+        _serviceScopeFactory = serviceScopeFactory;
         _vice = vice;
         _globals = globals;
         _projectExplorer = projectExplorer;
         _openFileMessage = dispatcher.Subscribe<OpenFileMessage>(OpenFile);
         
         Files = new();
-        CloseFileCommand = new RelayCommandWithParameter<FileViewModel>(CloseFile);
+        CloseFileCommand = new RelayCommandWithParameterAsync<FileViewModel>(CloseFileAsync);
         SaveAllCommand = new RelayCommandAsync(SaveAllAsync);
         _vice.PropertyChanged += ViceOnPropertyChanged;
         _vice.RegistersUpdated += ViceOnRegistersUpdated;
@@ -116,8 +121,42 @@ public class FilesViewModel : ViewModel
         }
     }
 
-    internal void CloseFile(FileViewModel file)
+    internal async Task CloseFileAsync(FileViewModel file)
     {
+        if (file.HasChanges && file is ProjectFileViewModel projectFile)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var detailViewModel = scope.ServiceProvider.CreateScopedContent<SaveFileDialogViewModel>();
+                detailViewModel.UnsavedFiles = [projectFile.File];
+                var dialog = new ShowModalDialogMessage<SaveFileDialogViewModel, SaveFilesDialogResult>(
+                    "Save files", DialogButton.Save | DialogButton.DoNotSave | DialogButton.Cancel, detailViewModel)
+                {
+                    MinSize = new Size(300, 200),
+                    DesiredSize = new Size(500, 300),
+                };
+                _dispatcher.DispatchShowModalDialog(dialog);
+                var result = await dialog.Result;
+                switch (result.Code)
+                {
+                    case SaveFilesDialogResultCode.Save:
+                        try
+                        {
+                            await file.SaveContentAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to save {File}", projectFile.File.Name);
+                        }
+                        break;
+                    case SaveFilesDialogResultCode.DoNotSave:
+                        break;
+                    default:
+                        return;
+                }
+            }
+        }
+
         Files.Remove(file);
     }
 

@@ -31,7 +31,9 @@ public enum BreakpointBindMode
 public enum DialogButton
 {
     OK,
-    Cancel
+    Cancel,
+    Save,
+    DoNotSave,
 }
 
 public enum DialogResultCode

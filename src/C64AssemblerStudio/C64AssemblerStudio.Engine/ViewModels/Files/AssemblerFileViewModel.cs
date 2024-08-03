@@ -290,10 +290,11 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private CancellationTokenSource? _ctsParser;
     internal async Task ParseTextAsync(CancellationToken ct = default)
     {
-        await _ctsParser.CancelNullableAsync(ct: ct);
+        await _ctsParser.CancelNullableAsync(ct: ct); 
         _ctsParser = new();
         try
         {
+            await Task.Delay(50, ct);
             (Lines, var tokens) = await Task.Run(() => ParseText(Logger, Content, _ctsParser.Token), _ctsParser.Token);
             var tokensBuilder = new List<IToken>?[Lines.Length];
             foreach (var t in tokens)
