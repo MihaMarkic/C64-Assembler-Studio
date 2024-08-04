@@ -6,12 +6,13 @@ public class StartPageViewModel: ScopedViewModel
 {
     private readonly Globals _globals;
     public event EventHandler? LoadLastProjectRequest;
+    public bool HasRecentProjects { get; set; }
     public RelayCommand LoadLastProjectCommand { get; }
 
     public StartPageViewModel(Globals globals)
     {
         _globals = globals;
-        LoadLastProjectCommand = new(LoadLastProject);
+        LoadLastProjectCommand = new(LoadLastProject, () => HasRecentProjects);
     }
 
     void LoadLastProject()

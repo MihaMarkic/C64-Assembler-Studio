@@ -111,8 +111,7 @@ public class MainViewModel : ViewModel
         CallStack = callStack;
         BottomTools =
             [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer, CallStack];
-        StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
-        StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
+        CreateStartPage();
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
         OpenProjectFromPathCommand =
@@ -135,6 +134,13 @@ public class MainViewModel : ViewModel
         }
         Vice.PropertyChanged += ViceOnPropertyChanged;
         globals.PropertyChanged += Globals_PropertyChanged;
+    }
+
+    private void CreateStartPage()
+    {
+        StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
+        StartPage.HasRecentProjects = RecentProjects.Any();
+        StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
     }
 
     private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -372,8 +378,10 @@ public class MainViewModel : ViewModel
     {
         // runs async because it manipulates most recent list
         await Task.Delay(1);
-        CloseProjectAsync();
-        await OpenProjectFromPathInternalAsync(path);
+        if (await CloseProjectAsync())
+        {
+            await OpenProjectFromPathInternalAsync(path);
+        }
     }
     internal async Task<bool> OpenProjectFromPathInternalAsync(string? path, CancellationToken ct = default)
     {
@@ -418,13 +426,17 @@ public class MainViewModel : ViewModel
         }
         return false;
     }
-    internal async Task CloseProjectAsync()
+    internal async Task<bool> CloseProjectAsync()
     {
         if (await CanCloseProject())
         {
             Files.RemoveProjectFiles();
             _globals.ResetProject();
+            CreateStartPage();
+            return true;
         }
+
+        return false;
     }
 
     public async Task<bool> CanCloseProject()

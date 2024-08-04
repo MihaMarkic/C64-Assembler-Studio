@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
