@@ -8,7 +8,7 @@ Project is in early preview stage.
 
 ## Quick Start
 
-See [Docs](Docs/quick-start.md).
+See [Docs](docs/quick-start.md).
 
 ## Prerequisites
 Java should be installed and in the CLI path, so it is found by typing java in the command line.
