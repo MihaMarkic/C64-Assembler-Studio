@@ -14,6 +14,7 @@ Unzip files found in [Releases](https://github.com/MihaMarkic/C64-Assembler-Stud
 
 A settings dialog is presented when path to VICE directory is expected. If VICE files are found in given directory, Valid directory is checked. Dialog should be closed by clicking Close button.
 
-<img src="settings.jpg" alt="drawing" width="200"/>
+![Settings](settings.png)
+{:.some-css-class width="100"}
 ### Creating a new KickAssembler project
 
