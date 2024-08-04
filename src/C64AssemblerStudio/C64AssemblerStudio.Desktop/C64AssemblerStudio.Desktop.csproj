@@ -7,6 +7,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>Assets\Icons\app_icon.ico</ApplicationIcon>
+    <AssemblyName>C64AssemblerStudio</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Styles\AppStyles.xaml" />
