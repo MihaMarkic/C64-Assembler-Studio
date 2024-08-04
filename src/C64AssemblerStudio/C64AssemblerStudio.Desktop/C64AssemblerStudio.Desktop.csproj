@@ -9,6 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Assets\Icons\app_icon.ico</ApplicationIcon>
     <AssemblyName>C64AssemblerStudio</AssemblyName>
+    <Version>0.1.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Styles\AppStyles.xaml" />
@@ -75,6 +76,7 @@
     <AvaloniaResource Include="Assets\Icons\times.svg" />
     <AvaloniaResource Include="Assets\Icons\trash.svg" />
     <AvaloniaResource Include="Assets\Icons\xmark.svg" />
+    <None Remove="Resources\main.template" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
@@ -102,6 +104,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.11" />
     <PackageReference Include="Righthand.Vice.Bridge" Version="1.0.0-beta.18" />
+    <PackageReference Include="Velopack" Version="0.0.583" />
   </ItemGroup>
 
   <ItemGroup>

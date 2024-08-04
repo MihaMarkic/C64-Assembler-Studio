@@ -12,7 +12,7 @@ public class SettingsManager : ISettingsManager
     public SettingsManager(ILogger<SettingsManager> logger)
     {
         this._logger = logger;
-        var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "C64AssemblerStudio");
+        var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "C64AssemblerStudioSettings");
         _settingsPath = Path.Combine(directory, "settings.json");
     }
     public async Task<Settings> LoadSettingsAsync(CancellationToken ct)

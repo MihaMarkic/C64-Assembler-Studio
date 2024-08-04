@@ -1,9 +1,11 @@
 ﻿using Avalonia;
 using Microsoft.Extensions.Hosting;
 using NLog;
+using Velopack;
 
 namespace C64AssemblerStudio.Desktop
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     internal class Program
     {
         // Initialization code. Don't use any Avalonia, third-party APIs or any
@@ -16,6 +18,7 @@ namespace C64AssemblerStudio.Desktop
             var logger = LogManager.GetCurrentClassLogger();
             try
             {
+                VelopackApp.Build().Run();
                 var host = CreateHostBuilder(args);
                 Core.IoC.Init(host.Build());
                 BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

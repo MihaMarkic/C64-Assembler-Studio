@@ -17,7 +17,7 @@ public class BreakpointBindingToStringConverter : ParameterlessValueConverter<Br
     {
         if (bind.EndAddress is not null)
         {
-            return $"From {bind.StartAddress} to {bind.StartAddress}";
+            return $"From {bind.StartAddress} to {bind.EndAddress}";
         }
 
         return $"{bind.StartAddress}";

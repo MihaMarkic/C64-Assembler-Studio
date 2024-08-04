@@ -6,7 +6,7 @@ namespace C64AssemblerStudio.Desktop.Views.Dialogs;
 
 public partial class ModalDialogWindow : Window
 {
-    ShowModalDialogMessageCore? message;
+    private ShowModalDialogMessageCore? _message;
     public ModalDialogWindow()
     {
         InitializeComponent();
@@ -17,14 +17,14 @@ public partial class ModalDialogWindow : Window
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        if (message is not null)
+        if (_message is not null)
         {
-            message.Close -= Message_Close;
+            _message.Close -= Message_Close;
         }
-        message = DataContext as ShowModalDialogMessageCore;
-        if (message is not null)
+        _message = DataContext as ShowModalDialogMessageCore;
+        if (_message is not null)
         {
-            message.Close += Message_Close;
+            _message.Close += Message_Close;
         }
         base.OnDataContextChanged(e);
     }

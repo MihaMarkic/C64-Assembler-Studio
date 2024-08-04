@@ -88,6 +88,13 @@ public class FilesViewModel : ViewModel
                 _debugData = _vice.IsDebugging
                     ? ((KickAssProjectViewModel)_globals.Project.ValueOrThrow()).DbgData.ValueOrThrow()
                     : null;
+                // if (!_vice.IsDebugging)
+                // {
+                //     foreach (var f in Files.OfType<AssemblerFileViewModel>())
+                //     {
+                //         f.IsByteDumpVisible = false;
+                //     }
+                // }
                 break;
         }
     }

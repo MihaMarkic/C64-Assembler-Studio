@@ -310,7 +310,8 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
     }
 
-    internal static (ImmutableArray<Line?> Lines, ImmutableArray<IToken> Tokens) ParseText(ILogger logger, string content, CancellationToken ct = default)
+    internal static (ImmutableArray<Line?> Lines, ImmutableArray<IToken> Tokens) ParseText(ILogger logger,
+        string content, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(content))
         {

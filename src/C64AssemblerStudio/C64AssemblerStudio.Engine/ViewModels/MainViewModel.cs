@@ -27,7 +27,9 @@ public class MainViewModel : ViewModel
     private readonly CommandsManager _commandsManager;
     private readonly TaskFactory _uiFactory;
     private readonly IHostEnvironment _hostEnvironment;
+
     public IVice Vice { get; }
+
     // subscriptions
     private readonly ISubscription _closeOverlaySubscription;
     private readonly ISubscription _showModalDialogMessageSubscription;
@@ -62,7 +64,9 @@ public class MainViewModel : ViewModel
     public RegistersViewModel Registers { get; }
     public BreakpointsViewModel Breakpoints { get; }
     public MemoryViewerViewModel MemoryViewer { get; }
+
     public CallStackViewModel CallStack { get; }
+
     // TODO implement
     public bool IsBusy => false;
     public bool IsApplicationRunning { get; private set; }
@@ -70,21 +74,25 @@ public class MainViewModel : ViewModel
     public bool IsDebuggingPaused => Vice.IsPaused;
     public bool IsBuilding { get; private set; }
     public bool IsProjectOpen => _globals.IsProjectOpen;
+
     /// <summary>
     /// Tracks whether user held shift when it performed an action.
     /// AvaloniaObject should set this property for each event when it needs to handle shift status.
     /// </summary>
     public bool IsShiftDown { get; set; }
+
     public string Caption => $"{Globals.AppName} - {(Project?.Configuration?.Caption ?? "no project")}";
     public bool IsShowingSettings => OverlayContent is SettingsViewModel;
     public bool IsShowingProject => OverlayContent is IProjectViewModel;
     public Action<ShowModalDialogMessageCore>? ShowModalDialog { get; set; }
     public Action? CloseApp { get; set; }
     public ViewModel? OverlayContent { get; private set; }
+
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
-        ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput,DebugOutputViewModel debugOutput, 
-        CompilerErrorsOutputViewModel compilerErrors, BreakpointsViewModel breakpoints, MemoryViewerViewModel memoryViewer,
+        ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput, DebugOutputViewModel debugOutput,
+        CompilerErrorsOutputViewModel compilerErrors, BreakpointsViewModel breakpoints,
+        MemoryViewerViewModel memoryViewer,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment,
         CallStackViewModel callStack)
     {
@@ -119,19 +127,26 @@ public class MainViewModel : ViewModel
         OpenProjectCommand = _commandsManager.CreateRelayCommand(OpenProject, () => !IsBusy && !IsDebugging);
         ShowProjectSettingsCommand =
             _commandsManager.CreateRelayCommand(ShowProjectSettings, () => !IsShowingProject && IsProjectOpen);
-        CloseProjectCommand = _commandsManager.CreateRelayCommandAsync(CloseProjectAsync, () => IsProjectOpen && !IsDebugging);
+        CloseProjectCommand =
+            _commandsManager.CreateRelayCommandAsync(CloseProjectAsync, () => IsProjectOpen && !IsDebugging);
         ShowSettingsCommand = _commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
         ExitCommand = _commandsManager.CreateRelayCommand(() => CloseApp?.Invoke(), () => true);
-        BuildCommand = _commandsManager.CreateRelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
-        RunCommand = _commandsManager.CreateRelayCommandAsync(StartDebuggingAsync, () => IsProjectOpen && (!IsApplicationRunning || IsDebuggingPaused));
+        BuildCommand =
+            _commandsManager.CreateRelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
+        RunCommand = _commandsManager.CreateRelayCommandAsync(StartDebuggingAsync,
+            () => IsProjectOpen && (!IsApplicationRunning || IsDebuggingPaused));
         StopCommand = _commandsManager.CreateRelayCommandAsync(StopDebuggingAsync, () => IsApplicationRunning);
-        PauseCommand = _commandsManager.CreateRelayCommandAsync(PauseDebuggingAsync, () => IsDebugging && !IsDebuggingPaused);
-        StepIntoCommand = _commandsManager.CreateRelayCommandAsync(StepIntoAsync, () => IsDebugging && IsDebuggingPaused);
-        StepOverCommand = _commandsManager.CreateRelayCommandAsync(StepOverAsync, () => IsDebugging && IsDebuggingPaused);
+        PauseCommand =
+            _commandsManager.CreateRelayCommandAsync(PauseDebuggingAsync, () => IsDebugging && !IsDebuggingPaused);
+        StepIntoCommand =
+            _commandsManager.CreateRelayCommandAsync(StepIntoAsync, () => IsDebugging && IsDebuggingPaused);
+        StepOverCommand =
+            _commandsManager.CreateRelayCommandAsync(StepOverAsync, () => IsDebugging && IsDebuggingPaused);
         if (!Directory.Exists(globals.Settings.VicePath))
         {
             SwitchOverlayContent<SettingsViewModel>();
         }
+
         Vice.PropertyChanged += ViceOnPropertyChanged;
         globals.PropertyChanged += Globals_PropertyChanged;
     }
@@ -157,24 +172,28 @@ public class MainViewModel : ViewModel
                 break;
         }
     }
+
     internal async Task PauseDebuggingAsync()
     {
         DebugOutput.AddLine("Pausing");
         await Vice.PauseDebuggingAsync();
         DebugOutput.AddLine("Paused");
     }
+
     internal async Task StepIntoAsync()
     {
         DebugOutput.AddLine("Stepping into");
         await Vice.StepIntoAsync();
         DebugOutput.AddLine("Stepped into");
     }
+
     internal async Task StepOverAsync()
     {
         DebugOutput.AddLine("Stepping over");
         await Vice.StepOverAsync();
         DebugOutput.AddLine("Stepped over");
     }
+
     internal async Task StopDebuggingAsync()
     {
         if (IsApplicationRunning)
@@ -182,6 +201,7 @@ public class MainViewModel : ViewModel
             DebugOutput.AddLine("Stopping");
             await _debuggingCts.CancelNullableAsync();
         }
+
         DebugOutput.AddLine("Stopping");
         await Breakpoints.DisarmAllBreakpointsAsync();
         await Vice.StopDebuggingAsync();
@@ -190,6 +210,7 @@ public class MainViewModel : ViewModel
     }
 
     private CancellationTokenSource? _debuggingCts;
+
     async Task StartDebuggingAsync()
     {
         try
@@ -260,6 +281,7 @@ public class MainViewModel : ViewModel
     }
 
     private CancellationTokenSource? _buildCts;
+
     async Task BuildAsync()
     {
         await _buildCts.CancelNullableAsync();
@@ -276,7 +298,8 @@ public class MainViewModel : ViewModel
             var project = (KickAssProjectViewModel)Project;
             var settings =
                 new KickAssemblerCompilerSettings(
-                    Path.Combine(_hostEnvironment.ContentRootPath!, "..","..","..","..","..","..","binaries", "KickAss","KickAss.jar"));
+                    Path.Combine(_hostEnvironment.ContentRootPath!, "..", "..", "..", "..", "..", "..", "binaries",
+                        "KickAss", "KickAss.jar"));
             string directory = Project.Directory.ValueOrThrow();
             string file = "main.asm";
             await saveAllTask;
@@ -286,7 +309,7 @@ public class MainViewModel : ViewModel
             {
                 StatusInfo.BuildingStatus = BuildStatus.Failure;
                 var fileErrors = errors.Select(e =>
-                    new FileCompilerError(ProjectExplorer.GetProjectFileFromFullPath(e.Path), e))
+                        new FileCompilerError(ProjectExplorer.GetProjectFileFromFullPath(e.Path), e))
                     .ToImmutableArray();
                 if (!fileErrors.IsEmpty)
                 {
@@ -305,6 +328,7 @@ public class MainViewModel : ViewModel
             IsBuilding = false;
         }
     }
+
     public async Task CreateProjectAsync()
     {
         if (ShowCreateProjectFileDialogAsync is not null)
@@ -316,7 +340,7 @@ public class MainViewModel : ViewModel
             string? projectPath = await ShowCreateProjectFileDialogAsync(model, CancellationToken.None);
             if (!string.IsNullOrWhiteSpace(projectPath))
             {
-                bool success = CreateProject(projectPath);
+                bool success = await CreateProject(projectPath);
                 if (success)
                 {
                     _globals.Settings.AddRecentProject(projectPath);
@@ -324,36 +348,48 @@ public class MainViewModel : ViewModel
             }
         }
     }
-    internal bool CreateProject(string projectPath)
+
+    internal async Task<bool> CreateProject(string projectPath)
     {
-        if (File.Exists(projectPath))
+        try
         {
-            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, "Failed creating project", $"Project file {projectPath} already exists."));
-            return false;
-        }
-        else
-        {
-            try
+            string projectName = Path.GetFileNameWithoutExtension(projectPath);
+            var kickAssConfiguration = new KickAssProject
             {
-                string projectName = Path.GetFileNameWithoutExtension(projectPath);
-                var kickAssConfiguration = new KickAssProject
+                Caption = projectName,
+            };
+            var project = _scope.ServiceProvider.CreateScopedContent<KickAssProjectViewModel>();
+            project.Init(kickAssConfiguration, projectPath);
+            if (File.Exists(projectPath))
+            {
+                File.Delete(projectPath);
+            }
+
+            await _settingsManager.SaveAsync<Project>(kickAssConfiguration, projectPath, false);
+            string mainAsmFile = Path.Combine(Path.GetDirectoryName(projectPath)!, "main.asm");
+            if (!File.Exists(mainAsmFile))
+            {
+                var assembly = this.GetType().Assembly;
+                using (Stream s = assembly.GetManifestResourceStream(
+                           "C64AssemblerStudio.Engine.Resources.main.template")!)
+                using (var output = File.OpenWrite(mainAsmFile))
                 {
-                    Caption = projectName,
-                };
-                var project = _scope.ServiceProvider.CreateScopedContent<KickAssProjectViewModel>();
-                project.Init(kickAssConfiguration, projectPath);
-                _settingsManager.Save<Project>(kickAssConfiguration, projectPath, false);
-                _globals.SetProject(project);
-                ShowProjectSettings();
-                return true;
+                    await s.CopyToAsync(output);
+                }
             }
-            catch (Exception ex)
-            {
-                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, "Failed creating project", ex.Message));
-            }
+
+            _globals.SetProject(project);
+            ShowProjectSettings();
+            return true;
         }
+        catch (Exception ex)
+        {
+            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, "Failed creating project", ex.Message));
+        }
+
         return false;
     }
+
     internal void ShowProjectSettings()
     {
         if (!IsShowingProject)
@@ -361,6 +397,7 @@ public class MainViewModel : ViewModel
             SwitchOverlayContent((ViewModel)_globals.Project);
         }
     }
+
     public async void OpenProject()
     {
         if (ShowOpenProjectFileDialogAsync is not null)
@@ -376,6 +413,7 @@ public class MainViewModel : ViewModel
             }
         }
     }
+
     internal async void OpenProjectFromPath(string? path)
     {
         // runs async because it manipulates most recent list
@@ -385,6 +423,7 @@ public class MainViewModel : ViewModel
             await OpenProjectFromPathInternalAsync(path);
         }
     }
+
     internal async Task<bool> OpenProjectFromPathInternalAsync(string? path, CancellationToken ct = default)
     {
         const string errorTitle = "Failed opening project";
@@ -392,14 +431,18 @@ public class MainViewModel : ViewModel
         {
             return false;
         }
+
         //executionStatusViewModel.IsOpeningProject = true;
         try
         {
             if (!File.Exists(path))
             {
-                await _dispatcher.DispatchAsync(new ErrorMessage(ErrorMessageLevel.Error, errorTitle, $"Project file {path} does not exist."), ct: ct);
+                await _dispatcher.DispatchAsync(
+                    new ErrorMessage(ErrorMessageLevel.Error, errorTitle, $"Project file {path} does not exist."),
+                    ct: ct);
                 return false;
             }
+
             var projectConfiguration = await _settingsManager.LoadAsync<Project>(path, ct);
             if (projectConfiguration is null)
             {
@@ -416,6 +459,7 @@ public class MainViewModel : ViewModel
             {
                 throw new Exception("Not supported project");
             }
+
             _globals.Settings.AddRecentProject(path);
         }
         catch (Exception ex)
@@ -426,8 +470,10 @@ public class MainViewModel : ViewModel
         {
             // _executionStatusViewModel.IsOpeningProject = false;
         }
+
         return false;
     }
+
     internal async Task<bool> CloseProjectAsync()
     {
         if (await CanCloseProject())
@@ -458,10 +504,12 @@ public class MainViewModel : ViewModel
 
         return true;
     }
+
     void OnShowModalDialog(ShowModalDialogMessageCore message)
     {
         ShowModalDialog?.Invoke(message);
     }
+
     internal void ShowSettings()
     {
         if (!IsShowingSettings)
@@ -471,6 +519,7 @@ public class MainViewModel : ViewModel
     }
 
     private Project? _oldProjectConfiguration;
+
     void Globals_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
@@ -480,6 +529,7 @@ public class MainViewModel : ViewModel
                 {
                     _oldProjectConfiguration.PropertyChanged -= OnProjectConfigurationPropertyChanged;
                 }
+
                 OnPropertiesChanged(nameof(IsProjectOpen), nameof(Project), nameof(Caption));
                 if (_globals.Project is not EmptyProjectViewModel)
                 {
@@ -491,6 +541,7 @@ public class MainViewModel : ViewModel
                 {
                     _oldProjectConfiguration = null;
                 }
+
                 break;
         }
     }
@@ -507,13 +558,15 @@ public class MainViewModel : ViewModel
     }
 
     private bool _shouldDisposeOverlay;
+
     internal void SwitchOverlayContent<T>(T overlayContent)
-        where T: ViewModel
+        where T : ViewModel
     {
         DisposeOverlay();
         OverlayContent = overlayContent;
         _shouldDisposeOverlay = false;
     }
+
     internal void SwitchOverlayContent<T>()
         where T : ScopedViewModel
     {
@@ -529,6 +582,7 @@ public class MainViewModel : ViewModel
             OverlayContent?.Dispose();
         }
     }
+
     internal void CloseOverlay(CloseOverlayMessage message)
     {
         if (OverlayContent is not null)
@@ -537,6 +591,7 @@ public class MainViewModel : ViewModel
             {
                 OverlayContent.Dispose();
             }
+
             OverlayContent = null;
         }
     }
@@ -548,6 +603,7 @@ public class MainViewModel : ViewModel
             _closeOverlaySubscription.Dispose();
             _showModalDialogMessageSubscription.Dispose();
         }
+
         base.Dispose(disposing);
     }
 }
