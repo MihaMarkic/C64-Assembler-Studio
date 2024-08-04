@@ -4,7 +4,7 @@
 /// <see cref="ICommandEx"/> implementation that asserts parameter is always not null.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class RelayCommandWithParameter<T> : ICommandEx
+public class RelayCommandWithParameter<T> : RelayCommandCore, ICommandEx
 {
     private readonly Func<T, bool>? _canExecute;
     private readonly Action<T> _execute;
@@ -35,7 +35,19 @@ public class RelayCommandWithParameter<T> : ICommandEx
 
     public virtual void Execute(object? parameter)
     {
-        _execute((T)parameter.ValueOrThrow());
+        try
+        {
+            if (parameter is null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+
+            _execute((T)parameter);
+        }
+        catch (Exception ex)
+        {
+            LogException(ex);
+        }
     }
 
     public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);

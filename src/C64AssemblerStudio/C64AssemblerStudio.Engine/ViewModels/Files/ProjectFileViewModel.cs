@@ -74,7 +74,7 @@ public abstract class ProjectFileViewModel : FileViewModel
         base.OnPropertyChanged(name);
     }
 
-    public override async Task SaveContentAsync(CancellationToken ct = default)
+    protected override async Task SaveContentAsync(CancellationToken ct)
     {
         using (BusyIndicator.Increase())
         {

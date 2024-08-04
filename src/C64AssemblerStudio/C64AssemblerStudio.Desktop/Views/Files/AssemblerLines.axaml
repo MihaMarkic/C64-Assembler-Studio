@@ -153,8 +153,6 @@
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <!-- <TextBlock Margin="2,0" Text="{Binding SourceFile.Path.FileName}" /> -->
-                            <!-- <TextBlock Margin="2,0" Text="{Binding SourceFile.Path.Directory}" /> -->
                             <TextBlock Margin="2,0">
                                 <Run Text="{Binding SourceFile.Path.Directory, Converter={x:Static converters:StudioConverters.AppendDirectorySeparator}}" Foreground="Gray" /><Run Text="{Binding SourceFile.Path.FileName}" />
                             </TextBlock>

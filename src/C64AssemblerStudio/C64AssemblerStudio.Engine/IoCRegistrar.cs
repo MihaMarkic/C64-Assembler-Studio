@@ -52,6 +52,7 @@ public static class IoCRegistrar
             .AddTransient<RenameItemDialogViewModel>()
             .AddScoped<KickAssProjectViewModel>()
             .AddSingleton<EmptyProjectViewModel>()
+            .AddScoped<SaveFileDialogViewModel>()
             // System
             .AddTransient(sp => sp.CreateScope())
             .AddSingleton<IDispatcher>(

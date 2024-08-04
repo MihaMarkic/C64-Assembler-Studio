@@ -9,7 +9,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="fvm:FilesViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Files.FilesViewer">
-    <TabControl ItemsSource="{Binding Files}" SelectedItem="{Binding Selected}">
+    <TabControl Name="Files" ItemsSource="{Binding Files}" SelectedItem="{Binding Selected}">
+        <TabControl.KeyBindings>
+            <KeyBinding Gesture="Ctrl+F4" Command="{Binding CloseFileCommand}" CommandParameter="{Binding #Files.SelectedItem}" />
+        </TabControl.KeyBindings>
         <TabControl.ItemTemplate>
             <DataTemplate>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -20,7 +23,7 @@
                             Padding="4" Background="Transparent">
                         <Image Height="12">
                             <Image.Source>
-                                <SvgImage Source="/Assets/Icons/times .svg" />
+                                <SvgImage Source="/Assets/Icons/times.svg" />
                             </Image.Source>
                         </Image>
                     </Button>

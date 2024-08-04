@@ -4,7 +4,7 @@
 /// <see cref="ICommandEx"/> async implementation that asserts parameter is always not null.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class RelayCommandWithParameterAsync<T> : ICommandEx
+public class RelayCommandWithParameterAsync<T> : RelayCommandCore, ICommandEx
 {
     private readonly Func<T, bool>? _canExecute;
     private readonly Func<T, Task> _execute;
@@ -30,9 +30,21 @@ public class RelayCommandWithParameterAsync<T> : ICommandEx
         return _canExecute((T)parameter);
     }
 
-    public virtual void Execute(object? parameter)
+    public virtual async void Execute(object? parameter)
     {
-        _ = _execute((T)(parameter ?? throw new ArgumentNullException(nameof(parameter))));
+        try
+        {
+            if (parameter is null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+
+            await _execute((T)parameter);
+        }
+        catch (Exception ex)
+        {
+            LogException(ex);
+        }
     }
     public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }

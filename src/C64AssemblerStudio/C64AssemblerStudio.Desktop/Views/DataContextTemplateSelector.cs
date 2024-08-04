@@ -10,8 +10,8 @@ public class DataContextTemplateSelector : IDataTemplate
     public Dictionary<Type, IDataTemplate> Templates { get; } = new Dictionary<Type, IDataTemplate>();
     public Control? Build(object? param)
     {
-        var key = param?.GetType() ?? throw new ArgumentNullException(nameof(param));
-        if (Templates.TryGetValue(key, out var template))
+        var key = param?.GetType();
+        if (key is not null && Templates.TryGetValue(key, out var template))
         {
             return template.Build(param);
         }

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace C64AssemblerStudio.Core.Common;
 
-public class RelayCommandAsync<T> : ICommandEx
+public class RelayCommandAsync<T> : RelayCommandCore, ICommandEx
 {
     private readonly Func<T?, bool>? _canExecute;
     private readonly Func<T?, Task> _execute;
@@ -25,9 +25,16 @@ public class RelayCommandAsync<T> : ICommandEx
         return _canExecute((T?)parameter);
     }
 
-    public virtual void Execute(object? parameter)
+    public virtual async void Execute(object? parameter)
     {
-        _ = _execute((T)(parameter ?? throw new ArgumentNullException(nameof(parameter))));
+        try
+        {
+            await _execute((T)(parameter ?? throw new ArgumentNullException(nameof(parameter))));
+        }
+        catch (Exception ex)
+        {
+            LogException(ex);
+        }
     }
     public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }

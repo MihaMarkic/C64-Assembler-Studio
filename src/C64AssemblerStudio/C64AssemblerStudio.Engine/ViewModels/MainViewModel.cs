@@ -37,7 +37,7 @@ public class MainViewModel : ViewModel
     public RelayCommandAsync NewProjectCommand { get; }
     public RelayCommand OpenProjectCommand { get; }
     public RelayCommand<string> OpenProjectFromPathCommand { get; }
-    public RelayCommand CloseProjectCommand { get; }
+    public RelayCommandAsync CloseProjectCommand { get; }
     public RelayCommand ShowSettingsCommand { get; }
     public RelayCommand ShowProjectSettingsCommand { get; }
     public RelayCommand ExitCommand { get; }
@@ -120,7 +120,7 @@ public class MainViewModel : ViewModel
         OpenProjectCommand = _commandsManager.CreateRelayCommand(OpenProject, () => !IsBusy && !IsDebugging);
         ShowProjectSettingsCommand =
             _commandsManager.CreateRelayCommand(ShowProjectSettings, () => !IsShowingProject && IsProjectOpen);
-        CloseProjectCommand = _commandsManager.CreateRelayCommand(CloseProject, () => IsProjectOpen && !IsDebugging);
+        CloseProjectCommand = _commandsManager.CreateRelayCommandAsync(CloseProjectAsync, () => IsProjectOpen && !IsDebugging);
         ShowSettingsCommand = _commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
         ExitCommand = _commandsManager.CreateRelayCommand(() => CloseApp?.Invoke(), () => true);
         BuildCommand = _commandsManager.CreateRelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
@@ -372,7 +372,7 @@ public class MainViewModel : ViewModel
     {
         // runs async because it manipulates most recent list
         await Task.Delay(1);
-        CloseProject();
+        CloseProjectAsync();
         await OpenProjectFromPathInternalAsync(path);
     }
     internal async Task<bool> OpenProjectFromPathInternalAsync(string? path, CancellationToken ct = default)
@@ -418,10 +418,31 @@ public class MainViewModel : ViewModel
         }
         return false;
     }
-    internal void CloseProject()
+    internal async Task CloseProjectAsync()
     {
-        // DebuggerViewModel.CloseProject();
-        _globals.ResetProject();
+        if (await CanCloseProject())
+        {
+            Files.RemoveProjectFiles();
+            _globals.ResetProject();
+        }
+    }
+
+    public async Task<bool> CanCloseProject()
+    {
+        if (Files.HasChanges)
+        {
+            try
+            {
+                return await Files.CloseAllFilesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed saving all files");
+                return false;
+            }
+        }
+
+        return true;
     }
     void OnShowModalDialog(ShowModalDialogMessageCore message)
     {

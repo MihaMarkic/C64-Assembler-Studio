@@ -153,6 +153,21 @@ partial class MainWindow : Window
     }
 
     public MainViewModel ViewModel => (MainViewModel)DataContext!;
+    private bool _canClose;
+    protected override async void OnClosing(WindowClosingEventArgs e)
+    {
+        if (!_canClose)
+        {
+            e.Cancel = true;
+            if (await ViewModel.CanCloseProject())
+            {
+                _canClose = true;
+                Close();
+            }
+        }
+
+        base.OnClosing(e);
+    }
 
     protected override void OnClosed(EventArgs e)
     {

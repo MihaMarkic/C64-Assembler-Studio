@@ -24,12 +24,12 @@ public abstract class FileViewModel : ScopedViewModel
         StatusInfo = statusInfo;
         SaveCommand = new RelayCommandAsync(SaveContentAsync, () => HasChanges);
     }
-    async Task SaveContentAsync()
+    public async Task SaveContentAsync()
     {
         await SaveContentAsync(default);
     }
 
-    public virtual Task SaveContentAsync(CancellationToken ct = default)
+    protected virtual Task SaveContentAsync(CancellationToken ct)
     {
         return Task.CompletedTask;
     }

@@ -51,6 +51,8 @@ public class FilesViewModel : ViewModel
         _vice.RegistersUpdated += ViceOnRegistersUpdated;
     }
 
+    public bool HasChanges => Files.Any(f => f.HasChanges);
+
     private void ViceOnRegistersUpdated(object? sender, RegistersEventArgs e)
     {
         var pc = _vice.Registers.Current.PC;
@@ -61,6 +63,14 @@ public class FilesViewModel : ViewModel
         else
         {
             _logger.LogDebug("Failed updating execution line based on null PC");
+        }
+    }
+
+    public void RemoveProjectFiles()
+    {
+        foreach (var f in Files.ToImmutableArray())
+        {
+            Files.Remove(f);
         }
     }
 
@@ -120,44 +130,74 @@ public class FilesViewModel : ViewModel
             }
         }
     }
+    internal async Task<bool> CloseAllFilesAsync(CancellationToken ct = default)
+    {
+        var files = Files.OfType<ProjectFileViewModel>().Select(f => f.File).ToImmutableArray();
+        var resultCode = await ShowDialogForClosingFiles(files, ct);
+        switch (resultCode)
+        {
+            case SaveFilesDialogResultCode.Save:
+                try
+                {
+                    await SaveAllAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to save all files");
+                    throw;
+                }
+                break;
+            case SaveFilesDialogResultCode.DoNotSave:
+                return true;
+            default:
+                return false;
+        }
+    }
 
     internal async Task CloseFileAsync(FileViewModel file)
     {
         if (file.HasChanges && file is ProjectFileViewModel projectFile)
         {
-            using (var scope = _serviceScopeFactory.CreateScope())
+            var resultCode = await ShowDialogForClosingFiles([projectFile.File], CancellationToken.None);
+            switch (resultCode)
             {
-                var detailViewModel = scope.ServiceProvider.CreateScopedContent<SaveFileDialogViewModel>();
-                detailViewModel.UnsavedFiles = [projectFile.File];
-                var dialog = new ShowModalDialogMessage<SaveFileDialogViewModel, SaveFilesDialogResult>(
-                    "Save files", DialogButton.Save | DialogButton.DoNotSave | DialogButton.Cancel, detailViewModel)
-                {
-                    MinSize = new Size(300, 200),
-                    DesiredSize = new Size(500, 300),
-                };
-                _dispatcher.DispatchShowModalDialog(dialog);
-                var result = await dialog.Result;
-                switch (result.Code)
-                {
-                    case SaveFilesDialogResultCode.Save:
-                        try
-                        {
-                            await file.SaveContentAsync();
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed to save {File}", projectFile.File.Name);
-                        }
-                        break;
-                    case SaveFilesDialogResultCode.DoNotSave:
-                        break;
-                    default:
-                        return;
-                }
+                case SaveFilesDialogResultCode.Save:
+                    try
+                    {
+                        await file.SaveContentAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to save {File}", projectFile.File.Name);
+                    }
+                    break;
+                case SaveFilesDialogResultCode.DoNotSave:
+                    break;
+                default:
+                    return;
             }
         }
 
         Files.Remove(file);
+    }
+
+    internal async Task<SaveFilesDialogResultCode> ShowDialogForClosingFiles(ImmutableArray<ProjectFile> files, CancellationToken ct = default)
+    {
+        using (var scope = _serviceScopeFactory.CreateScope())
+        {
+            var detailViewModel = scope.ServiceProvider.CreateScopedContent<SaveFileDialogViewModel>();
+            detailViewModel.UnsavedFiles = files;
+            var dialog = new ShowModalDialogMessage<SaveFileDialogViewModel, SaveFilesDialogResult>(
+                "Save files", DialogButton.Save | DialogButton.DoNotSave | DialogButton.Cancel, detailViewModel)
+            {
+                MinSize = new Size(300, 200),
+                DesiredSize = new Size(500, 300),
+            };
+            _dispatcher.DispatchShowModalDialog(dialog);
+            var result = await dialog.Result;
+            return result.Code;
+        }
     }
 
     ProjectFileViewModel? FindOpenFile(ProjectFile file)

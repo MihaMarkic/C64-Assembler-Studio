@@ -3,12 +3,24 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:files="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
              x:DataType="files:SaveFileDialogViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.SaveFilesDialog">
+    <Design.DataContext>
+        <files:DesignSaveFileDialogViewModel />
+    </Design.DataContext>
     <Grid RowDefinitions="Auto, *, Auto, Auto" Margin="4,4">
         <TextBlock Classes="h1" HorizontalAlignment="Center" Margin="0,6">Save changes to the following items?</TextBlock>
-        
+        <ListBox Grid.Row="0" ItemsSource="{Binding UnsavedFileItems}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock>
+                        <Run Text="{Binding Directory, Converter={x:Static converters:StudioConverters.AppendDirectorySeparator}}" Foreground="Gray" /><Run Text="{Binding Name}" />
+                    </TextBlock>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
                     VerticalAlignment="Bottom" Margin="0,0,8,0">
             <Button Margin="0,0,8,0" IsDefault="True" Command="{Binding SaveCommand}">_Save</Button>

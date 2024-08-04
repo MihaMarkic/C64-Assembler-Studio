@@ -2,7 +2,7 @@
 
 namespace C64AssemblerStudio.Core.Common;
 
-public class RelayCommand<T> : ICommandEx
+public class RelayCommand<T> : RelayCommandCore, ICommandEx
 {
     private readonly Func<T?, bool>? _canExecute;
     private readonly Action<T?> _execute;
@@ -29,7 +29,14 @@ public class RelayCommand<T> : ICommandEx
 
     public virtual void Execute(object? parameter)
     {
-        _execute((T?)parameter);
+        try
+        {
+            _execute((T?)parameter);
+        }
+        catch (Exception ex)
+        {
+            LogException(ex);
+        }
     }
 
     public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
