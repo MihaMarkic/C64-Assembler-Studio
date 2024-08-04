@@ -98,10 +98,10 @@
                 DockPanel.Dock="Left">
             <TextBlock Margin="4,0,0,0">Step Over</TextBlock>
         </Button>
-        <Button ToolTip.Tip="Show Disassembly at current PC address" Command="{Binding ShowDisassemblyCommand}"
-                DockPanel.Dock="Left">
-            <TextBlock Margin="4,0,0,0">Show Disassembly</TextBlock>
-        </Button>
+        <!-- <Button ToolTip.Tip="Show Disassembly at current PC address" Command="{Binding ShowDisassemblyCommand}" -->
+        <!--         DockPanel.Dock="Left"> -->
+        <!--     <TextBlock Margin="4,0,0,0">Show Disassembly</TextBlock> -->
+        <!-- </Button> -->
         <!-- busy spinner -->
         <common:Spinner IsActive="{Binding IsBusy}" DockPanel.Dock="Right" Margin="4,0" />
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="4,0">

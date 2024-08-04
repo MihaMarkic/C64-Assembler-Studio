@@ -92,4 +92,17 @@
   <Style Selector="DataValidationErrors">
     <Setter Property="Theme" Value="{StaticResource TooltipDataValidationErrors}" />
   </Style>
+  <Style Selector="Image.dockheader">
+    <Setter Property="Height" Value="12" />
+    <Setter Property="Width" Value="12" />
+  </Style>
+  <Style Selector="Button.clear">
+    <Setter Property="ContentTemplate">
+      <DataTemplate>
+        <Image Classes="dockheader">
+          <SvgImage Source="/Assets/Icons/trash.svg" />
+        </Image>
+      </DataTemplate>
+    </Setter>
+  </Style>
 </Styles>

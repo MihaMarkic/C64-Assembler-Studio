@@ -43,16 +43,16 @@
                         <ContentControl Content="{Binding #BottomTabs.((tvm:IToolView)SelectedItem)}">
                             <ContentControl.DataTemplates>
                                 <DataTemplate DataType="tvm:ErrorMessagesViewModel">
-                                    <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
+                                    <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
                                 </DataTemplate>
                                 <DataTemplate DataType="tvm:BuildOutputViewModel">
-                                    <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
+                                    <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
                                 </DataTemplate>
                                 <DataTemplate DataType="tvm:DebugOutputViewModel">
-                                    <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
+                                    <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
                                 </DataTemplate>
                                 <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
-                                    <Button Classes="docktool" Command="{Binding ClearCommand}">C</Button>
+                                    <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
                                 </DataTemplate>
                                 <DataTemplate DataType="tvm:RegistersViewModel" />
                                 <DataTemplate DataType="breakpoints:BreakpointsViewModel" />
@@ -108,7 +108,11 @@
                 <ctl:DockSizer Height="5" Margin="0,2" DockPanel.Dock="Bottom" Orientation="Horizontal" />
                 <ctl:DockTool DockPanel.Dock="Left" Width="300" Title="Project Explorer">
                     <ctl:DockTool.HeaderContext>
-                        <Button Classes="docktool" Command="{Binding ProjectExplorer.RefreshCommand}">R</Button>
+                        <Button Classes="docktool" Command="{Binding ProjectExplorer.RefreshCommand}">
+                            <Image Width="12" Height="12">
+                                <SvgImage Source="/Assets/Icons/sync.svg" />
+                            </Image>
+                        </Button>
                     </ctl:DockTool.HeaderContext>
                     <v:ProjectExplorer DataContext="{Binding ProjectExplorer}" />
                 </ctl:DockTool>
