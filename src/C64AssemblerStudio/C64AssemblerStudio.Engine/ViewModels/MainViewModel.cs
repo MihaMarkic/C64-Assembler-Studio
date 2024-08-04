@@ -139,7 +139,9 @@ public class MainViewModel : ViewModel
     private void CreateStartPage()
     {
         StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
-        StartPage.HasRecentProjects = RecentProjects.Any();
+        var mostRecent = RecentProjects.FirstOrDefault();
+        StartPage.HasRecentProjects = mostRecent is not null;
+        StartPage.FullPath = mostRecent;
         StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
     }
 

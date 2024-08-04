@@ -6,11 +6,17 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="viewModels:StartPageViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Main.StartPage">
+    <Design.DataContext>
+        <viewModels:DesignStartPageViewModel />
+    </Design.DataContext>
     <Grid RowDefinitions="Auto,*">
-        <TextBlock>Start Page</TextBlock>
+        <TextBlock FontSize="20">Start Page</TextBlock>
         <TextBlock Grid.Column="0" Grid.Row="1" Margin="0,4">
             <InlineUIContainer>
-                <HyperlinkButton Content="Load last project" Command="{Binding LoadLastProjectCommand}" />
+                <StackPanel Orientation="Horizontal">
+                    <HyperlinkButton Content="Load last project" Command="{Binding LoadLastProjectCommand}" />
+                    <TextBlock Grid.Row="2" Foreground="Gray" Text="{Binding FullPath}" VerticalAlignment="Center" />
+                </StackPanel>
             </InlineUIContainer>
         </TextBlock>
     </Grid>
