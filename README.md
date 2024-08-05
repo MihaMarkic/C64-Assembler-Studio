@@ -3,6 +3,10 @@ C64 Assembler Studio is a cross-platform .NET based project aiming to create a c
 
 [Avalonia UI](https://docs.avaloniaui.net/) is used for GUI. For communication with VICE it is using my other project [VICE Binary Monitor Bridge for .NET](https://github.com/MihaMarkic/vice-bridge-net). A lot of code is same as in my  read-only debugging studio [Modern VICE PDB monitor](https://github.com/MihaMarkic/modern-vice-pdb-monitor).
 
+<p align="center">
+ 	<img alt="Sample Screen" src="docs/paused_on_breakpoint.png" width="800">
+</p>
+
 ## Status
 Project is in early preview stage. Which means it works on a simple sample, not polished (both UI and functionality) and with features missing or half-baked.
 
