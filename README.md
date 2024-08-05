@@ -4,16 +4,24 @@ C64 Assembler Studio is a cross-platform .NET based project aiming to create a c
 [Avalonia UI](https://docs.avaloniaui.net/) is used for GUI. For communication with VICE it is using my other project [VICE Binary Monitor Bridge for .NET](https://github.com/MihaMarkic/vice-bridge-net). A lot of code is same as in my  read-only debugging studio [Modern VICE PDB monitor](https://github.com/MihaMarkic/modern-vice-pdb-monitor).
 
 ## Status
-Project is in early preview stage.
+Project is in early preview stage. Which means it works on a simple sample, not polished (both UI and functionality) and with features missing or half-baked.
 
 ## Quick Start
 
 See [Docs](docs/quick-start.md).
 
 ## Prerequisites
-Java should be installed and in the CLI path, so it is found by typing java in the command line.
+Java should be installed and in the CLI path, so it is found by typing java in the command line. A good candidate is the latest [OpenJDK 22 binaries](https://openjdk.org).
 
 VICE files should be on disk, and it should have enabled binary monitor (at Preferences/Settings, Host/Monitor Enable binary monitor should be checked and pointing to ip4://127.0.0.1:6502).
+
+## TODO (priority)
+* Polish UI (low)
+* 'Intellisense' (high)
+* Fixing edge cases (medium)
+* Enhancing/polishing existing features (medium)
+* Adding features (low)
+* Test on real samples (high-medium) - YOUR SAMPLES WELCOME
 
 ## Building from source
 For the latest binaries, check [Releases](Releases).

@@ -49,7 +49,6 @@ public class MainViewModel : ViewModel
     public RelayCommandAsync StopCommand { get; }
     public RelayCommandAsync StepIntoCommand { get; }
     public RelayCommandAsync StepOverCommand { get; }
-    public RelayCommandAsync ShowDisassemblyCommand { get; }
     public IProjectViewModel Project => _globals.Project;
     public ProjectExplorerViewModel ProjectExplorer { get; }
     public FilesViewModel Files { get; }
@@ -296,10 +295,16 @@ public class MainViewModel : ViewModel
             CompilerErrors.Clear();
             SelectedBottomTool = BuildOutput;
             var project = (KickAssProjectViewModel)Project;
+#if DEBUG
+            string kickAssPath = Path.Combine(_hostEnvironment.ContentRootPath!, "..", "..", "..", "..", "..", "..",
+                "binaries",
+                "KickAss", "KickAss.jar"));
+#else
+            string kickAssPath =
+                Path.Combine(_hostEnvironment.ContentRootPath!, "KickAssembler", "KickAss.jar");
+#endif
             var settings =
-                new KickAssemblerCompilerSettings(
-                    Path.Combine(_hostEnvironment.ContentRootPath!, "..", "..", "..", "..", "..", "..", "binaries",
-                        "KickAss", "KickAss.jar"));
+                new KickAssemblerCompilerSettings(kickAssPath);
             string directory = Project.Directory.ValueOrThrow();
             string file = "main.asm";
             await saveAllTask;
