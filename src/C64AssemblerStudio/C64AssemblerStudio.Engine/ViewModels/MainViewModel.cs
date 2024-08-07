@@ -298,7 +298,7 @@ public class MainViewModel : ViewModel
 #if DEBUG
             string kickAssPath = Path.Combine(_hostEnvironment.ContentRootPath!, "..", "..", "..", "..", "..", "..",
                 "binaries",
-                "KickAss", "KickAss.jar"));
+                "KickAss", "KickAss.jar");
 #else
             string kickAssPath =
                 Path.Combine(_hostEnvironment.ContentRootPath!, "KickAssembler", "KickAss.jar");

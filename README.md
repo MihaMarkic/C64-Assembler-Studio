@@ -27,8 +27,12 @@ VICE files should be on disk, and it should have enabled binary monitor (at Pref
 * Adding features (low)
 * Test on real samples (high-medium) - YOUR SAMPLES WELCOME
 
-## Building from source
+## Distribution
 For the latest binaries, check [Releases](Releases).
+
+## Building from source
+Clone this repository somewhere.
+In the cloned directory, create binaries subdirectory and copy `KickAssembler.jar` and `KickAss.cfg` files in it.
 
 Clone repository [retro-dbg-data-provider](https://github.com/MihaMarkic/retro-dbg-data-provider) into a sibling directory where this repository has been cloned. Open solution and build.
 
