@@ -1,17 +1,45 @@
 ﻿namespace System.Threading.Tasks;
 
+/// <summary>
+/// Provides <see cref="Task"/> extensions.
+/// </summary>
 public static class TaskExtension
 {
+    /// <summary>
+    /// Awaits task, timeout or token cancellation. If timeout is triggered, a <see cref="TimeoutException"/> is thrown,
+    /// if <paramref name="ct"/> signals cancellation, a <see cref="TaskCanceledException"/> is throw, otherwise no exception 
+    /// is thrown by this method.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="task"></param>
+    /// <param name="timeout"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="TaskCanceledException"></exception>
+    /// <exception cref="TimeoutException"></exception>
     public static async Task<T> AwaitWithTimeoutAsync<T>(this Task<T> task, TimeSpan timeout, CancellationToken ct = default)
     {
         bool success = await Task.WhenAny(task, Task.Delay(timeout, ct)) == task;
         if (!success)
         {
-            throw new TimeoutException();
+            if (ct.IsCancellationRequested)
+            {
+                throw new TaskCanceledException();
+            }
+            else
+            {
+                throw new TimeoutException();
+            }
         }
         return task.Result;
     }
-
+    /// <summary>
+    /// Allows invoking cancellation on null <paramref name="cts"/> sources.
+    /// </summary>
+    /// <param name="cts"></param>
+    /// <param name="ct"></param>
+    /// <returns>An instance of <see cref="Task"/>.</returns>
+    /// <remarks>This method is useful when dealing with nullable <see cref="CancellationTokenSource"/>.</remarks>
     public static Task CancelNullableAsync(this CancellationTokenSource? cts, CancellationToken ct = default)
     {
         if (cts is null)
