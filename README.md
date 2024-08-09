@@ -34,6 +34,12 @@ For the latest binaries, check [Releases](Releases).
 Clone this repository somewhere.
 In the cloned directory, create binaries subdirectory and copy `KickAssembler.jar` and `KickAss.cfg` files in it.
 
+### Without Retro Debug Data Provider sources
+
+Use Debug or Release configurations. Binaries will be installed through Nuget.
+
+### With Retro Debug Data Provider sources
+
 Clone repository [retro-dbg-data-provider](https://github.com/MihaMarkic/retro-dbg-data-provider) into a sibling directory where this repository has been cloned. Open solution and build.
 
-Note: Cloning of retro-dbg-data-provider repository is a temporary step. Eventually it will be removed and replaced with NuGet package.
+Use Local Debug configuration.
