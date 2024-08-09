@@ -4,6 +4,13 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Configurations>Debug;Release;Local Debug</Configurations>
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Local Debug' ">
+      <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+      <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="AutoFixture.AutoNSubstitute" Version="4.18.1" />
@@ -15,10 +22,15 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="NUnit" Version="4.1.0" />
-        <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+        <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    </ItemGroup>
+    <ItemGroup Condition=" '$(Configuration)' == 'Local Debug' ">
+        <ProjectReference Include="..\..\..\..\..\retro-dbg-data-provider\src\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider.csproj" />
+    </ItemGroup>
+    <ItemGroup Condition=" '$(Configuration)' != 'Local Debug' ">
+        <PackageReference Include="Retro.Debug.Data.Provider" Version="0.1.2-alpha" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\..\retro-dbg-data-provider\src\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider.csproj" />
       <ProjectReference Include="..\..\C64AssemblerStudio.Core\C64AssemblerStudio.Core.csproj" />
       <ProjectReference Include="..\..\C64AssemblerStudio.Engine\C64AssemblerStudio.Engine.csproj" />
       <ProjectReference Include="..\TestsBase\TestsBase.csproj" />

@@ -304,7 +304,7 @@ public class MainViewModel : ViewModel
                 Path.Combine(_hostEnvironment.ContentRootPath!, "KickAssembler", "KickAss.jar");
 #endif
             var settings =
-                new KickAssemblerCompilerSettings(kickAssPath);
+                new KickAssemblerCompilerSettings(null);
             string directory = Project.Directory.ValueOrThrow();
             string file = "main.asm";
             await saveAllTask;

@@ -4,11 +4,24 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;Local Debug</Configurations>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Local Debug' ">
+    <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+    <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\retro-dbg-data-provider\src\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider.csproj" />
     <ProjectReference Include="..\C64AssemblerStudio.Core\C64AssemblerStudio.Core.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup Condition=" '$(Configuration)' == 'Local Debug' ">
+    <ProjectReference Include="..\..\..\..\retro-dbg-data-provider\src\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)' != 'Local Debug' ">
+    <PackageReference Include="Retro.Debug.Data.Provider" Version="0.1.2-alpha" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,7 +42,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" PrivateAssets="All" />
     <PackageReference Include="Righthand.MessageBus" Version="2.0.0-beta.7" />
-    <PackageReference Include="Righthand.Vice.Bridge" Version="1.0.0-beta.18" />
+    <PackageReference Include="Righthand.Vice.Bridge" Version="1.0.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
   <ItemGroup>
