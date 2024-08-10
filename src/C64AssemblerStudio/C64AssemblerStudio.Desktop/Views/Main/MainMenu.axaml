@@ -44,6 +44,9 @@
       <MenuItem Header="_Build">
         <MenuItem Header="_Build Project" Command="{Binding BuildCommand}" HotKey="F6" />  
       </MenuItem>
+      <MenuItem Header="_Help">
+        <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
+      </MenuItem>
       <!--<MenuItem Header="_Debug">
         <MenuItem Header="{Binding RunMenuCommandTitle}" Command="{Binding RunCommand}">
           <MenuItem.Icon>

@@ -24,6 +24,9 @@
         <DataTemplate DataType="vm:SettingsViewModel">
             <vs:Settings />
         </DataTemplate>
+        <DataTemplate DataType="vm:AboutViewModel">
+            <v:About />
+        </DataTemplate>
         <DataTemplate DataType="vm:IProjectViewModel">
             <vs:ProjectSettings />
         </DataTemplate>

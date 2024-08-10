@@ -41,6 +41,7 @@ public class MainViewModel : ViewModel
     public RelayCommand<string> OpenProjectFromPathCommand { get; }
     public RelayCommandAsync CloseProjectCommand { get; }
     public RelayCommand ShowSettingsCommand { get; }
+    public RelayCommand ShowAboutCommand { get; }
     public RelayCommand ShowProjectSettingsCommand { get; }
     public RelayCommand ExitCommand { get; }
     public RelayCommandAsync BuildCommand { get; }
@@ -82,6 +83,7 @@ public class MainViewModel : ViewModel
 
     public string Caption => $"{Globals.AppName} - {(Project?.Configuration?.Caption ?? "no project")}";
     public bool IsShowingSettings => OverlayContent is SettingsViewModel;
+    public bool IsShowingAbout => OverlayContent is AboutViewModel;
     public bool IsShowingProject => OverlayContent is IProjectViewModel;
     public Action<ShowModalDialogMessageCore>? ShowModalDialog { get; set; }
     public Action? CloseApp { get; set; }
@@ -129,6 +131,7 @@ public class MainViewModel : ViewModel
         CloseProjectCommand =
             _commandsManager.CreateRelayCommandAsync(CloseProjectAsync, () => IsProjectOpen && !IsDebugging);
         ShowSettingsCommand = _commandsManager.CreateRelayCommand(ShowSettings, () => !IsShowingSettings);
+        ShowAboutCommand = _commandsManager.CreateRelayCommand(ShowAbout, () => !IsShowingAbout);
         ExitCommand = _commandsManager.CreateRelayCommand(() => CloseApp?.Invoke(), () => true);
         BuildCommand =
             _commandsManager.CreateRelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
@@ -520,6 +523,14 @@ public class MainViewModel : ViewModel
         if (!IsShowingSettings)
         {
             SwitchOverlayContent<SettingsViewModel>();
+        }
+    }
+
+    internal void ShowAbout()
+    {
+        if (!IsShowingAbout)
+        {
+            SwitchOverlayContent<AboutViewModel>();
         }
     }
 

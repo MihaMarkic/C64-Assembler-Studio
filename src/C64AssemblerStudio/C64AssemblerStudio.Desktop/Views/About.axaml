@@ -1,0 +1,43 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModels:AboutViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.About">
+    <Design.DataContext>
+        <viewModels:DesignAboutViewModel />
+    </Design.DataContext>
+    <Grid Name="RootGrid" RowDefinitions="Auto, Auto, Auto, *, Auto">
+        <Grid.Styles>
+            <Style Selector="Run.value">
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+        </Grid.Styles>
+        <TextBlock Classes="h1">
+            <Run Text="About" FontWeight="Normal" />
+            <Run Text="C64 Assembler Studio" />
+        </TextBlock>
+        <TextBlock Grid.Row="1">
+            <Run Text="Version" />
+            <Run Classes="value" Text="{Binding Version}" />
+        </TextBlock>
+        <TextBlock Margin="0,8,0,4" Classes="h3" Grid.Row="2" Text="3rd party open source packages" />
+        <ScrollViewer Grid.Row="3">
+            <ItemsRepeater ItemsSource="{Binding Libraries}">
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="{Binding Name}" />
+                            <HyperlinkButton Content="{Binding Url}" Command="{Binding  #RootGrid.((viewModels:AboutViewModel)DataContext).OpenLinkCommand}" CommandParameter="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+        <StackPanel Grid.Row="4" Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
+            <Button Command="{Binding CloseCommand}">Close</Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

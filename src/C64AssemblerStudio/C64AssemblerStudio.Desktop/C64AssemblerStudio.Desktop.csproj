@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Assets\Icons\app_icon.ico</ApplicationIcon>
     <AssemblyName>C64AssemblerStudio</AssemblyName>
-    <Version>0.1.0</Version>
+    <Version>0.2.0-alpha</Version>
     <Configurations>Debug;Release;Local Debug</Configurations>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
