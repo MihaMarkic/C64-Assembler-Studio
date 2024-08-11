@@ -136,7 +136,6 @@ DocProject/Help/Html2
 DocProject/Help/html
 
 # Click-Once directory
-publish/
 temp/
 
 # Publish Web Output
