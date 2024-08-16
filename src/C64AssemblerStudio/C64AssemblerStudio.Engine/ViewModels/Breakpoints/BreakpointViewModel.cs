@@ -3,6 +3,13 @@ using C64AssemblerStudio.Engine.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 
+public enum BreakpointError
+{
+    None,
+    InvalidConditon,
+    NoAddressRange,
+    ViceFailure
+}
 public class BreakpointViewModel : NotifiableObject, ICloneable
 {
     public bool IsCurrentlyHit { get; set; }
@@ -14,10 +21,12 @@ public class BreakpointViewModel : NotifiableObject, ICloneable
     public BreakpointBind? Bind { get; set; }
     public bool IsPersistent { get; init; } = true;
     public string? Condition { get; set; }
+
     /// <summary>
     /// Flag that signals breakpoint not enabled due to errors, i.e. global variable not found.
     /// </summary>
-    public bool HasErrors { get; set; }
+    public bool HasErrors => Error != BreakpointError.None;
+    public BreakpointError Error { get; set; }
     public string? ErrorText { get; set; }
     public HashSet<BreakpointAddressRange>? AddressRanges { get; set; }
     /// <summary>
@@ -39,12 +48,12 @@ public class BreakpointViewModel : NotifiableObject, ICloneable
     }
     public void ClearError()
     {
-        HasErrors = false;
+        Error = BreakpointError.None;
         ErrorText = null;
     }
-    public void SetError(string errorText)
+    public void SetError(BreakpointError errorType, string errorText)
     {
-        HasErrors = true;
+        Error = errorType;
         ErrorText = errorText;
     }
     public void ClearCheckpointNumbers()
@@ -99,7 +108,7 @@ public class BreakpointViewModel : NotifiableObject, ICloneable
         ClearCheckpointNumbers();
         IsCurrentlyHit = false;
         AddressRanges = null;
-        HasErrors = false;
+        Error = BreakpointError.None;
     }
     object ICloneable.Clone() => Clone();
     public BreakpointViewModel Clone()

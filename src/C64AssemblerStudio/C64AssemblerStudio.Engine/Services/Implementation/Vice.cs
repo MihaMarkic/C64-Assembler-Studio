@@ -127,6 +127,7 @@ public class Vice : NotifiableObject, IVice
     private void BridgeOnConnectedChanged(object? sender, ConnectedChangedEventArgs e)
     {
         IsConnected = e.IsConnected;
+        _logger.LogDebug("VICE changed to {connected}", e.IsConnected);
     }
 
     public async Task ConnectAsync(CancellationToken ct = default)
@@ -147,8 +148,8 @@ public class Vice : NotifiableObject, IVice
         if (!IsConnected)
         {
             await _bridge.WaitForConnectionStatusChangeAsync(ct);
-            await InitRegistersMappingAsync(ct);
         }
+        await InitRegistersMappingAsync(ct);
     }
 
     public async Task StartDebuggingAsync(CancellationToken ct = default)
@@ -313,18 +314,18 @@ public class Vice : NotifiableObject, IVice
         var result = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         return result is not null;
     }
-    public async Task<bool> ArmBreakpointAsync(BreakpointViewModel breakpoint, CancellationToken ct)
+    public async Task<BreakpointError> ArmBreakpointAsync(BreakpointViewModel breakpoint, CancellationToken ct)
     {
-        if (breakpoint.HasErrors)
-        {
-            _logger.Log(LogLevel.Warning, "Breakpoint has errors {ErrorText} on re-arm", breakpoint.ErrorText);
-            return false;
-        }
+        // if (breakpoint.HasErrors)
+        // {
+        //     _logger.Log(LogLevel.Warning, "Breakpoint has errors {ErrorText} on re-arm", breakpoint.ErrorText);
+        //     return false;
+        // }
 
         if (breakpoint.AddressRanges is null)
         {
             _logger.LogError("Breakpoint doesn't have address range");
-            return false;
+            return BreakpointError.NoAddressRange;
         }
         breakpoint.ClearCheckpointNumbers();
         foreach (var addressRange in breakpoint.AddressRanges)
@@ -353,14 +354,14 @@ public class Vice : NotifiableObject, IVice
                             new CheckpointDeleteCommand(checkpointSetResponse.CheckpointNumber),
                                 resumeOnStopped: true);
                         await checkpointDeleteCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, checkpointDeleteCommand, ct: ct);
-                        return false;
+                        return BreakpointError.InvalidConditon;
                     }
                 }
                 breakpoint.AddCheckpointNumber(addressRange, checkpointSetResponse.CheckpointNumber);
             }
         }
 
-        return true;
+        return BreakpointError.None;
     }
 
     public async Task<bool> ToggleCheckpointAsync(uint checkpointNumber, bool targetEnabledState, CancellationToken ct = default)
@@ -387,16 +388,20 @@ public class Vice : NotifiableObject, IVice
         }
         base.OnPropertyChanged(name);
     }
-
-    protected override void Dispose(bool disposing)
+    
+    public async Task DisconnectAsync(CancellationToken ct = default)
     {
-        if (disposing)
+        _logger.LogDebug("Disconnecting");
+        await _bridge.StopAsync(waitForQueueToProcess: false);
+        _logger.LogDebug("Bridge stopped");
+        _bridge.ConnectedChanged -= BridgeOnConnectedChanged;
+        _bridge.ViceResponse -= BridgeOnViceResponse;
+        if (_process is not null)
         {
-            _ = _bridge.StopAsync(waitForQueueToProcess: false);
-            _bridge.ConnectedChanged -= BridgeOnConnectedChanged;
-            _bridge.ViceResponse -= BridgeOnViceResponse;
+            _process.Kill();
+            _logger.LogDebug("VICE process closed");
         }
-
-        base.Dispose(disposing);
+        _logger.LogDebug("Disconnected");
     }
+
 }

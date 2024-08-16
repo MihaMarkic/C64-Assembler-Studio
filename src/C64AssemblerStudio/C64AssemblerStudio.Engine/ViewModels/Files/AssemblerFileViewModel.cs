@@ -81,13 +81,25 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         ByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         MatchingByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         Errors = FrozenDictionary<int, ImmutableArray<SyntaxError>>.Empty;
-        AddOrRemoveBreakpointCommand = new RelayCommandWithParameterAsync<int>(AddOrRemoveBreakpoint);
+        AddOrRemoveBreakpointCommand = new RelayCommandWithParameterAsync<int>(AddOrRemoveBreakpoint, CanSetOrRemoveBreakpointAtLine);
         Breakpoints.Breakpoints.CollectionChanged += BreakpointsOnCollectionChanged;
         UpdateErrors();
         _compilerErrors.Lines.CollectionChanged += CompilerErrors_LinesOnCollectionChanged;
         _vice.PropertyChanged += ViceOnPropertyChanged;
         UpdateCallStackItems();
         _callStack.PropertyChanged += CallStackOnPropertyChanged;
+    }
+
+    public bool CanSetOrRemoveBreakpointAtLine(int lineNumber)
+    {
+        var breakpoint = GetBreakPointAtLine(lineNumber);
+        // addition is possible only on non-empty lines
+        if (breakpoint is null)
+        {
+            return Lines.Length > lineNumber && Lines[lineNumber]?.Items.Length > 0;
+        }
+        // always can remove
+        return true;
     }
 
     private void CallStackOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -156,9 +168,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         UpdateErrors();
     }
 
-    public bool HasBreakPointAtLine(int lineNumber)
+    public BreakpointViewModel? GetBreakPointAtLine(int lineNumber)
     {
-        return Breakpoints.GetLineBreakpointForLine(File.GetRelativeFilePath(), lineNumber) is not null;
+        return Breakpoints.GetLineBreakpointForLine(File.GetRelativeFilePath(), lineNumber);
     }
 
     void UpdateErrors()

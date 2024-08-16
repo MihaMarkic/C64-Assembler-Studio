@@ -33,6 +33,8 @@ Upon successful project creation Project Explorer will show both files in projec
 
 ### Running the project
 
+**Important**: Make sure no other VICE instance is running otherwise binary monitor will latch to one already running. This will be improved in future. The problem is that (binary) monitor URL within VICE is shared between instances and it can't be changed for a single instance.
+
 Click on `Run` button first builds the project and if successful, starts debugging by first launching and instance of VICE, uploading compiled application and running it.
 
 Kick Assembler output is displayed in Build Output window.

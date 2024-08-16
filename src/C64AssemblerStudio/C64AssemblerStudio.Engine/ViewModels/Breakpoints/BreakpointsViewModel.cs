@@ -64,8 +64,6 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
     private readonly Dictionary<BreakpointLineKey, List<BreakpointViewModel>> _breakpointsLinesMap = new();
 
-    // readonly Dictionary<PdbLine, List<BreakpointViewModel>> breakpointsLinesMap;
-    // readonly Dictionary<uint, BreakpointViewModel> breakpointsMap;
     private readonly TaskFactory _uiFactory;
     public RelayCommandWithParameterAsync<BreakpointViewModel> ToggleBreakpointEnabledCommand { get; }
     public RelayCommandWithParameterAsync<BreakpointViewModel> ShowBreakpointPropertiesCommand { get; }
@@ -79,7 +77,10 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     /// <summary>
     /// When true, it shouldn't update breakpoints settings
     /// </summary>
-    bool _suppressLocalPersistence;
+    private bool _suppressLocalPersistence;
+
+    private SourceLineBlockItemsMap? _sourceFiles;
+    private LabelsNameMap? _labels;
 
     public BreakpointsViewModel(ILogger<BreakpointsViewModel> logger, IVice vice, IDispatcher dispatcher,
         Globals globals,
@@ -108,7 +109,6 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             _commandsManager.CreateRelayCommandWithParameterAsync<BreakPointContext>(BreakPointContextAsync);
         RemoveBreakpointCommand =
             _commandsManager.CreateRelayCommandWithParameterAsync<BreakpointViewModel>(RemoveBreakpointAsync);
-        // TODO disable breakpoints manipulation when vice is not connected
         RemoveAllBreakpointsCommand =
             _commandsManager.CreateRelayCommandAsync(RemoveAllBreakpointsAsync, () => IsProjectOpen);
         CreateBreakpointCommand = _commandsManager.CreateRelayCommandAsync(CreateBreakpoint, () => IsProjectOpen);
@@ -332,14 +332,11 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         Debug.Assert(Breakpoints.All(bp => !bp.CheckpointNumbers.Any()));
         Debug.Assert(_vice.IsConnected);
         var project = (KickAssProjectViewModel)_globals.Project.ValueOrThrow();
-        var sourceFiles = MapDebugSourceFileNameToBlockItems(project);
-        var labels = MapLabelsToName(project);
+        _sourceFiles = MapDebugSourceFileNameToBlockItems(project);
+        _labels = MapLabelsToName(project);
         foreach (var b in Breakpoints)
         {
-            if (!await ArmBreakpointAsync(sourceFiles, labels, b, ct))
-            {
-                b.HasErrors = true;
-            }
+            b.Error = await ArmBreakpointAsync(_sourceFiles, _labels, b, ct);
         }
         _logger.LogDebug("Breakpoints armed");
     }
@@ -347,7 +344,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     internal LabelsNameMap MapLabelsToName(KickAssProjectViewModel project)
     {
         Guard.IsNotNull(project.DbgData);
-        return project.AppInfo.SourceFiles.SelectMany(s => s.Value.Labels.Values)
+        return project.AppInfo!.SourceFiles.SelectMany(s => s.Value.Labels.Values)
             .ToFrozenDictionary(l => l.Name);
     }
 
@@ -398,7 +395,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         return map;
     }
 
-    public async Task<bool> ArmBreakpointAsync(SourceLineBlockItemsMap sourceFiles, LabelsNameMap labels,
+    public async Task<BreakpointError> ArmBreakpointAsync(SourceLineBlockItemsMap sourceFiles, LabelsNameMap labels,
         BreakpointViewModel breakpoint, CancellationToken ct)
     {
         breakpoint.AddressRanges = breakpoint.Bind switch
@@ -410,13 +407,13 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         if (breakpoint.AddressRanges is null || breakpoint.AddressRanges.Count == 0)
         {
             _logger.LogWarning("Couldn't bind breakpoint because no address ranges");
-            return false;
+            return BreakpointError.NoAddressRange;
         }
 
         try
         {
-            bool result = await _vice.ArmBreakpointAsync(breakpoint, ct);
-            if (result)
+            var result = await _vice.ArmBreakpointAsync(breakpoint, ct);
+            if (result == BreakpointError.None)
             {
                 AddBreakpointToMap(breakpoint);
             }
@@ -429,7 +426,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             _logger.LogError("Failed arming a breakpoint due to timeout");
         }
 
-        return false;
+        return BreakpointError.ViceFailure;
     }
 
     /// <summary>
@@ -482,33 +479,36 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
     public async Task DisarmAllBreakpointsAsync(CancellationToken ct = default)
     {
-        // collects all applied check points in VICE
-        var checkpointsList = await _vice.GetCheckpointsListAsync(ct);
-        if (checkpointsList is not null)
+        if (_vice.IsConnected)
         {
-            // builds map of CheckpointNumber->breakpoint
-            var map = new Dictionary<uint, BreakpointViewModel>();
-            foreach (var b in Breakpoints)
+            // collects all applied check points in VICE
+            var checkpointsList = await _vice.GetCheckpointsListAsync(ct);
+            if (checkpointsList is not null)
             {
-                foreach (var cn in b.CheckpointNumbers)
+                // builds map of CheckpointNumber->breakpoint
+                var map = new Dictionary<uint, BreakpointViewModel>();
+                foreach (var b in Breakpoints)
                 {
-                    map.Add(cn, b);
+                    foreach (var cn in b.CheckpointNumbers)
+                    {
+                        map.Add(cn, b);
+                    }
                 }
-            }
 
-            foreach (var ci in checkpointsList.Info)
-            {
-                if (map.TryGetValue(ci.CheckpointNumber, out var breakpoint))
+                foreach (var ci in checkpointsList.Info)
                 {
-                    // deletes only those that are part of breakpoints
-                    await _vice.DeleteCheckpointAsync(ci.CheckpointNumber, ct);
-                    breakpoint.RemoveCheckpointNumber(ci.CheckpointNumber);
-                }
-                else
-                {
-                    _logger.Log(LogLevel.Warning,
-                        "Breakpoint with checkpoint number {CheckpointNumber} not found when disarming",
-                        ci.CheckpointNumber);
+                    if (map.TryGetValue(ci.CheckpointNumber, out var breakpoint))
+                    {
+                        // deletes only those that are part of breakpoints
+                        await _vice.DeleteCheckpointAsync(ci.CheckpointNumber, ct);
+                        breakpoint.RemoveCheckpointNumber(ci.CheckpointNumber);
+                    }
+                    else
+                    {
+                        _logger.Log(LogLevel.Warning,
+                            "Breakpoint with checkpoint number {CheckpointNumber} not found when disarming",
+                            ci.CheckpointNumber);
+                    }
                 }
             }
         }
@@ -518,6 +518,8 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             b.MarkDisarmed();
         }
 
+        _sourceFiles = null;
+        _labels = null;
         _breakpointsMap.Clear();
     }
 
@@ -543,7 +545,21 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         string? condition, CancellationToken ct = default)
     {
         var bind = new BreakpointLineBind(filePath, lineNumber, null);
-        await AddBreakpointAsync(true, true, BreakpointMode.Exec, bind, ImmutableArray<AddressRange>.Empty, null,
+        ImmutableArray<AddressRange> addresses;
+        // address can be retrieved only when running using debug information
+        if (_sourceFiles is not null)
+        {
+            var breakPointAddresses = GetAddressRangesForLineBreakpoint(_sourceFiles, bind);
+            addresses =
+                breakPointAddresses?.Select(b => AddressRange.FromRange(b.Start, b.End)).ToImmutableArray() ??
+                ImmutableArray<AddressRange>.Empty;
+        }
+        else
+        {
+            addresses = ImmutableArray<AddressRange>.Empty;
+        }
+
+        await AddBreakpointAsync(true, true, BreakpointMode.Exec, bind, addresses, null,
             ct);
     }
 
@@ -646,7 +662,8 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
             bool allRemoved = true;
             foreach (var cn in checkpointNumbers)
             {
-                bool success = await _vice.DeleteCheckpointAsync(cn, ct);
+                // delete from VICE only when connected
+                bool success = !_vice.IsConnected || await _vice.DeleteCheckpointAsync(cn, ct);
                 if (!success)
                 {
                     // TODO what to do if some fails?
@@ -725,7 +742,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
         sourceBreakpoint.CopyFrom(breakpoint);
         // clears configuration errors if any
-        sourceBreakpoint.HasErrors = false;
+        sourceBreakpoint.Error = BreakpointError.None;
         sourceBreakpoint.ErrorText = null;
         // arm breakpoint only when debugging
         if (_vice.IsDebugging)

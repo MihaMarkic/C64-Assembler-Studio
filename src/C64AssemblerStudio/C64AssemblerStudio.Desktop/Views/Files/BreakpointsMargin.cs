@@ -13,6 +13,7 @@ public class BreakpointsMargin : AdditionalLineInfoMargin
     // diameter of breakpoint icon
     private const double D = 14;
     private static readonly IBrush ActiveBrush = Brushes.Red;
+    private static readonly IBrush ErrorBrush = new SolidColorBrush(Color.FromArgb(0x1F,0xFF,0x00, 0x00));
     private static readonly IBrush HoverBrush = Brushes.LightGray;
     private readonly AssemblerFileViewModel _sourceFileViewModel;
     private int? _hoverLine;
@@ -56,11 +57,12 @@ public class BreakpointsMargin : AdditionalLineInfoMargin
             foreach (var visualLine in textView.VisualLines)
             {
                 var lineNumber = visualLine.FirstDocumentLine.LineNumber;
-                if (_sourceFileViewModel.HasBreakPointAtLine(lineNumber - 1))
+                var breakpoint = _sourceFileViewModel.GetBreakPointAtLine(lineNumber - 1);
+                if (breakpoint is not null)
                 {
-                    DrawBreakpointIcon(drawingContext, ActiveBrush, visualLine);
+                    DrawBreakpointIcon(drawingContext, breakpoint.HasErrors ? ErrorBrush : ActiveBrush, visualLine);
                 }
-                else if (lineNumber == _hoverLine)
+                else if (lineNumber == _hoverLine && _sourceFileViewModel.CanSetOrRemoveBreakpointAtLine(lineNumber - 1))
                 {
                     DrawBreakpointIcon(drawingContext, HoverBrush, visualLine);
                 }
@@ -83,7 +85,10 @@ public class BreakpointsMargin : AdditionalLineInfoMargin
             if (visualLine is not null)
             {
                 var lineNumber = visualLine.FirstDocumentLine.LineNumber;
-                await _sourceFileViewModel.AddOrRemoveBreakpoint(lineNumber - 1);
+                if (_sourceFileViewModel.AddOrRemoveBreakpointCommand.CanExecute(lineNumber - 1))
+                {
+                    await _sourceFileViewModel.AddOrRemoveBreakpoint(lineNumber - 1);
+                }
             }
         }
         e.Handled = true;

@@ -7,6 +7,7 @@ using Avalonia.Platform.Storage;
 using C64AssemblerStudio.Desktop.Views.Dialogs;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
+using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels;
 
 namespace C64AssemblerStudio.Desktop.Views.Main;
@@ -161,17 +162,11 @@ partial class MainWindow : Window
             if (await ViewModel.CanCloseProject())
             {
                 _canClose = true;
+                await ViewModel.CloseAsync();
                 Close();
             }
         }
 
         base.OnClosing(e);
-    }
-
-    protected override void OnClosed(EventArgs e)
-    {
-        //messagesHistoryWindow?.Close();
-        //Bootstrap.Close();
-        base.OnClosed(e);
     }
 }

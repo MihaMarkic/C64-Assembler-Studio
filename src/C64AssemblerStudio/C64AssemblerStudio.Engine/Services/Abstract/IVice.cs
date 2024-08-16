@@ -23,7 +23,8 @@ public interface IVice: INotifyPropertyChanged
     Task StepIntoAsync(CancellationToken ct = default);
     Task StepOverAsync(CancellationToken ct = default);
     Task<bool> DeleteCheckpointAsync(uint checkpointNumber, CancellationToken ct = default);
-    Task<bool> ArmBreakpointAsync(BreakpointViewModel breakpoint, CancellationToken ct);
+    Task<BreakpointError> ArmBreakpointAsync(BreakpointViewModel breakpoint, CancellationToken ct);
     Task<bool> ToggleCheckpointAsync(uint checkpointNumber, bool targetEnabledState, CancellationToken ct = default);
     Task<CheckpointListResponse?> GetCheckpointsListAsync(CancellationToken ct = default);
+    Task DisconnectAsync(CancellationToken ct = default);
 }

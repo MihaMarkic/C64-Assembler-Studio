@@ -53,6 +53,9 @@
           </Setter.Value>
         </Setter>
       </Style>
+      <Style Selector="DataGridRow.error">
+        <Setter Property="Background" Value="#1FFF0000" />
+      </Style>
     </DataGrid.Styles>
     <DataGrid.Resources>
       <converters:HexAddressConverter x:Key="HexAddressConverter" />
@@ -64,7 +67,7 @@
       <DataGridTextColumn Header="Number" IsReadOnly="true" CellStyleClasses="colored" 
         Binding="{Binding CheckpointNumbers, Converter={StaticResource UIntArrayToTextConverter}, Mode=OneWay}"/>
       <DataGridCheckBoxColumn CellStyleClasses="colored" Header="Enabled" Binding="{Binding IsEnabled}" IsReadOnly="True" />
-      <DataGridCheckBoxColumn CellStyleClasses="colored" Header="Errors" Binding="{Binding HasErrors, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" Header="Error" Binding="{Binding Error, Mode=OneWay}" IsReadOnly="True" />
       <DataGridCheckBoxColumn CellStyleClasses="colored" Header="Stop" Binding="{Binding StopWhenHit}" IsReadOnly="True" />
       <DataGridTextColumn CellStyleClasses="colored" Header="Mode" Binding="{Binding Mode, Mode=OneWay}" IsReadOnly="True" />
       <DataGridTextColumn CellStyleClasses="colored" Header="Ranges" 
@@ -76,6 +79,7 @@
       <DataGridTextColumn CellStyleClasses="colored" Header="Hit Count" Binding="{Binding HitCount, Mode=OneWay}" IsReadOnly="True" />
       <DataGridTextColumn CellStyleClasses="colored" Header="Ignore Count" Binding="{Binding IgnoreCount, Mode=OneWay}" IsReadOnly="True" />
       <DataGridTextColumn CellStyleClasses="colored" Header="Condition" Binding="{Binding Condition, Mode=OneWay}" IsReadOnly="True" Width="*" />
+      <DataGridTextColumn CellStyleClasses="colored" Header="Error text" Binding="{Binding ErrorText, Mode=OneWay}" IsReadOnly="True" />
     </DataGrid.Columns>
   </DataGrid>
 </DockPanel>

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Common;
@@ -69,8 +70,8 @@ public class MainViewModel : ViewModel
 
     // TODO implement
     public bool IsBusy => false;
-    public bool IsApplicationRunning { get; private set; }
-    public bool IsDebugging => Vice.IsDebugging || IsApplicationRunning;
+    public bool IsDebuggingStarting { get; private set; }
+    public bool IsDebugging => Vice.IsDebugging || IsDebuggingStarting;
     public bool IsDebuggingPaused => Vice.IsPaused;
     public bool IsBuilding { get; private set; }
     public bool IsProjectOpen => _globals.IsProjectOpen;
@@ -136,8 +137,8 @@ public class MainViewModel : ViewModel
         BuildCommand =
             _commandsManager.CreateRelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
         RunCommand = _commandsManager.CreateRelayCommandAsync(StartDebuggingAsync,
-            () => IsProjectOpen && (!IsApplicationRunning || IsDebuggingPaused));
-        StopCommand = _commandsManager.CreateRelayCommandAsync(StopDebuggingAsync, () => IsApplicationRunning);
+            () => IsProjectOpen && !(IsDebuggingStarting || IsDebugging && !IsDebuggingPaused));
+        StopCommand = _commandsManager.CreateRelayCommandAsync(StopDebuggingAsync, () => IsDebuggingStarting || IsDebugging);
         PauseCommand =
             _commandsManager.CreateRelayCommandAsync(PauseDebuggingAsync, () => IsDebugging && !IsDebuggingPaused);
         StepIntoCommand =
@@ -172,6 +173,13 @@ public class MainViewModel : ViewModel
             case nameof(IVice.IsPaused):
                 OnPropertyChanged(nameof(IsDebuggingPaused));
                 break;
+            case nameof(IVice.IsConnected):
+                if (!Vice.IsConnected && IsDebugging)
+                {
+                    DebugOutput.AddLine("Lost connection with VICE while debugging");
+                    _ = StopDebuggingAsync();
+                }
+                break;
         }
     }
 
@@ -198,17 +206,22 @@ public class MainViewModel : ViewModel
 
     internal async Task StopDebuggingAsync()
     {
-        if (IsApplicationRunning)
+        if (IsDebuggingStarting)
         {
             DebugOutput.AddLine("Stopping");
             await _debuggingCts.CancelNullableAsync();
         }
 
         DebugOutput.AddLine("Stopping");
+        if (!Vice.IsConnected)
+        {
+            DebugOutput.AddLine("VICE not connected, won't clear its state");
+        }
+        
+        // the two cleaning guys below should work even when VICE is not connected anymore
         await Breakpoints.DisarmAllBreakpointsAsync();
         await Vice.StopDebuggingAsync();
         DebugOutput.AddLine("Stopped");
-        IsApplicationRunning = false;
     }
 
     private CancellationTokenSource? _debuggingCts;
@@ -224,9 +237,9 @@ public class MainViewModel : ViewModel
             }
             else
             {
+                IsDebuggingStarting = true;
                 _debuggingCts = new CancellationTokenSource();
                 var ct = _debuggingCts.Token;
-                IsApplicationRunning = true;
                 DebugOutput.AddLine("Building");
                 StatusInfo.DebuggingStatus = DebuggingStatus.Idle;
                 var viceConnectTask = Vice.ConnectAsync(ct);
@@ -243,7 +256,6 @@ public class MainViewModel : ViewModel
                     }
                     catch (TimeoutException ex)
                     {
-                        IsApplicationRunning = false;
                         DebugOutput.AddLine("Timeout while waiting for connection");
                         _logger.LogError(ex, "Failed debugging");
                         StatusInfo.BuildingStatus = BuildStatus.Idle;
@@ -264,10 +276,13 @@ public class MainViewModel : ViewModel
         }
         catch (Exception ex)
         {
-            IsApplicationRunning = false;
             DebugOutput.AddLine($"Debugging error: {ex.Message}");
             _logger.LogError(ex, "Failed debugging");
-            StatusInfo.BuildingStatus = BuildStatus.Idle;
+            StatusInfo.DebuggingStatus = DebuggingStatus.Idle;
+        }
+        finally
+        {
+            IsDebuggingStarting = false;
         }
     }
 
@@ -497,11 +512,21 @@ public class MainViewModel : ViewModel
 
     public async Task<bool> CanCloseProject()
     {
+        if (IsDebugging)
+        {
+            DebugOutput.AddLine("Can't close project during debugging");
+            return false;
+        }
+        
         if (Files.HasChanges)
         {
             try
             {
-                return await Files.CloseAllFilesAsync();
+                bool allFilesClosed = await Files.CloseAllFilesAsync();
+                if (!allFilesClosed)
+                {
+                    return false;
+                }
             }
             catch (Exception ex)
             {
@@ -510,7 +535,23 @@ public class MainViewModel : ViewModel
             }
         }
 
+        if (IsDebugging)
+        {
+            // TODO ask for debug stop
+        }
         return true;
+    }
+
+    public async Task CloseAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            await Vice.DisconnectAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed disconnecting");
+        }
     }
 
     void OnShowModalDialog(ShowModalDialogMessageCore message)
