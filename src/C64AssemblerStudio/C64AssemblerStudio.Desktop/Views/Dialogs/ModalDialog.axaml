@@ -11,6 +11,7 @@
              xmlns:dialogs="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Dialogs;assembly=C64AssemblerStudio.Engine"
              xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
              xmlns:files="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
+             xmlns:bd="clr-namespace:C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints"
              x:DataType="msg:ShowModalDialogMessageCore"
              x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.ModalDialog">
     <UserControl.DataTemplates>
@@ -24,7 +25,7 @@
             <v:RenameItemDialog />
         </DataTemplate>
         <DataTemplate DataType="breakpoints:BreakpointDetailViewModel">
-            <v:BreakpointDetails />
+            <bd:BreakpointDetails />
         </DataTemplate>
         <DataTemplate DataType="files:SaveFileDialogViewModel">
             <v:SaveFilesDialog />

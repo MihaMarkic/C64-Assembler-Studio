@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Core;
+﻿using System.IO;
+using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Desktop.Services.Implementation;
 using C64AssemblerStudio.Engine;
 using C64AssemblerStudio.Engine.Services.Abstract;
@@ -15,7 +16,7 @@ public static class ContainerConfiguration
     {
         var config = new ConfigurationBuilder()
              .SetBasePath(Directory.GetCurrentDirectory())
-             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
              .Build();
 
         bool messagesHistory = config.GetValue<bool>("Application:MessagesHistory", false);

@@ -49,4 +49,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\main.template" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Grammars\BreakpointConditions\gen\" />
+  </ItemGroup>
 </Project>

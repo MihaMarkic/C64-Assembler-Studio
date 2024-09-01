@@ -8,16 +8,17 @@ namespace TestsBase;
 public abstract class BaseTest<T>
     where T : class
 {
-    protected Fixture _fixture = default!;
-    T _target = default!;
-    public T Target
+    protected Fixture Fixture = default!;
+    private T? _target = default!;
+
+    protected T Target
     {
         [DebuggerStepThrough]
         get
         {
             if (_target is null)
             {
-                _target = _fixture.Build<T>().OmitAutoProperties().Create();
+                _target = Fixture.Build<T>().OmitAutoProperties().Create();
             }
             return _target;
         }
@@ -26,8 +27,8 @@ public abstract class BaseTest<T>
     [SetUp]
     public void SetUp()
     {
-        _fixture = new Fixture();
-        _fixture.Customize(new AutoNSubstituteCustomization());
+        Fixture = new Fixture();
+        Fixture.Customize(new AutoNSubstituteCustomization());
     }
     [TearDown]
     public void TearDown()

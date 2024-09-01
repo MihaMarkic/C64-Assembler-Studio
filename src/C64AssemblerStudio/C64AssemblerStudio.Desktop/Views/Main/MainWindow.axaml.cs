@@ -68,12 +68,18 @@ partial class MainWindow : Window
     protected override void OnKeyUp(KeyEventArgs e)
     {
         base.OnKeyUp(e);
-        ViewModel.IsShiftDown = false;
+        if (ViewModel is not null)
+        {
+            ViewModel.IsShiftDown = false;
+        }
     }
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        ViewModel.IsShiftDown = e.KeyModifiers == KeyModifiers.Shift;
+        if (ViewModel is not null)
+        {
+            ViewModel.IsShiftDown = e.KeyModifiers == KeyModifiers.Shift;
+        }
     }
     internal async Task<string?> ShowOpenProjectFileDialogAsync(OpenFileDialogModel model,
         CancellationToken ct)
@@ -152,18 +158,21 @@ partial class MainWindow : Window
         //}
     }
 
-    public MainViewModel ViewModel => (MainViewModel)DataContext!;
+    public MainViewModel? ViewModel => (MainViewModel?)DataContext!;
     private bool _canClose;
     protected override async void OnClosing(WindowClosingEventArgs e)
     {
         if (!_canClose)
         {
             e.Cancel = true;
-            if (await ViewModel.CanCloseProject())
+            if (ViewModel is not null)
             {
-                _canClose = true;
-                await ViewModel.CloseAsync();
-                Close();
+                if (await ViewModel.CanCloseProject())
+                {
+                    _canClose = true;
+                    await ViewModel.CloseAsync();
+                    Close();
+                }
             }
         }
 

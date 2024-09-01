@@ -1,0 +1,16 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+             xmlns:behaviors="clr-namespace:C64AssemblerStudio.Desktop.Behaviors"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="C64AssemblerStudio.Desktop.Controls.SyntaxEditor">
+    <avaloniaEdit:TextEditor x:Name="Editor" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Stretch"
+      Foreground="Gray" FontFamily="{StaticResource CodeFont}" MinHeight="20" ShowLineNumbers="False" Margin="0,5"
+      FontSize="14">
+      <Interaction.Behaviors>
+        <behaviors:DocumentTextBindingBehavior Text="{Binding $parent.Text, Mode=TwoWay}"/>
+      </Interaction.Behaviors>
+    </avaloniaEdit:TextEditor>
+</UserControl>

@@ -14,8 +14,9 @@ public class AddressEntryGrammarService : IAddressEntryGrammarService
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            return(true, ImmutableArray<SyntaxError>.Empty.Add(new SyntaxError(0, 0, "Value can not be empty")));
+            return (true, ImmutableArray<SyntaxError>.Empty.Add(new SyntaxError(0, 0, "Value can not be empty")));
         }
+
         var input = new AntlrInputStream(text);
         var lexer = new AddressEntryLexer(input);
         var tokenStream = new CommonTokenStream(lexer);
@@ -38,6 +39,7 @@ public class AddressEntryGrammarService : IAddressEntryGrammarService
         {
             return null;
         }
+
         var input = new AntlrInputStream(text);
         var lexer = new AddressEntryLexer(input);
         var tokenStream = new CommonTokenStream(lexer);
@@ -45,101 +47,106 @@ public class AddressEntryGrammarService : IAddressEntryGrammarService
         {
             BuildParseTree = true,
         };
-        
+
         var evaluator = new EvaluatorVisitor(labels);
         return evaluator.Visit(parser.arguments());
     }
-}
 
-internal class EvaluatorVisitor : AddressEntryParserBaseVisitor<ushort>
-{
-    private readonly IDictionary<string, Label> _labelsMap;
-
-    public EvaluatorVisitor(IDictionary<string, Label> labelsMap)
+    internal class EvaluatorVisitor : AddressEntryParserBaseVisitor<ushort>
     {
-        _labelsMap = labelsMap;
-    }
+        private readonly IDictionary<string, Label> _labelsMap;
 
-    public override ushort VisitPlus(AddressEntryParser.PlusContext context)
-    {
-        return (ushort)(Visit(context.left) + Visit(context.right));
-    }
-
-    public override ushort VisitMinus(AddressEntryParser.MinusContext context)
-    {
-        return (ushort)(Visit(context.left) - Visit(context.right));
-    }
-
-    public override ushort VisitMultiplication(AddressEntryParser.MultiplicationContext context)
-    {
-        return (ushort)(Visit(context.left) * Visit(context.right));
-    }
-
-    public override ushort VisitDivision(AddressEntryParser.DivisionContext context)
-    {
-        ushort right = Visit(context.right);
-        if (right == 0)
+        public EvaluatorVisitor(IDictionary<string, Label> labelsMap)
         {
-            throw new Exception($"Can't divide against 0 (from {context.GetText()})");
-        }
-        return (ushort)(Visit(context.left) / Visit(context.right));
-    }
-
-    public override ushort VisitParens(AddressEntryParser.ParensContext context)
-    {
-        return Visit(context.arguments());
-    }
-
-    public override ushort VisitLabel(AddressEntryParser.LabelContext context)
-    {
-        string labelName = context.GetText();
-        if (_labelsMap.TryGetValue(labelName, out var label))
-        {
-            return label.Address;
+            _labelsMap = labelsMap;
         }
 
-        throw new Exception($"Couldn't find label {context.GetText()}");
-    }
-
-    public override ushort VisitDecNumber(AddressEntryParser.DecNumberContext context)
-    {
-        if (ushort.TryParse(context.GetText(), NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
+        public override ushort VisitPlus(AddressEntryParser.PlusContext context)
         {
-            return value;
+            return (ushort)(Visit(context.left) + Visit(context.right));
         }
 
-        throw new Exception($"Couldn't parse {context.GetText()} as decimal");
-    }
-
-    public override ushort VisitBinNumber(AddressEntryParser.BinNumberContext context)
-    {
-        if (ushort.TryParse(context.GetText().AsSpan()[1..], NumberStyles.BinaryNumber, CultureInfo.InvariantCulture, out var value))
+        public override ushort VisitMinus(AddressEntryParser.MinusContext context)
         {
-            return value;
+            return (ushort)(Visit(context.left) - Visit(context.right));
         }
 
-        throw new Exception($"Couldn't parse {context.GetText()} as binary");
-    }
-
-    public override ushort VisitHexNumber(AddressEntryParser.HexNumberContext context)
-    {
-        if (ushort.TryParse(context.GetText().AsSpan()[1..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var value))
+        public override ushort VisitMultiplication(AddressEntryParser.MultiplicationContext context)
         {
-            return value;
+            return (ushort)(Visit(context.left) * Visit(context.right));
         }
 
-        throw new Exception($"Couldn't parse {context.GetText()} as hexadecimal");
+        public override ushort VisitDivision(AddressEntryParser.DivisionContext context)
+        {
+            ushort right = Visit(context.right);
+            if (right == 0)
+            {
+                throw new Exception($"Can't divide against 0 (from {context.GetText()})");
+            }
+
+            return (ushort)(Visit(context.left) / Visit(context.right));
+        }
+
+        public override ushort VisitParens(AddressEntryParser.ParensContext context)
+        {
+            return Visit(context.arguments());
+        }
+
+        public override ushort VisitLabel(AddressEntryParser.LabelContext context)
+        {
+            string labelName = context.GetText();
+            if (_labelsMap.TryGetValue(labelName, out var label))
+            {
+                return label.Address;
+            }
+
+            throw new Exception($"Couldn't find label {context.GetText()}");
+        }
+
+        public override ushort VisitDecNumber(AddressEntryParser.DecNumberContext context)
+        {
+            if (ushort.TryParse(context.GetText(), NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
+            {
+                return value;
+            }
+
+            throw new Exception($"Couldn't parse {context.GetText()} as decimal");
+        }
+
+        public override ushort VisitBinNumber(AddressEntryParser.BinNumberContext context)
+        {
+            if (ushort.TryParse(context.GetText().AsSpan()[1..], NumberStyles.BinaryNumber,
+                    CultureInfo.InvariantCulture, out var value))
+            {
+                return value;
+            }
+
+            throw new Exception($"Couldn't parse {context.GetText()} as binary");
+        }
+
+        public override ushort VisitHexNumber(AddressEntryParser.HexNumberContext context)
+        {
+            if (ushort.TryParse(context.GetText().AsSpan()[1..], NumberStyles.HexNumber, CultureInfo.InvariantCulture,
+                    out var value))
+            {
+                return value;
+            }
+
+            throw new Exception($"Couldn't parse {context.GetText()} as hexadecimal");
+        }
     }
-}
 
 
-internal class ErrorListener : IAntlrErrorListener<IToken>
-{
-    public bool HasErrors => Errors.Count > 0;
-    public List<SyntaxError> Errors { get; } = new();
-    public void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine,
-        string msg, RecognitionException e)
+    internal class ErrorListener : IAntlrErrorListener<IToken>
     {
-        Errors.Add(new SyntaxError(line, charPositionInLine, msg));
+        public bool HasErrors => Errors.Count > 0;
+        public List<SyntaxError> Errors { get; } = new();
+
+        public void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line,
+            int charPositionInLine,
+            string msg, RecognitionException e)
+        {
+            Errors.Add(new SyntaxError(line, charPositionInLine, msg));
+        }
     }
 }

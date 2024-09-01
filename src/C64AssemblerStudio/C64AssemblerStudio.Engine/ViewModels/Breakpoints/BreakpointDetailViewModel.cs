@@ -6,6 +6,7 @@ using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.BindingValidators;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
+using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,14 +57,23 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
         get => _endAddressEntryValidator.TextValue;
         set => _endAddressEntryValidator.Update(value);
     }
+
+    public string? BreakpointConditions
+    {
+        get => _breakpointConditionsValidator.TextValue;
+        set => _breakpointConditionsValidator.Update(value);
+    }
     public bool IsAddressRangeReadOnly => IsBreakpointBound;
     public bool IsBreakpointBound => Breakpoint.Bind is not BreakpointNoBind;
     public bool IsModeEnabled => Breakpoint.Bind is not BreakpointLineBind;
     public bool IsExecModeEnabled => Breakpoint.Bind is BreakpointLineBind || Breakpoint.Bind is BreakpointNoBind;
     public bool IsLoadStoreModeEnabled => Breakpoint.Bind is not BreakpointLineBind;
+    public ImmutableArray<SyntaxEditorError> ConditionsErrors { get; private set; }
+    public ImmutableArray<SyntaxEditorToken> Tokens { get; private set; }
     private readonly FrozenDictionary<string, ImmutableArray<IBindingValidator>> _validators;
     private readonly AddressEntryValidator _startAddressEntryValidator;
     private readonly AddressEntryValidator _endAddressEntryValidator;
+    private readonly BreakpointConditionsValidator _breakpointConditionsValidator;
     public BreakpointDetailViewModel(ILogger<BreakpointDetailViewModel> logger, IServiceScope serviceScope,
         Globals globals, IVice vice,
         BreakpointsViewModel breakpoints, BreakpointViewModel breakpoint, BreakpointDetailDialogMode mode)
@@ -82,10 +92,12 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
         Breakpoint.PropertyChanged += Breakpoint_PropertyChanged;
         _startAddressEntryValidator = serviceScope.CreateAddressEntryValidator(nameof(StartAddress), isMandatory: true);
         _endAddressEntryValidator = serviceScope.CreateAddressEntryValidator(nameof(EndAddress), isMandatory: false);
+        _breakpointConditionsValidator = serviceScope.CreateBreakpointConditionValidator(nameof(BreakpointConditions));
         var validatorsBuilder = new Dictionary<string, ImmutableArray<IBindingValidator>>
         {
-            { nameof(StartAddress), ImmutableArray<IBindingValidator>.Empty.Add(_startAddressEntryValidator) },
-            { nameof(EndAddress), ImmutableArray<IBindingValidator>.Empty.Add(_endAddressEntryValidator) }
+            { nameof(StartAddress), [_startAddressEntryValidator] },
+            { nameof(EndAddress), [_endAddressEntryValidator] },
+            { nameof(BreakpointConditions), [_breakpointConditionsValidator] }
         };
         _validators = validatorsBuilder.ToFrozenDictionary();
         // bind all validators
@@ -93,13 +105,31 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
         {
             validator.HasErrorsChanged += ValidatorHasErrorsChanged;
         }
+        _breakpointConditionsValidator.PropertyChanged += BreakpointConditionsValidatorOnPropertyChanged;
         switch (Breakpoint.Bind)
         {
             case BreakpointNoBind noBind:
                 UpdateNoBindAddressesFromViewModel(noBind);
                 break;
         }
+
         _vice.PropertyChanged += ViceOnPropertyChanged;
+        ConditionsErrors = [];
+        Tokens = [];
+        _breakpointConditionsValidator.Update(Breakpoint.Condition);
+    }
+
+    private void BreakpointConditionsValidatorOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(_breakpointConditionsValidator.GrammarErrors):
+                ConditionsErrors = _breakpointConditionsValidator.GrammarErrors;
+                break;
+            case nameof(_breakpointConditionsValidator.Tokens):
+                Tokens = _breakpointConditionsValidator.Tokens;
+                break;
+        }
     }
 
     private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -230,6 +260,9 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
                     var bind = (BreakpointNoBind)Breakpoint.Bind.ValueOrThrow();
                     Breakpoint.Bind = bind with { EndAddress = EndAddress };
                 }
+                break;
+            case nameof(BreakpointConditions):
+                Breakpoint.Condition = BreakpointConditions;
                 break;
         }
     }

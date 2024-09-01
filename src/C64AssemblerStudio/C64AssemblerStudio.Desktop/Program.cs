@@ -35,11 +35,18 @@ namespace C64AssemblerStudio.Desktop
                 LogManager.Shutdown();
             }
         }
-        static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
+
+        static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            // not using Host.CreateDefaultBuilder because FileWatcher (used by default for tracking appsettings)
+            // on Mac is broken - waits a long time
+            var hostBuilder = new HostBuilder();
+            return hostBuilder
                 .ConfigureServices((_, services) =>
                     services.Configure()
-        );
+                );
+        }
+
         // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()

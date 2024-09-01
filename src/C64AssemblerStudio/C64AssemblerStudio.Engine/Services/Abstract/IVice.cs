@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Frozen;
+using System.ComponentModel;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
@@ -12,6 +13,10 @@ public interface IVice: INotifyPropertyChanged
     bool IsPaused { get; }
     bool IsDebugging { get; }
     RegistersViewModel Registers { get; }
+    /// <summary>
+    /// Contains <see cref="BankItem"/> banks grouped by name
+    /// </summary>
+    FrozenDictionary<string, BankItem> BankItemsByName { get; }
     event EventHandler<RegistersEventArgs>? RegistersUpdated;
     event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated;
     event EventHandler<MemoryGetEventArgs>? MemoryUpdated;

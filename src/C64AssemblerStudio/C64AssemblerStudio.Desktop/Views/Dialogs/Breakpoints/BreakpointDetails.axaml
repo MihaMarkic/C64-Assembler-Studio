@@ -6,11 +6,12 @@
              xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
              xmlns:bdlg="clr-namespace:C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints"
              xmlns:models="clr-namespace:C64AssemblerStudio.Engine.Models;assembly=C64AssemblerStudio.Engine"
-             xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
-             xmlns:behaviors="clr-namespace:C64AssemblerStudio.Desktop.Behaviors"
+             xmlns:controls="clr-namespace:C64AssemblerStudio.Desktop.Controls"
+             xmlns:sem="clr-namespace:C64AssemblerStudio.Engine.Models.SyntaxEditor;assembly=C64AssemblerStudio.Engine"
+             xmlns:common="clr-namespace:C64AssemblerStudio.Desktop.Views.Common"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
              x:DataType="bvm:BreakpointDetailViewModel"
-             x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.BreakpointDetails">
+             x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints.BreakpointDetails">
     <Grid Margin="8" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto"
   HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
   <Grid.Styles>
@@ -30,7 +31,7 @@
     <converters:BreakpointAddressRangesToStringConverter x:Key="BreakpointAddressRangesToStringConverter" />
   </Grid.Resources>
   <CheckBox Grid.Column="1" IsChecked="{Binding Breakpoint.IsEnabled, Mode=TwoWay}">Is enabled</CheckBox>
-  <CheckBox Grid.Column="2" Grid.Row="1" IsChecked="{Binding Breakpoint.StopWhenHit, Mode=TwoWay}">Stop when hit</CheckBox>
+  <CheckBox Grid.Column="1" Grid.Row="1" IsChecked="{Binding Breakpoint.StopWhenHit, Mode=TwoWay}">Stop when hit</CheckBox>
 
   <Label Grid.Column="0" Grid.Row="2">Addresses</Label>
   <!--<StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal">
@@ -63,7 +64,7 @@
     IsLoadEnabled="{Binding IsLoadStoreModeEnabled}"
     IsStoreEnabled="{Binding IsLoadStoreModeEnabled}"/>
 
-  <Label Grid.Row="5" VerticalAlignment="Top" Margin="0,4,4,10">Binding</Label>
+  <Label Grid.Row="5" Grid.Column="0" VerticalAlignment="Top" Margin="0,4,4,10">Binding</Label>
   <StackPanel Grid.Column="1" Grid.Row="5" Orientation="Vertical" VerticalAlignment="Center">
     <StackPanel Orientation="Horizontal">
       <TextBlock Text="{Binding Breakpoint.BindMode}" HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -84,18 +85,36 @@
     </ContentControl>
   </StackPanel>
 
-  <Label Grid.Column="0" Grid.Row="6">Condition</Label>
-  <avaloniaEdit:TextEditor x:Name="Conditions" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Stretch"
-    Foreground="Gray" FontFamily="{StaticResource CodeFont}" MinHeight="60" ShowLineNumbers="true" Margin="0,5"
-    FontSize="14">
-    <Interaction.Behaviors>
-      <behaviors:DocumentTextBindingBehavior Text="{Binding Breakpoint.Condition, Mode=TwoWay}"/>
-    </Interaction.Behaviors>
-  </avaloniaEdit:TextEditor>
+  <Label Grid.Column="0" Grid.Row="6" VerticalAlignment="Top">Condition</Label>
+  <common:Entry Grid.Column="1" Grid.Row="6" HorizontalAlignment="Stretch"
+                HasErrors="{Binding ConditionsErrors.Length}">
+    <controls:SyntaxEditor
+      Foreground="Gray" FontFamily="{StaticResource CodeFont}" MinHeight="20"
+      FontSize="14" Text="{Binding BreakpointConditions}"
+      Tokens="{Binding Tokens}"
+      Errors="{Binding ConditionsErrors}">
+      <controls:SyntaxEditor.Formatters>
+        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Label}"
+                                        ForegroundColor="Blue" />
+        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Register}"
+                                        ForegroundColor="DarkRed" />
+        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Memspace}"
+                                        ForegroundColor="Green" />
+        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Bank}"
+                                        ForegroundColor="LightSeaGreen" />
+        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Number}"
+                                        ForegroundColor="Black" />
+        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Parens}"
+                                        ForegroundColor="DarkBlue" />
+        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Operator}"
+                                        ForegroundColor="DarkGoldenrod" />
+      </controls:SyntaxEditor.Formatters>
+    </controls:SyntaxEditor>
+  </common:Entry>
 
   <Label Grid.Column="0" Grid.Row="7">Config error</Label>
   <Grid Grid.Column="1" Grid.Row="7" VerticalAlignment="Center">
-    <TextBlock Text="{Binding Breakpoint.ErrorText}" Foreground="DarkRed" IsVisible="{Binding Breakpoint.HasErrors}"/>
+    <TextBlock Text="{Binding Breakpoint.ErrorText}" Foreground="DarkRed" IsVisible="{Binding Breakpoint.HasErrors}" />
     <TextBlock Text="All good" IsVisible="{Binding !Breakpoint.HasErrors}"/>
   </Grid>
 

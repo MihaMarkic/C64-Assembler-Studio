@@ -18,9 +18,11 @@ public static class IoC
         Host = host;
     }
 
-    public static void AddCore(this IServiceCollection services)
+    public static IServiceCollection AddCore(this IServiceCollection services)
     {
-        services.AddSingleton<EnumDisplayTextMapper>();
-        services.AddSingleton<IFileService, FileService>();
+        return services
+            .AddSingleton<EnumDisplayTextMapper>()
+            .AddSingleton<IFileService, FileService>()
+            .AddScoped<IServiceCreator, ServiceCreator>();
     }
 }

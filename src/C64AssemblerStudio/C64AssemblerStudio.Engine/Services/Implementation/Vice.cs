@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Frozen;
+using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
@@ -25,10 +26,22 @@ public class Vice : NotifiableObject, IVice
     public RegistersViewModel Registers { get; }
     public ViceMemoryViewModel Memory { get; }
     public CallStackViewModel CallStack { get; }
+
+    /// <inheritdoc cref="IVice.BankItemsByName"/>
+    public FrozenDictionary<string, BankItem> BankItemsByName { get; private set; } =
+        FrozenDictionary<string, BankItem>.Empty;
+
+    /// <summary>
+    /// Contains <see cref="BankItem"/> banks grouped by BankId
+    /// </summary>
+    /// <remarks>More than one bank can have same id - because aliases</remarks>
+    public FrozenDictionary<ushort, FrozenSet<BankItem>> BankItemsById { get; private set; } =
+        FrozenDictionary<ushort, FrozenSet<BankItem>>.Empty;
+
     private Process? _process;
     public event EventHandler<RegistersEventArgs>? RegistersUpdated;
     public event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated;
-    public event EventHandler<MemoryGetEventArgs>? MemoryUpdated; 
+    public event EventHandler<MemoryGetEventArgs>? MemoryUpdated;
     public bool IsConnected { get; private set; }
     public bool IsDebugging { get; private set; }
     public bool IsPaused { get; private set; }
@@ -124,6 +137,22 @@ public class Vice : NotifiableObject, IVice
         }
     }
 
+    private async Task InitAvailableBanksAsync(CancellationToken ct = default)
+    {
+        var command = _bridge.EnqueueCommand(new BanksAvailableCommand(), resumeOnStopped: true);
+        var response = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+        if (response is not null)
+        {
+            BankItemsById = response.Banks.GroupBy(b => b.BankId)
+                .ToFrozenDictionary(g => g.Key, g => g.ToFrozenSet());
+            BankItemsByName = response.Banks.ToFrozenDictionary(bi => bi.Name);
+        }
+        else
+        {
+            _logger.LogError("Failed retrieving available banks");
+        }
+    }
+
     private void BridgeOnConnectedChanged(object? sender, ConnectedChangedEventArgs e)
     {
         IsConnected = e.IsConnected;
@@ -138,7 +167,7 @@ public class Vice : NotifiableObject, IVice
             _process = StartVice();
             if (_process is null)
             {
-                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, title, "Failed to start debugging"));
+                await _dispatcher.DispatchAsync(new ErrorMessage(ErrorMessageLevel.Error, title, "Failed to start debugging"), ct: ct);
                 return;
             }
 
@@ -150,6 +179,7 @@ public class Vice : NotifiableObject, IVice
             await _bridge.WaitForConnectionStatusChangeAsync(ct);
         }
         await InitRegistersMappingAsync(ct);
+        await InitAvailableBanksAsync(ct);
     }
 
     public async Task StartDebuggingAsync(CancellationToken ct = default)
@@ -273,9 +303,8 @@ public class Vice : NotifiableObject, IVice
         await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
     }
 
-    private void ProcessOnExited(object? sender, EventArgs e)
+    private async void ProcessOnExited(object? sender, EventArgs e)
     {
-        IsConnected = false;
         _process.ValueOrThrow().Exited -= ProcessOnExited;
         _process = null;
     }

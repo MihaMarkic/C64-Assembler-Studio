@@ -8,6 +8,7 @@ using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
 using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
 using Righthand.RetroDbgDataProvider.Models.Program;
+using Label = Righthand.RetroDbgDataProvider.Models.Program.Label;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -75,6 +76,7 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
     public DbgData? DbgData { get; private set; }
     public FrozenDictionary<string, AssemblySegment>? ByteDump { get; private set; }
     public ImmutableArray<ByteDumpLine>? ByteDumpLines { get; private set; }
+    public FrozenDictionary<string, Label>? Labels { get; private set; }
 
     public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject>> logger, ISettingsManager settingsManager,
         IDispatcher dispatcher, IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
@@ -104,6 +106,14 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
         DbgData = await dbgDataTask;
         AppInfo = await ProgramInfoBuilder.BuildAppInfoAsync(Directory, DbgData, ct);
         ByteDumpLines = CreateByteDumpLines(ByteDump, AppInfo);
+        // merges labels from all files into single dictionary
+        var allLabels = AppInfo.SourceFiles.Values.SelectMany(f => f.Labels);
+        var builder = new Dictionary<string, Label>();
+        foreach (var l in allLabels)
+        {
+            builder.Add(l.Key, l.Value);
+        }
+        Labels = builder.ToFrozenDictionary();
     }
 
     /// <summary>

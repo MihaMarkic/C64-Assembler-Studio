@@ -31,5 +31,6 @@ public abstract class BindingValidator : NotifiableObject, IBindingValidator
                 OnHasErrorsChanged(EventArgs.Empty);
                 break;
         }
+        base.OnPropertyChanged(name);
     }
 }

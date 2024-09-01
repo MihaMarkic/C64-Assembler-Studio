@@ -1,4 +1,5 @@
 ﻿using Avalonia.Data.Converters;
+using Avalonia.Media;
 using C64AssemblerStudio.Engine.ViewModels;
 
 namespace C64AssemblerStudio.Desktop.Converters;
@@ -17,6 +18,7 @@ public static class StudioConverters
         new FuncValueConverter<ushort?, string?>(s => s?.ToString("X4"));
     public static readonly IValueConverter AppendDirectorySeparator =
         new FuncValueConverter<string?, string?>(s => string.IsNullOrWhiteSpace(s) ? "": $"{s}{(s.EndsWith(Path.DirectorySeparatorChar) ? "": Path.DirectorySeparatorChar)}");
+    public static readonly IValueConverter ErrorToBrush = new FuncValueConverter<bool, IBrush?>(e => e ? Brushes.Red : null);
 
     public static readonly IValueConverter ToEditorLine =
         new FuncValueConverter<int, int>(l => l + 1);

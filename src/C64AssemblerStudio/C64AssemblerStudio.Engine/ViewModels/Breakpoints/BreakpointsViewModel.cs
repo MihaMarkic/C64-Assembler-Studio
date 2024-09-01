@@ -44,6 +44,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
     public record BreakPointContext(BreakpointViewModel ViewModel, BreakPointContextColumn Column);
 
+    private const int BreakpointPropertiesDefaultHeight = 360;
     public string Header => "Breakpoints";
 
     private readonly ILogger<BreakpointsViewModel> _logger;
@@ -201,8 +202,8 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
                     DialogButton.OK | DialogButton.Cancel,
                     detailViewModel)
                 {
-                    MinSize = new Size(400, 350),
-                    DesiredSize = new Size(600, 350),
+                    MinSize = new Size(400, BreakpointPropertiesDefaultHeight),
+                    DesiredSize = new Size(600, BreakpointPropertiesDefaultHeight),
                 };
             _dispatcher.DispatchShowModalDialog(message);
             var result = await message.Result;
@@ -251,8 +252,8 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
                         DialogButton.OK | DialogButton.Cancel,
                         detailViewModel)
                     {
-                        MinSize = new Size(400, 350),
-                        DesiredSize = new Size(600, 350),
+                        MinSize = new Size(400, BreakpointPropertiesDefaultHeight),
+                        DesiredSize = new Size(600, BreakpointPropertiesDefaultHeight),
                     };
                 _dispatcher.DispatchShowModalDialog(message);
                 var result = await message.Result;

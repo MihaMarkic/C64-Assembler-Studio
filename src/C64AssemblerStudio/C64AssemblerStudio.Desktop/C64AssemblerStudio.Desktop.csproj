@@ -57,6 +57,10 @@
     <None Update="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Compile Update="Views\Dialogs\Breakpoints\BreakpointDetails.axaml.cs">
+      <DependentUpon>BreakpointDetails.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Globalization" />

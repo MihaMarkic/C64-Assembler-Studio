@@ -25,6 +25,8 @@ public static class IoCRegistrar
             .AddSingleton<IVice, Vice>()
             .AddSingleton<RegistersMapping>()
             .AddSingleton<IAddressEntryGrammarService, AddressEntryGrammarService>()
+            .AddSingleton<IBreakpointConditionGrammarService, BreakpointConditionGrammarService>()
+            .AddTransient<BreakpointConditionsListener>()
             // ViewModels
             .AddSingleton<MainViewModel>()
             .AddSingleton<StartPageViewModel>()

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
@@ -124,6 +125,13 @@ public class ProjectFilesWatcherViewModel: ViewModel
     
     void Start(string path)
     {
+#if DEBUG
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            Debug.WriteLine("Project file watcher disabled on MacOS");
+            return;
+        }
+#endif
         _fileWatcher = new FileSystemWatcher(path)
         {
             NotifyFilter = NotifyFilters.Attributes
@@ -150,10 +158,8 @@ public class ProjectFilesWatcherViewModel: ViewModel
         _directoryWatcher.Renamed += OnDirectoryRenamed;
         _directoryWatcher.Error += OnError;
 
-        Debug.WriteLine("Watching directories");
         _directoryWatcher.IncludeSubdirectories = true;
         _directoryWatcher.EnableRaisingEvents = true;
-        Debug.WriteLine("Watching done");
     }
     IEnumerable<ProjectItem> CollectDirectoriesAndFiles(ProjectDirectory? parent, string path)
     {

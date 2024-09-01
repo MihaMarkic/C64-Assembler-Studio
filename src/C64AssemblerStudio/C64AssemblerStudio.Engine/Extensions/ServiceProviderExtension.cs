@@ -58,4 +58,10 @@ public static class ServiceProviderExtension
         return ActivatorUtilities.CreateInstance<AddressEntryValidator>(serviceScope.ServiceProvider,
             sourcePropertyName, isMandatory);
     }
+    public static BreakpointConditionsValidator CreateBreakpointConditionValidator(this IServiceScope serviceScope,
+        string sourcePropertyName)
+    {
+        return ActivatorUtilities.CreateInstance<BreakpointConditionsValidator>(serviceScope.ServiceProvider,
+            sourcePropertyName);
+    }
 }
