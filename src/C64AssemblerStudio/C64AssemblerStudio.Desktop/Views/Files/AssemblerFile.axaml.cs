@@ -17,9 +17,9 @@ namespace C64AssemblerStudio.Desktop.Views.Files;
 
 public partial class AssemblerFile : UserControl
 {
-    private readonly LineNumbers _lineNumbers;
+    // private readonly LineNumbers _lineNumbers;
     private SyntaxColorizer? _syntaxColorizer;
-    private ISolidColorBrush? _lineNumberForeground;
+    // private ISolidColorBrush? _lineNumberForeground;
     private AssemblerFileViewModel? _oldViewModel;
     private BreakpointsMargin? _breakpointsMargin;
 
@@ -27,12 +27,12 @@ public partial class AssemblerFile : UserControl
     {
         InitializeComponent();
         var leftMargins = Editor.TextArea.LeftMargins;
-        _lineNumbers = new LineNumbers(Editor.FontFamily, Editor.FontSize)
-        {
-            Foreground = _lineNumberForeground,
-            Margin = new Thickness(4, 0),
-        };
-        leftMargins.Add(_lineNumbers);
+        // _lineNumbers = new LineNumbers(Editor.FontFamily, Editor.FontSize)
+        // {
+        //     Foreground = _lineNumberForeground,
+        //     Margin = new Thickness(4, 0),
+        // };
+        // leftMargins.Add(_lineNumbers);
         Editor.TextChanged += EditorOnTextChanged;
         Editor.TextArea.Caret.PositionChanged += CaretOnPositionChanged;
     }
@@ -154,7 +154,7 @@ public partial class AssemblerFile : UserControl
     {
         if (ViewModel is not null)
         {
-            _lineNumbers.InvalidateMeasure();
+            // _lineNumbers.InvalidateMeasure();
             _ignoreTextChange = true;
             try
             {
@@ -169,15 +169,15 @@ public partial class AssemblerFile : UserControl
 
     internal AssemblerFileViewModel? ViewModel => (AssemblerFileViewModel?)base.DataContext;
 
-    protected override void OnAttachedToLogicalTree(LogicalTreeAttachmentEventArgs e)
-    {
-        base.OnAttachedToLogicalTree(e);
-        if (this.TryFindResource("LineNumber", out object? res) && res is ISolidColorBrush brush)
-        {
-            _lineNumberForeground = brush;
-            _lineNumbers.Foreground = _lineNumberForeground;
-        }
-    }
+    // protected override void OnAttachedToLogicalTree(LogicalTreeAttachmentEventArgs e)
+    // {
+    //     base.OnAttachedToLogicalTree(e);
+    //     if (this.TryFindResource("LineNumber", out object? res) && res is ISolidColorBrush brush)
+    //     {
+    //         _lineNumberForeground = brush;
+    //         _lineNumbers.Foreground = _lineNumberForeground;
+    //     }
+    // }
 
     private void Editor_PointerHover(object? sender, PointerEventArgs e)
     {

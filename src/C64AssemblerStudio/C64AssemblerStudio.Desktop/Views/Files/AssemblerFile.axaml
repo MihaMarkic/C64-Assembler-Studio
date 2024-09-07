@@ -23,7 +23,7 @@
                        Grid.ColumnSpan="{Binding IsByteDumpVisible, Converter={x:Static converters:AssemblerFileConverters.EditorColumnSpan}}"
                        FontFamily="{StaticResource CodeFont}"
                        Background="#FFFDF6E3"
-                       ShowLineNumbers="False"
+                       ShowLineNumbers="True"
                        Margin="12,4,4,4"
                        Foreground="Black"
                        HorizontalScrollBarVisibility="Auto"
