@@ -1,5 +1,8 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cc="clr-namespace:AvaloniaEdit.CodeCompletion;assembly=AvaloniaEdit"
+             xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints"
+             xmlns:bvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
              x:Class="C64AssemblerStudio.Desktop.App"
              RequestedThemeVariant="Default">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
@@ -9,6 +12,26 @@
         <FontFamily x:Key="C64Mono">resm:C64AssemblerStudio.Desktop.Assets.Fonts.?assembly=C64AssemblerStudio.Desktop#C64 Pro Mono</FontFamily>
         <Color x:Key="OddRowBackground">#3DD3D3D3</Color>
         <SolidColorBrush x:Key="LineNumber">#FF237893</SolidColorBrush>
+        <!-- workaround for AvaloniaEdit CompletionList -->
+        <ControlTheme x:Key="{x:Type cc:CompletionList}" TargetType="cc:CompletionList">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <cc:CompletionListBox Name="PART_ListBox">
+                        <cc:CompletionListBox.ItemTemplate>
+                            <DataTemplate x:DataType="cc:ICompletionData">
+                                <StackPanel Orientation="Horizontal" Margin="0">
+                                    <Image Source="{Binding Image}"
+                                           Width="16"
+                                           Height="16"
+                                           Margin="0,0,2,0" />
+                                    <ContentControl Content="{Binding Content}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </cc:CompletionListBox.ItemTemplate>
+                    </cc:CompletionListBox>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
     </Application.Resources>
     <Application.Styles>
         <FluentTheme />
@@ -16,4 +39,13 @@
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
         <StyleInclude Source="/Styles/AppStyles.xaml" />
     </Application.Styles>
+    <Application.DataTemplates>
+        <!-- template for breakpoint condition completion suggestion --> 
+        <DataTemplate x:DataType="bvm:ConditionCompletionSuggestionModel">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Type}" Foreground="LightBlue" FontSize="8" Margin="0,0,4,0" />
+                <TextBlock Text="{Binding Value}" />
+            </StackPanel>
+        </DataTemplate>
+    </Application.DataTemplates>
 </Application>

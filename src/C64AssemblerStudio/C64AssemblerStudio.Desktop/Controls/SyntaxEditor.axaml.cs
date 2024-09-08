@@ -5,8 +5,11 @@ using System.ComponentModel.DataAnnotations;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
+using AvaloniaEdit.CodeCompletion;
+using AvaloniaEdit.Utils;
 using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 
 namespace C64AssemblerStudio.Desktop.Controls;
@@ -30,16 +33,44 @@ public partial class SyntaxEditor : UserControl
             (o, v) => o.Errors = v,
             defaultBindingMode: BindingMode.OneWay);
     
+    public event EventHandler<TextInputEventArgs>? TextEntered;
+    
     private string? _text;
-    private readonly ObservableCollection<SyntaxEditorFormating> _formatters = new();
     private ImmutableArray<SyntaxEditorToken>? _tokens;
     private ImmutableArray<SyntaxEditorError>? _errors;
     private readonly SyntaxEditorColorizer _colorizer;
+    private CompletionWindow? _completionWindow;
+
     public SyntaxEditor()
     {
         InitializeComponent();
         _colorizer = new();
         Editor.TextArea.TextView.LineTransformers.Add(_colorizer);
+        Editor.TextArea.TextEntered += TextAreaOnTextEntered;
+        Editor.TextArea.TextEntering += TextAreaOnTextEntering;
+    }
+
+    private void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
+    {
+        if (e.Text?.Length > 0 && _completionWindow is not null)
+        {
+            if (!char.IsLetterOrDigit(e.Text[0]))
+            {
+                // Whenever a non-letter is typed while the completion window is open,
+                // insert the currently selected element.
+                _completionWindow.CompletionList.RequestInsertion(e);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Forwards <see cref="TextEntered"/> event.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void TextAreaOnTextEntered(object? sender, TextInputEventArgs e)
+    {
+        TextEntered?.Invoke(this, e);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -48,7 +79,8 @@ public partial class SyntaxEditor : UserControl
         base.OnAttachedToVisualTree(e);
     }
 
-    public ObservableCollection<SyntaxEditorFormating> Formatters => _formatters; 
+    public ObservableCollection<SyntaxEditorFormating> Formatters { get; } = new();
+
     public string? Text
     {
         get => _text;
@@ -102,6 +134,29 @@ public partial class SyntaxEditor : UserControl
     private void NewValueOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         Editor.TextArea.TextView.Redraw();
+    }
+
+    /// <summary>
+    /// Shows suggestions as completion list.
+    /// </summary>
+    /// <param name="suggestions"></param>
+    /// <typeparam name="T"></typeparam>
+    public void ShowCompletionSuggestions<T>(ImmutableArray<T> suggestions)
+        where T: ICompletionData
+    {
+        _completionWindow = new CompletionWindow(Editor.TextArea);
+        _completionWindow.Closed += CompletionWindowOnClosed;
+        var data = _completionWindow.CompletionList.CompletionData;
+        foreach (var s in suggestions)
+        {
+            data.Add(s);
+        }
+        _completionWindow.Show();
+    }
+
+    private void CompletionWindowOnClosed(object? sender, EventArgs e)
+    {
+        _completionWindow = null;
     }
 }
 

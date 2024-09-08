@@ -21,7 +21,17 @@ public enum BreakpointDetailDialogMode
     Update
 }
 
-public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<SimpleDialogResult>, INotifyDataErrorInfo
+public enum ConditionCompletionType
+{
+    Register,
+    Bank,
+    Memspace,
+    Label,
+}
+
+public record ConditionCompletionSuggestionModel(ConditionCompletionType Type, string Value);
+
+public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialogResult>, INotifyDataErrorInfo
 {
     private readonly ILogger<BreakpointDetailViewModel> _logger;
     private readonly Globals _globals;
@@ -163,7 +173,52 @@ public class BreakpointDetailViewModel : NotifiableObject, IDialogViewModel<Simp
             .Any(v => v.HasErrors);
         OnErrorsChanged(new DataErrorsChangedEventArgs(validator.SourcePropertyName));
     }
-    
+
+    private ImmutableArray<ConditionCompletionSuggestionModel> GetLabelsSuggestions()
+    {
+        var project = (KickAssProjectViewModel)_globals.Project;
+        var keys = project.Labels?.Keys;
+        if (keys is not null)
+        {
+            return [
+                ..keys.Value.Select(x =>
+                    new ConditionCompletionSuggestionModel(ConditionCompletionType.Label, x))
+            ];
+        }
+
+        return ImmutableArray<ConditionCompletionSuggestionModel>.Empty;
+    }
+    /// <summary>
+    /// Creates completion suggestions if available. When <param name="text"> is null,
+    /// it should provide all available suggestions</param>
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns></returns>
+    public ImmutableArray<ConditionCompletionSuggestionModel> GetCompletionSuggestions(string? text)
+    {
+        return text switch
+        {
+            ":" => [
+                ..C64Globals.Registers
+                    .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Register, x))
+            ],
+            "@" => [
+                .._vice.BankItemsByName.Keys
+                    .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Bank, x))
+            ],
+            "." => GetLabelsSuggestions(),
+            // combines both registers and memspaces since both can be non-prefixed
+            null => [
+                ..C64Globals.Registers
+                    .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Register, x))
+                    .Union(
+                        C64Globals.MemspacePrefixes
+                            .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Memspace, x)))
+            ],
+            _ => ImmutableArray<ConditionCompletionSuggestionModel>.Empty,
+        };
+    }
+
     public IEnumerable GetErrors(string? propertyName)
     {
         if (!string.IsNullOrEmpty(propertyName) && _validators.TryGetValue(propertyName, out var propertyValidators))

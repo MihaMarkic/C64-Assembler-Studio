@@ -11,6 +11,7 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Local Debug' ">
     <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
     <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

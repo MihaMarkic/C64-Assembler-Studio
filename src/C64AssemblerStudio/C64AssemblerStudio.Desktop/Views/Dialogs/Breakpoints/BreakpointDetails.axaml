@@ -12,8 +12,8 @@
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
              x:DataType="bvm:BreakpointDetailViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints.BreakpointDetails">
-    <Grid Margin="8" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto"
-  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+  <Grid Margin="8" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto"
+        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
   <Grid.Styles>
     <Style Selector="Label">
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -88,11 +88,12 @@
   <Label Grid.Column="0" Grid.Row="6" VerticalAlignment="Top">Condition</Label>
   <common:Entry Grid.Column="1" Grid.Row="6" HorizontalAlignment="Stretch"
                 HasErrors="{Binding ConditionsErrors.Length}">
-    <controls:SyntaxEditor
-      Foreground="Gray" FontFamily="{StaticResource CodeFont}" MinHeight="20"
-      FontSize="14" Text="{Binding BreakpointConditions}"
-      Tokens="{Binding Tokens}"
-      Errors="{Binding ConditionsErrors}">
+    <controls:SyntaxEditor Name="ConditionsEditor"
+                           Foreground="Gray" FontFamily="{StaticResource CodeFont}" MinHeight="20"
+                           FontSize="14" Text="{Binding BreakpointConditions}"
+                           Tokens="{Binding Tokens}"
+                           Errors="{Binding ConditionsErrors}"
+                           TextEntered="SyntaxEditor_OnTextEntered" KeyDown="ConditionsEditor_OnKeyDown">
       <controls:SyntaxEditor.Formatters>
         <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Label}"
                                         ForegroundColor="Blue" />

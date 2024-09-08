@@ -25,10 +25,6 @@ public class BreakpointConditionsListener : BreakpointConditionsParserBaseListen
         private readonly FrozenDictionary<string, BankItem>? _bankItemsByName;
         public bool HasErrors => _errors.Count > 0;
         public ImmutableArray<SyntaxEditorError> Errors => [.._errors];
-        public static FrozenSet<string> MemspacePrefixes { get; } =
-            FrozenSet.ToFrozenSet(["c", "8", "9", "10", "11"], StringComparer.OrdinalIgnoreCase);
-        public static FrozenSet<string> Registers { get; } =
-            FrozenSet.ToFrozenSet(["A", "X", "Y", "SP"], StringComparer.OrdinalIgnoreCase);
 
         public BreakpointConditionsListener(ILogger<BreakpointConditionsListener> logger, Globals globals, IVice vice)
         {
@@ -67,7 +63,7 @@ public class BreakpointConditionsListener : BreakpointConditionsParserBaseListen
             {
                 AddToken(BreakpointDetailConditionTokenType.Register, token);
                 string text = token.GetText();
-                if (!Registers.Contains(text))
+                if (!C64Globals.Registers.Contains(text))
                 {
                     AddSyntaxError(SyntaxEditorErrorKind.InvalidRegister, token);
                 }
@@ -121,12 +117,12 @@ public class BreakpointConditionsListener : BreakpointConditionsParserBaseListen
 
         public override void EnterMemspace(BreakpointConditionsParser.MemspaceContext context)
         {
-            var membspaceVariable = context.memspace;
-            var variableNode = membspaceVariable.UNQUOTED_STRING() ?? membspaceVariable.DEC_NUMBER();
+            var memspaceVariable = context.memspace;
+            var variableNode = memspaceVariable.UNQUOTED_STRING() ?? memspaceVariable.DEC_NUMBER();
             AddToken(BreakpointDetailConditionTokenType.Memspace, variableNode);
             string text = variableNode.GetText();
             // only c is valid textual memspace
-            if (!MemspacePrefixes.Contains(text))
+            if (!C64Globals.MemspacePrefixes.Contains(text))
             {
                 AddSyntaxError(SyntaxEditorErrorKind.InvalidMemspace, variableNode);
             }
