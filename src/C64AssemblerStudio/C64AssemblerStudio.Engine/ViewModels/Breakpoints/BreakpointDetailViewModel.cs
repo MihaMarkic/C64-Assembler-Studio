@@ -188,13 +188,25 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
 
         return ImmutableArray<ConditionCompletionSuggestionModel>.Empty;
     }
+
+    private ImmutableArray<ConditionCompletionSuggestionModel> GetGenericSuggestions()
+    {
+        return
+        [
+            ..C64Globals.Registers
+                .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Register, x))
+                .Union(
+                    C64Globals.MemspacePrefixes
+                        .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Memspace, x)))
+        ];
+    }
     /// <summary>
     /// Creates completion suggestions if available. When <param name="text"> is null,
     /// it should provide all available suggestions</param>
     /// </summary>
     /// <param name="text"></param>
     /// <returns></returns>
-    public ImmutableArray<ConditionCompletionSuggestionModel> GetCompletionSuggestions(string? text)
+    public ImmutableArray<ConditionCompletionSuggestionModel> GetCompletionSuggestions(string? text, bool showForSpace)
     {
         return text switch
         {
@@ -208,13 +220,8 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
             ],
             "." => GetLabelsSuggestions(),
             // combines both registers and memspaces since both can be non-prefixed
-            null => [
-                ..C64Globals.Registers
-                    .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Register, x))
-                    .Union(
-                        C64Globals.MemspacePrefixes
-                            .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Memspace, x)))
-            ],
+            null => GetGenericSuggestions(),
+            " " when showForSpace => GetGenericSuggestions(),
             _ => ImmutableArray<ConditionCompletionSuggestionModel>.Empty,
         };
     }

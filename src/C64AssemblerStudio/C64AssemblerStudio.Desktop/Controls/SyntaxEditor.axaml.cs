@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
+using AvaloniaEdit.Editing;
 using AvaloniaEdit.Utils;
 using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 
@@ -34,6 +35,7 @@ public partial class SyntaxEditor : UserControl
             defaultBindingMode: BindingMode.OneWay);
     
     public event EventHandler<TextInputEventArgs>? TextEntered;
+    public Caret Caret => Editor.TextArea.Caret;
     
     private string? _text;
     private ImmutableArray<SyntaxEditorToken>? _tokens;

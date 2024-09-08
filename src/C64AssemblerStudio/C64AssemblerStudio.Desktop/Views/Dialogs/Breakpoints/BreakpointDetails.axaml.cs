@@ -20,24 +20,32 @@ public partial class BreakpointDetails : UserControl<BreakpointDetailViewModel>
     {
         if (e.Text is not null)
         {
-            TryShowCompletion(e.Text);
+            TryShowCompletion(e.Text, showForSpace: false);
         }
     }
 
     private void ConditionsEditor_OnKeyDown(object? sender, KeyEventArgs e)
     {
+        // catch Ctrl+Space to open completion list
         if (e is { Key: Key.Space, KeyModifiers: KeyModifiers.Control })
         {
-            Debug.WriteLine($"KeyDown on thread {Thread.CurrentThread.ManagedThreadId}");
-            TryShowCompletion(null);
+            string? previousChar = null;
+            if (ConditionsEditor.Text?.Length > 0)
+            {
+                int offset = ConditionsEditor.Caret.Offset;
+                if (offset > 0)
+                {
+                    previousChar = ConditionsEditor.Text[(offset - 1)..offset];
+                }
+            }
+            TryShowCompletion(previousChar, showForSpace: true);
             e.Handled = true;
         }
     }
 
-    private void TryShowCompletion(string? text)
+    private void TryShowCompletion(string? text, bool showForSpace)
     {
-        Debug.WriteLine($"TryShowCompletion on thread {Thread.CurrentThread.ManagedThreadId}");
-        var completionSuggestions = ViewModel?.GetCompletionSuggestions(text);
+        var completionSuggestions = ViewModel?.GetCompletionSuggestions(text, showForSpace);
         if (completionSuggestions is not null)
         {
             var suggestions =
@@ -50,14 +58,17 @@ public partial class BreakpointDetails : UserControl<BreakpointDetailViewModel>
 public class ConditionCompletionSuggestion : ICompletionData
 {
     public ConditionCompletionSuggestionModel Model { get; }
+
     public ConditionCompletionSuggestion(ConditionCompletionSuggestionModel model)
     {
         Model = model;
     }
+
     public void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
     {
         textArea.Document.Replace(completionSegment, Text);
     }
+
     public IImage? Image => null;
     public string Text => Model.Value;
     public object Content => Model;
