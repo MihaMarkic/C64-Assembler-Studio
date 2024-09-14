@@ -89,7 +89,6 @@ public class Vice : NotifiableObject, IVice
                     {
                         IsPaused = false;
                     }
-                    _retrieveMemory = false;
                     break;
                 case StoppedResponse:
                     if (_retrieveMemory && !_ignoreResumed)
@@ -102,6 +101,7 @@ public class Vice : NotifiableObject, IVice
                         }
                         finally
                         {
+                            _retrieveMemory = false;
                             _ignoreResumed = false;
                         }
                         IsPaused = true;
@@ -432,5 +432,4 @@ public class Vice : NotifiableObject, IVice
         }
         _logger.LogDebug("Disconnected");
     }
-
 }
