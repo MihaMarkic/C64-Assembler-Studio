@@ -81,13 +81,17 @@ public class BreakpointsMargin : AdditionalLineInfoMargin
         base.OnPointerPressed(e);
         if (!e.Handled && TextView is not null && TextArea is not null)
         {
-            var visualLine = GetTextLineSegment(e);
-            if (visualLine is not null)
+            var point = e.GetCurrentPoint(this);
+            if (point.Properties.IsLeftButtonPressed)
             {
-                var lineNumber = visualLine.FirstDocumentLine.LineNumber;
-                if (_sourceFileViewModel.AddOrRemoveBreakpointCommand.CanExecute(lineNumber - 1))
+                var visualLine = GetTextLineSegment(e);
+                if (visualLine is not null)
                 {
-                    await _sourceFileViewModel.AddOrRemoveBreakpoint(lineNumber - 1);
+                    var lineNumber = visualLine.FirstDocumentLine.LineNumber;
+                    if (_sourceFileViewModel.AddOrRemoveBreakpointCommand.CanExecute(lineNumber - 1))
+                    {
+                        await _sourceFileViewModel.AddOrRemoveBreakpoint(lineNumber - 1);
+                    }
                 }
             }
         }
