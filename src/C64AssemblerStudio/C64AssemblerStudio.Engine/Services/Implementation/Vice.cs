@@ -66,7 +66,6 @@ public class Vice : NotifiableObject, IVice
     private void OnRegistersUpdated(RegistersEventArgs e) => RegistersUpdated?.Invoke(this, e);
     private void OnCheckpointInfoUpdated(CheckpointInfoEventArgs e) => CheckpointInfoUpdated?.Invoke(this, e);
     private void OnMemoryUpdated(MemoryGetEventArgs e) => MemoryUpdated?.Invoke(this, e);
-    private bool _ignoreResumed;
     private bool _retrieveMemory;
     private async void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
     {
@@ -85,15 +84,11 @@ public class Vice : NotifiableObject, IVice
                     _retrieveMemory = true;
                     break;
                 case ResumedResponse:
-                    if (!_ignoreResumed)
-                    {
-                        IsPaused = false;
-                    }
+                    IsPaused = false;
                     break;
                 case StoppedResponse:
-                    if (_retrieveMemory && !_ignoreResumed)
+                    if (_retrieveMemory)
                     {
-                        _ignoreResumed = true;
                         try
                         {
                             await GetMemoryAsync(CancellationToken.None);
@@ -102,10 +97,9 @@ public class Vice : NotifiableObject, IVice
                         finally
                         {
                             _retrieveMemory = false;
-                            _ignoreResumed = false;
                         }
-                        IsPaused = true;
                     }
+                    IsPaused = true;
                     break;
             }
         }, e.Response, CancellationToken.None);
@@ -116,7 +110,7 @@ public class Vice : NotifiableObject, IVice
         _logger.LogDebug("Requesting memory");
         var command = _bridge.EnqueueCommand(
             new MemoryGetCommand(0, 0, ushort.MaxValue-1, MemSpace.MainMemory, 0),
-            true);
+            false);
         var response = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         _logger.LogDebug("Got memory");
         OnMemoryUpdated(new(response));
