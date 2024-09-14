@@ -133,7 +133,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
     private void ViceOnCheckpointInfoUpdated(object? sender, CheckpointInfoEventArgs e)
     {
-        if (e.Response is not null)
+        if (e.Response?.StopWhenHit == true)
         {
             UpdateBreakpointDataFromVice(e.Response);
         }
@@ -413,7 +413,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
         try
         {
-            var result = await _vice.ArmBreakpointAsync(breakpoint, ct);
+            var result = await _vice.ArmBreakpointAsync(breakpoint, resumeOnStop: false, ct);
             if (result == BreakpointError.None)
             {
                 AddBreakpointToMap(breakpoint);
@@ -627,7 +627,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         Breakpoints.Add(breakpoint);
         if (_vice.IsDebugging)
         {
-            await _vice.ArmBreakpointAsync(breakpoint, ct);
+            await _vice.ArmBreakpointAsync(breakpoint, resumeOnStop: !_vice.IsPaused, ct);
             AddBreakpointToMap(breakpoint);
         }
 
@@ -748,7 +748,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         // arm breakpoint only when debugging
         if (_vice.IsDebugging)
         {
-            await _vice.ArmBreakpointAsync(sourceBreakpoint, ct);
+            await _vice.ArmBreakpointAsync(sourceBreakpoint, resumeOnStop: !_vice.IsPaused, ct);
         }
 
         await SaveLocalSettingsAsync(ct);

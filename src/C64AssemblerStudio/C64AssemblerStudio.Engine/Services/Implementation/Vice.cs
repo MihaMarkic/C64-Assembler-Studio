@@ -337,7 +337,9 @@ public class Vice : NotifiableObject, IVice
         var result = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         return result is not null;
     }
-    public async Task<BreakpointError> ArmBreakpointAsync(BreakpointViewModel breakpoint, CancellationToken ct)
+
+    public async Task<BreakpointError> ArmBreakpointAsync(BreakpointViewModel breakpoint, bool resumeOnStop,
+        CancellationToken ct)
     {
         // if (breakpoint.HasErrors)
         // {
@@ -355,8 +357,7 @@ public class Vice : NotifiableObject, IVice
         {
             var checkpointSetCommand = _bridge.EnqueueCommand(
                 new CheckpointSetCommand(addressRange.Start, addressRange.End, breakpoint.StopWhenHit,
-                    breakpoint.IsEnabled, breakpoint.Mode.ToCpuOperation(), false),
-                   resumeOnStopped: true);
+                    breakpoint.IsEnabled, breakpoint.Mode.ToCpuOperation(), false));
             var checkpointSetResponse = await checkpointSetCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger,
                 checkpointSetCommand, ct: ct);
             if (checkpointSetResponse is not null)
@@ -365,8 +366,7 @@ public class Vice : NotifiableObject, IVice
                 if (!string.IsNullOrWhiteSpace(breakpoint.Condition))
                 {
                     var conditionSetCommand = _bridge.EnqueueCommand(
-                        new ConditionSetCommand(checkpointSetResponse.CheckpointNumber, breakpoint.Condition),
-                        resumeOnStopped: true);
+                        new ConditionSetCommand(checkpointSetResponse.CheckpointNumber, breakpoint.Condition));
                     var conditionSetResponse = await conditionSetCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger,
                         conditionSetCommand, ct: ct);
                     // in case condition set fails, remove the checkpoint
@@ -382,6 +382,12 @@ public class Vice : NotifiableObject, IVice
                 }
                 breakpoint.AddCheckpointNumber(addressRange, checkpointSetResponse.CheckpointNumber);
             }
+        }
+
+        if (resumeOnStop && IsPaused)
+        {
+            var command = _bridge.EnqueueCommand(new ExitCommand(), resumeOnStopped: true);
+            await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         }
 
         return BreakpointError.None;
