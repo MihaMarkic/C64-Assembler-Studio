@@ -119,7 +119,7 @@ public class Vice : NotifiableObject, IVice
 
     private async Task InitRegistersMappingAsync(CancellationToken ct = default)
     {
-        var command = _bridge.EnqueueCommand(new RegistersAvailableCommand(MemSpace.MainMemory), resumeOnStopped: true);
+        var command = _bridge.EnqueueCommand(new RegistersAvailableCommand(MemSpace.MainMemory));
         var response = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         if (response is not null)
         {
@@ -133,7 +133,7 @@ public class Vice : NotifiableObject, IVice
 
     private async Task InitAvailableBanksAsync(CancellationToken ct = default)
     {
-        var command = _bridge.EnqueueCommand(new BanksAvailableCommand(), resumeOnStopped: true);
+        var command = _bridge.EnqueueCommand(new BanksAvailableCommand());
         var response = await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
         if (response is not null)
         {
@@ -265,7 +265,7 @@ public class Vice : NotifiableObject, IVice
             if (_globals.Settings.ResetOnStop)
             {
                 _logger.LogInformation("Stopping debugging with reset on stop");
-                var command = _bridge.EnqueueCommand(new ResetCommand(ResetMode.Soft), resumeOnStopped: false);
+                var command = _bridge.EnqueueCommand(new ResetCommand(ResetMode.Soft));
                 await command.Response;
             }
             else
@@ -286,14 +286,14 @@ public class Vice : NotifiableObject, IVice
         if (VerifyIsDebugging("pause"))
         {
             _retrieveMemory = true;
-            var command = _bridge.EnqueueCommand(new PingCommand(), resumeOnStopped: false);
+            var command = _bridge.EnqueueCommand(new PingCommand());
             await command.Response;
         }
     }
 
     public async Task ExitViceMonitorAsync(CancellationToken ct = default)
     {
-        var command = _bridge.EnqueueCommand(new ExitCommand(), resumeOnStopped: false);
+        var command = _bridge.EnqueueCommand(new ExitCommand());
         await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
     }
 
