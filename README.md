@@ -28,7 +28,31 @@ VICE files should be on disk, and it should have enabled binary monitor (at Pref
 * Test on real samples (high-medium) - YOUR SAMPLES WELCOME
 
 ## Distribution
-For the latest binaries, check [Releases](Releases).
+For the latest binaries, check [Releases](Releases). There are framework dependent build (required .NET runtime installation), self contained builds (just unpack) and a special Win x64 [scoop](https://scoop.sh) build.
+
+## Installation
+
+Self contained build contain all files necessary to run the application (minus JAVA runtime), while framework dependent require .NET runtime as well.
+
+### Windows
+#### From archive
+Unpack `C64AssemblerStudio\_selfcontained\_VERSION\_win\_x64.zip` or  `C64AssemblerStudio\_VERSION\_*\_dependent` build.
+#### Using scoop
+
+You have to install [scoop](https://scoop.sh).
+
+Before using apps from my [bucket](https://github.com/MihaMarkic/scoop-bucket/), you need to add my bucket: `scoop bucket add mihamarkic https://github.com/MihaMarkic/scoop-bucket`. Once bucket is added, installation and update are trivial.
+
+To install: `scoop install mihamarkic/c64assemblerstudio`
+
+To update: `scoop update c64assemblerstudio` or `scoop update` to update all scoop installed apps.
+
+### Linux
+#### From archive
+Unpack `C64AssemblerStudio\_selfcontained\_VERSION\_linux\_x64.zip` or  `C64AssemblerStudio\_VERSION\_*\_dependent` build.
+
+### MacOS
+Unpack `C64AssemblerStudio\_selfcontained\_VERSION\_osx\_arm64.zip` or  `C64AssemblerStudio\_VERSION\_*\_dependent` build.
 
 ## Building from source
 Clone this repository somewhere.
