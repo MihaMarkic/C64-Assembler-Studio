@@ -10,8 +10,7 @@ namespace Build.Publish;
 public class FrameworkDependentPublishTask : FrostingTask<BuildContext>
 {
     public override bool ShouldRun(BuildContext context)
-        => context.Architecture == TargetArchitecture.Dependent
-           && context.BuildType == BuildType.Archive;
+        => context is { Architecture: TargetArchitecture.Dependent, BuildType: BuildType.Archive };
 
     public override void Run(BuildContext context)
     {
