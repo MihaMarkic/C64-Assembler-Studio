@@ -16,6 +16,7 @@ public class ScoopPublishTask : FrostingTask<BuildContext>
     public override bool ShouldRun(BuildContext context) => context.BuildType == BuildType.Scoop;
 }
 
+
 [TaskName("ScoopPublishWinX64")]
 public class ScoopPublishWinX64Task : FrostingTask<BuildContext>
 {
@@ -74,6 +75,7 @@ static class Publish
             Runtime = context.TargetRuntime,
             OutputDirectory = context.PublishDirectory,
         };
+        context.Information(settings.ToString());
         
         context.DeleteDirectory(context.PublishDirectory, new DeleteDirectorySettings{ Force = true, Recursive = true });
         context.DotNetPublish(context.DesktopProject.FullPath, settings);

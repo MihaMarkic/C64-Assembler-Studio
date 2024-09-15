@@ -34,10 +34,24 @@ public class BuildContext : FrostingContext
             TargetArchitecture.WinX64 => "win_x64",
             TargetArchitecture.LinuxX64 => "linux_x64",
             TargetArchitecture.OSXArm64 => "osx_arm64",
+            TargetArchitecture.Dependent => "dependent",
             _ => throw new Exception($"Unknown architecture {Architecture}")
         });
         Architecture = context.Argument("architecture", TargetArchitecture.WinX64);
         BuildType = context.Argument("buildType", BuildType.Scoop);
+        // verify arguments validity
+        switch (BuildType)
+        {
+            case BuildType.Scoop:
+                if (Architecture != TargetArchitecture.WinX64)
+                {
+                    throw new Exception("Scoop builds are supported only for Win64 architecture.");
+                }
+                break;
+            case BuildType.Archive:
+                // all combinations are fine
+                break;
+        }
     }
 
     public string ArchitectureUnderscoreText => Architecture switch
@@ -45,6 +59,7 @@ public class BuildContext : FrostingContext
         TargetArchitecture.WinX64 => "win_x64",
         TargetArchitecture.LinuxX64 => "linux_x64",
         TargetArchitecture.OSXArm64 => "osx_arm64",
+        TargetArchitecture.Dependent => "dependent",
         _ => throw new Exception($"Unknown architecture {Architecture}")
     };
     public string TargetRuntime => Architecture switch
@@ -61,10 +76,12 @@ public enum TargetArchitecture
     WinX64,
     LinuxX64,
     // ReSharper disable once InconsistentNaming
-    OSXArm64
+    OSXArm64,
+    Dependent,
 }
 
 public enum BuildType
 {
     Scoop,
+    Archive,
 }

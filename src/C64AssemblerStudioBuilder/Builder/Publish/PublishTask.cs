@@ -8,24 +8,30 @@ namespace Build.Publish;
 
 [TaskName("Publish")]
 [IsDependentOn(typeof(TestTask))]
-[IsDependentOn(typeof(ScoopCompressPublishTask))]
+[IsDependentOn(typeof(CompressPublishTask))]
 public class PublishTask: FrostingTask
 {
     
 }
 
-[TaskName("ScoopCompressPublish")]
+[TaskName("CompressPublish")]
 [IsDependentOn(typeof(ScoopPublishTask))]
-public class ScoopCompressPublishTask : FrostingTask<BuildContext>
+[IsDependentOn(typeof(SelfContainedPublishTask))]
+[IsDependentOn(typeof(FrameworkDependentPublishTask))]
+public class CompressPublishTask : FrostingTask<BuildContext>
 {
-    public override bool ShouldRun(BuildContext context) => context.BuildType == BuildType.Scoop;
     public override void Run(BuildContext context)
     {
         var csprojectXml = XDocument.Load(context.MakeAbsolute(context.DesktopProject).FullPath);
         var versionText = csprojectXml.Root!.Element("PropertyGroup")!.Element("Version")!.Value;
         var source = context.MakeAbsolute(context.PublishDirectory).FullPath;
         string version = versionText.Split('-')[0].Replace('.', '_');
-        string fileName = $"C64AssemblerStudio_{version}_{context.ArchitectureUnderscoreText}.zip";
+        string archiveType = context.BuildType switch
+        {
+            BuildType.Archive => context.Architecture == TargetArchitecture.Dependent ? "" : "_selfcontained",
+            BuildType.Scoop => "_scoop",
+        };
+        string fileName = $"C64AssemblerStudio{archiveType}_{version}_{context.ArchitectureUnderscoreText}.zip";
         context.Information($"Compressed file is {fileName}");
         var target = context.MakeAbsolute(context.PublishRootDirectory.CombineWithFilePath(context.File(fileName))).FullPath;
 

@@ -26,9 +26,9 @@ https://cakebuild.net
 Param(
 	[ValidateSet("Default", "Publish", "Test", "SignWin")]
 	[string]$Target,
-	[ValidateSet("WinX64", "LinuxX64", "OSXArm64")]
+	[ValidateSet("WinX64", "LinuxX64", "OSXArm64", "Dependent")]
 	[string]$Architecture,
-	[ValidateSet("Scoop")]
+	[ValidateSet("Scoop", "Archive")]
 	[string]$BuildType,
 	[ValidateSet("Quiet", "Minimal", "Normal", "Verbose", "Diagnostic")]
 	[string]$Verbosity,
