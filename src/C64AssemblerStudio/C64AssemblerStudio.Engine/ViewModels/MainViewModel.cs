@@ -345,6 +345,12 @@ public class MainViewModel : ViewModel
                 StatusInfo.BuildingStatus = BuildStatus.Success;
             }
         }
+        catch (Exception ex)
+        {
+            BuildOutput.AddLine(ex.Message);
+            StatusInfo.BuildingStatus = BuildStatus.Failure;
+            throw;
+        }
         finally
         {
             IsBuilding = false;
