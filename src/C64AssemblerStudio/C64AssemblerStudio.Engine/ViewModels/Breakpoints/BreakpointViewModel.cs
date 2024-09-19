@@ -6,7 +6,7 @@ namespace C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 public enum BreakpointError
 {
     None,
-    InvalidConditon,
+    InvalidCondition,
     NoAddressRange,
     ViceFailure
 }

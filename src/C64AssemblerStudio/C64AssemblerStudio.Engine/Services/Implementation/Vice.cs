@@ -377,7 +377,7 @@ public class Vice : NotifiableObject, IVice
                             new CheckpointDeleteCommand(checkpointSetResponse.CheckpointNumber),
                                 resumeOnStopped: true);
                         await checkpointDeleteCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, checkpointDeleteCommand, ct: ct);
-                        return BreakpointError.InvalidConditon;
+                        return BreakpointError.InvalidCondition;
                     }
                 }
                 breakpoint.AddCheckpointNumber(addressRange, checkpointSetResponse.CheckpointNumber);
