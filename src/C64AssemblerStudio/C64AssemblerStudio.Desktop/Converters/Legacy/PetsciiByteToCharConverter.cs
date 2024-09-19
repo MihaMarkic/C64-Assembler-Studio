@@ -1,7 +1,7 @@
 ﻿namespace C64AssemblerStudio.Desktop.Converters;
 public static class PetsciiMap
 {
-    public static char ToUnicode(byte b) => (char)(0xE000 + b);
+    public static char ToUnicode(byte b) => (char)(0xEE00 + b);
 }
 public class PetsciiByteToCharConverter : ParameterlessValueConverter<byte, string>
 {

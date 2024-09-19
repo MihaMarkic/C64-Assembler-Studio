@@ -86,7 +86,7 @@
                              Fill="{TemplateBinding SeparatorBrush}"
                              IsVisible="{TemplateBinding AreSeparatorsVisible}" />
 
-                  <Grid x:Name="FocusVisual" IsHitTestVisible="False"
+                  <Grid Grid.Column="0" x:Name="FocusVisual" IsHitTestVisible="False"
                         IsVisible="False">
                     <Rectangle x:Name="FocusVisualPrimary"
                                HorizontalAlignment="Stretch"
