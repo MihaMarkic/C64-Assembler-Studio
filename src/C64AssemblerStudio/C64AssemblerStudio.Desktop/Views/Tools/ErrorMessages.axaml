@@ -9,7 +9,7 @@
     <ListBox ItemsSource="{Binding Lines}">
         <ListBox.ItemTemplate>
             <DataTemplate>
-                <TextBlock Text="{Binding}"/>
+                <TextBlock Text="{Binding}" FontSize="20"/>
             </DataTemplate>
         </ListBox.ItemTemplate>
     </ListBox>

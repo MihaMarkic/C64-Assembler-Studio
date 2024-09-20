@@ -12,6 +12,7 @@
                 <DataTemplate>
                     <TextBox HorizontalContentAlignment="Stretch" BorderThickness="0" HorizontalAlignment="Stretch"
                              IsReadOnly="True" Text="{Binding}" Padding="0,1" MinHeight="18"
+                             FontSize="20"
                              FontFamily="{StaticResource CodeFont}"/>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

@@ -28,20 +28,7 @@
     <Button Margin="4" Command="{Binding CreateBreakpointCommand}">Create</Button>
   </StackPanel>
   <DataGrid Name="Grid" ItemsSource="{Binding Breakpoints}" AutoGenerateColumns="False"
-    FontFamily="{StaticResource CodeFont}">
-    <!-- this approach doesn't work for some reason - most notably it doesn't retrieve #Grid.CurrentColumn -->
-    <!--<i:Interaction.Behaviors>
-      <ia:EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #Grid}">
-        <ia:InvokeCommandAction Command="{Binding BreakPointContextCommand}">
-          <ia:InvokeCommandAction.CommandParameter>
-            <MultiBinding Converter="{StaticResource BreakpointContextConverter}">
-              <Binding Path="#Grid.SelectedItem" />
-              <Binding Path="#Grid.CurrentColumn" />
-            </MultiBinding>
-          </ia:InvokeCommandAction.CommandParameter>
-        </ia:InvokeCommandAction>
-      </ia:EventTriggerBehavior>
-    </i:Interaction.Behaviors>-->
+    FontFamily="{StaticResource CodeFont}" FontSize="20">
     <DataGrid.Styles>
       <Style Selector="DataGridRow">
         <Setter Property="ContextMenu">

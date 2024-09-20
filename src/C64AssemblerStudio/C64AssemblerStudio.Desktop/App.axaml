@@ -4,7 +4,7 @@
              xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints"
              xmlns:bvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
              x:Class="C64AssemblerStudio.Desktop.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Light">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
     <Application.Resources>
         <!-- default font family for code -->

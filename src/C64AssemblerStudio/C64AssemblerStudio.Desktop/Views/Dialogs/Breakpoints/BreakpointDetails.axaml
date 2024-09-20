@@ -90,7 +90,7 @@
                 HasErrors="{Binding ConditionsErrors.Length}">
     <controls:SyntaxEditor Name="ConditionsEditor"
                            Foreground="Gray" FontFamily="{StaticResource CodeFont}" MinHeight="20"
-                           FontSize="14" Text="{Binding BreakpointConditions}"
+                           FontSize="20" Text="{Binding BreakpointConditions}"
                            Tokens="{Binding Tokens}"
                            Errors="{Binding ConditionsErrors}"
                            TextEntered="SyntaxEditor_OnTextEntered" KeyDown="ConditionsEditor_OnKeyDown">

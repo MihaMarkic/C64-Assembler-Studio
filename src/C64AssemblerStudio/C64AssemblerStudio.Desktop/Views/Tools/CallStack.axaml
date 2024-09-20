@@ -7,7 +7,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="tools:CallStackViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Tools.CallStack">
-    <DataGrid Name="Grid" ItemsSource="{Binding CallStack}" AutoGenerateColumns="False" FontFamily="{StaticResource CodeFont}"> 
+    <DataGrid Name="Grid" ItemsSource="{Binding CallStack}" AutoGenerateColumns="False" 
+              FontFamily="{StaticResource CodeFont}" FontSize="20"> 
         <DataGrid.Resources>
             <converters:HexAddressConverter x:Key="HexAddressConverter" />
         </DataGrid.Resources>
@@ -18,13 +19,13 @@
         </Interaction.Behaviors>
         <DataGrid.Columns>
             <DataGridTextColumn Header="Address" Binding="{Binding Address, Converter={StaticResource HexAddressConverter}, Mode=OneWay}"
-                                IsReadOnly="True" Width="100" />
+                                IsReadOnly="True" Width="100" FontSize="20" />
             <DataGridTextColumn Header="Line" Binding="{Binding FileLocation.Line1, Mode=OneWay}"
-                                IsReadOnly="True" Width="80" />
+                                IsReadOnly="True" Width="80" FontSize="20" />
             <DataGridTextColumn Header="File" Binding="{Binding File.Name, Mode=OneWay}"
-                                IsReadOnly="True" Width="140" />
+                                IsReadOnly="True" Width="140" FontSize="20"/>
             <DataGridTextColumn Header="Source" Binding="{Binding LineText, Mode=OneWay}"
-                                IsReadOnly="True" Width="300" />
+                                IsReadOnly="True" Width="300" FontSize="20"/>
         </DataGrid.Columns>
     </DataGrid>
 </UserControl>

@@ -14,10 +14,11 @@
         AutoGenerateColumns="False"
         FontFamily="{StaticResource CodeFont}"
         IsReadOnly="True"
-        CanUserSortColumns="False">
+        CanUserSortColumns="False"
+        FontSize="20">
         <DataGrid.Styles>
             <Style Selector="TextBlock">
-                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontSize" Value="20" />
             </Style>
             <Style Selector="TextBlock.hidden">
                 <Setter Property="Foreground" Value="Gray" />
@@ -102,7 +103,7 @@
             </Style>
         </DataGrid.Styles>
         <DataGrid.Columns>
-            <DataGridTemplateColumn Width="80" Header="Line">
+            <DataGridTemplateColumn Width="100" Header="Line">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                         <TextBlock  Classes.notfile="{Binding !BelongsToFile}"
@@ -111,17 +112,17 @@
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="Address" Width="50">
+            <DataGridTemplateColumn Header="Address" Width="100">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
-                        <TextBlock Margin="2,0" 
+                        <TextBlock Margin="6,0" 
                                    Classes.notfile="{Binding !BelongsToFile}"
                                    Text="{Binding Address, Converter={x:Static converters:StudioConverters.ValueToHexAddress}}"
                                    HorizontalAlignment="Right" />
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="Data" Width="100">
+            <DataGridTemplateColumn Header="Data" Width="150">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                         <TextBlock TextTrimming="CharacterEllipsis"  
@@ -131,7 +132,7 @@
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="Labels" Width="140">
+            <DataGridTemplateColumn Header="Labels" Width="200">
                 <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                         <TextBlock Margin="2,0"

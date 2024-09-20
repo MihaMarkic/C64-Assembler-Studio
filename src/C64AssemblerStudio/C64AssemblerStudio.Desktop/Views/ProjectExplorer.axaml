@@ -11,8 +11,11 @@
              x:DataType="vm:ProjectExplorerViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.ProjectExplorer">
     <Grid>
-        <TextBlock IsVisible="{Binding !IsProjectOpen}">No project open</TextBlock>
-        <TreeView x:Name="Tree" ItemsSource="{Binding Items}" IsVisible="{Binding IsProjectOpen}">
+        <TextBlock IsVisible="{Binding !IsProjectOpen}"
+                   FontSize="20">No project open</TextBlock>
+        <TreeView x:Name="Tree" ItemsSource="{Binding Items}" 
+                  IsVisible="{Binding IsProjectOpen}"
+                  FontSize="20">
             <i:Interaction.Behaviors>
                 <ia:EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #Tree}">
                     <ia:InvokeCommandAction Command="{Binding OpenFileCommand}" 

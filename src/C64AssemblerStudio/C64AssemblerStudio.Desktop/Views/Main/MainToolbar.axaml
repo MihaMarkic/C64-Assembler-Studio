@@ -49,7 +49,7 @@
                         </Style>
                     </Image.Styles>
                 </Image>
-                <TextBlock Margin="4,0,0,0" Text="{Binding StatusInfo.RunCommandTitle}" />
+                <TextBlock Margin="4,0,0,0" Text="{Binding StatusInfo.RunCommandTitle}" FontSize="20" />
             </StackPanel>
         </Button>
         <Button ToolTip.Tip="Pauses debugging" Command="{Binding PauseCommand}" DockPanel.Dock="Left">
@@ -68,7 +68,7 @@
                         </Style>
                     </Image.Styles>
                 </Image>
-                <TextBlock Margin="4,0,0,0">Pause</TextBlock>
+                <TextBlock Margin="4,0,0,0" FontSize="20">Pause</TextBlock>
             </StackPanel>
         </Button>
         <Button ToolTip.Tip="Stops debugging" Command="{Binding StopCommand}" DockPanel.Dock="Left">
@@ -87,21 +87,17 @@
                         </Style>
                     </Image.Styles>
                 </Image>
-                <TextBlock Margin="4,0,0,0">Stop</TextBlock>
+                <TextBlock Margin="4,0,0,0" FontSize="20">Stop</TextBlock>
             </StackPanel>
         </Button>
         <Button ToolTip.Tip="Step Into" Command="{Binding StepIntoCommand}" CommandParameter="{Binding IsShiftDown}"
                 DockPanel.Dock="Left">
-            <TextBlock Margin="4,0,0,0">Step Into</TextBlock>
+            <TextBlock Margin="4,0,0,0" FontSize="20">Step Into</TextBlock>
         </Button>
         <Button ToolTip.Tip="Step Over" Command="{Binding StepOverCommand}" CommandParameter="{Binding IsShiftDown}"
                 DockPanel.Dock="Left">
-            <TextBlock Margin="4,0,0,0">Step Over</TextBlock>
+            <TextBlock Margin="4,0,0,0" FontSize="20">Step Over</TextBlock>
         </Button>
-        <!-- <Button ToolTip.Tip="Show Disassembly at current PC address" Command="{Binding ShowDisassemblyCommand}" -->
-        <!--         DockPanel.Dock="Left"> -->
-        <!--     <TextBlock Margin="4,0,0,0">Show Disassembly</TextBlock> -->
-        <!-- </Button> -->
         <!-- busy spinner -->
         <common:Spinner IsActive="{Binding IsBusy}" DockPanel.Dock="Right" Margin="4,0" />
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="4,0">

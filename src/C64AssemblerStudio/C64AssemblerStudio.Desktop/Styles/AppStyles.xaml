@@ -78,7 +78,7 @@
                                 Content="{TemplateBinding HeaderContext}"
                                 IsVisible="{TemplateBinding HeaderContext, Converter={x:Static ObjectConverters.IsNotNull}}" />
               <TextBlock Name="PART_Title" Text="{TemplateBinding Title}"
-                         Margin="2" Padding="2" TextTrimming="CharacterEllipsis" />
+                         Margin="2" Padding="2" TextTrimming="CharacterEllipsis" FontSize="20" />
             </DockPanel>
             <ContentPresenter Name="PART_ContentPresenter"
                               Background="{TemplateBinding Background}"

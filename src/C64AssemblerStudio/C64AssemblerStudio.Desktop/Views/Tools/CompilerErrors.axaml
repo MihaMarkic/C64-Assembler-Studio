@@ -6,7 +6,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="tools:CompilerErrorsOutputViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Tools.CompilerErrors">
-        <DataGrid Name="Grid" ItemsSource="{Binding Lines}" AutoGenerateColumns="False" IsReadOnly="True"
+        <DataGrid Name="Grid" ItemsSource="{Binding Lines}" 
+                  AutoGenerateColumns="False" IsReadOnly="True"
                   SelectionMode="Single">
             <DataGrid.Styles>
                 <Style Selector="DataGridCell">
@@ -14,10 +15,10 @@
                 </Style>
             </DataGrid.Styles>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Line" Binding="{Binding Error.Line}" Width="60"/>
-                <DataGridTextColumn Header="Col" Binding="{Binding Error.Column}" Width="60" />
-                <DataGridTextColumn Header="Error" Binding="{Binding Error.Text}" Width="400" />
-                <DataGridTextColumn Header="Path" Binding="{Binding Error.Path}" />
+                <DataGridTextColumn Header="Line" Binding="{Binding Error.Line}" Width="60" FontSize="20"/>
+                <DataGridTextColumn Header="Col" Binding="{Binding Error.Column}" Width="60" FontSize="20"/>
+                <DataGridTextColumn Header="Error" Binding="{Binding Error.Text}" Width="400" FontSize="20"/>
+                <DataGridTextColumn Header="Path" Binding="{Binding Error.Path}" FontSize="20"/>
             </DataGrid.Columns>
         </DataGrid>
 </UserControl>

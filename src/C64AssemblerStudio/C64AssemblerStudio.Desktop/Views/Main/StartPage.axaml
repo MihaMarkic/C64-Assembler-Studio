@@ -11,7 +11,7 @@
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*">
         <TextBlock FontSize="20">Start Page</TextBlock>
-        <TextBlock Grid.Column="0" Grid.Row="1" Margin="0,4">
+        <TextBlock Grid.Column="0" Grid.Row="1" Margin="0,4" FontSize="20">
             <InlineUIContainer>
                 <StackPanel Orientation="Horizontal">
                     <HyperlinkButton Content="Load last project" Command="{Binding LoadLastProjectCommand}" />
