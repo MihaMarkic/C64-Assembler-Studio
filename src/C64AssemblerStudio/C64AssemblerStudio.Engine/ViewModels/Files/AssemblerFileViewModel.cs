@@ -250,6 +250,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             case nameof(CaretRow):
                 UpdateByteDumpHighlight();
                 break;
+            case nameof(IsByteDumpToggleVisible):
+                if (!IsByteDumpToggleVisible)
+                {
+                    IsByteDumpVisible = false;
+                }
+                break;
         }
 
         base.OnPropertyChanged(name);
