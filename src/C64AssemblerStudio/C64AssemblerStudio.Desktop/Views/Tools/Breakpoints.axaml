@@ -51,22 +51,22 @@
       <converters:UIntArrayToTextConverter x:Key="UIntArrayToTextConverter" />
     </DataGrid.Resources>
     <DataGrid.Columns>
-      <DataGridTextColumn Header="Number" IsReadOnly="true" CellStyleClasses="colored" 
+      <DataGridTextColumn Header="Number" IsReadOnly="true" CellStyleClasses="colored" FontSize="20"
         Binding="{Binding CheckpointNumbers, Converter={StaticResource UIntArrayToTextConverter}, Mode=OneWay}"/>
       <DataGridCheckBoxColumn CellStyleClasses="colored" Header="Enabled" Binding="{Binding IsEnabled}" IsReadOnly="True" />
-      <DataGridTextColumn CellStyleClasses="colored" Header="Error" Binding="{Binding Error, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" FontSize="20" Header="Error" Binding="{Binding Error, Mode=OneWay}" IsReadOnly="True" />
       <DataGridCheckBoxColumn CellStyleClasses="colored" Header="Stop" Binding="{Binding StopWhenHit}" IsReadOnly="True" />
-      <DataGridTextColumn CellStyleClasses="colored" Header="Mode" Binding="{Binding Mode, Mode=OneWay}" IsReadOnly="True" />
-      <DataGridTextColumn CellStyleClasses="colored" Header="Ranges" 
+      <DataGridTextColumn CellStyleClasses="colored" FontSize="20" Header="Mode" Binding="{Binding Mode, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" FontSize="20" Header="Ranges" 
         Binding="{Binding AddressRanges, Converter={StaticResource BreakpointAddressRangesToStringConverter}, Mode=OneWay}" IsReadOnly="True" />
       <!--<DataGridTextColumn CellStyleClasses="colored" Header="End" 
         Binding="{Binding EndAddress, Converter={StaticResource HexAddressConverter}, Mode=OneWay}" IsReadOnly="True" />-->
-      <DataGridTextColumn CellStyleClasses="colored" Header="Binding" 
+      <DataGridTextColumn CellStyleClasses="colored" FontSize="20" Header="Binding" 
         Binding="{Binding Bind, Converter={StaticResource BreakpointBindingToStringConverter}, Mode=OneWay}" IsReadOnly="True" />
-      <DataGridTextColumn CellStyleClasses="colored" Header="Hit Count" Binding="{Binding HitCount, Mode=OneWay}" IsReadOnly="True" />
-      <DataGridTextColumn CellStyleClasses="colored" Header="Ignore Count" Binding="{Binding IgnoreCount, Mode=OneWay}" IsReadOnly="True" />
-      <DataGridTextColumn CellStyleClasses="colored" Header="Condition" Binding="{Binding Condition, Mode=OneWay}" IsReadOnly="True" Width="*" />
-      <DataGridTextColumn CellStyleClasses="colored" Header="Error text" Binding="{Binding ErrorText, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" FontSize="20" Header="Hit Count" Binding="{Binding HitCount, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" FontSize="20" Header="Ignore Count" Binding="{Binding IgnoreCount, Mode=OneWay}" IsReadOnly="True" />
+      <DataGridTextColumn CellStyleClasses="colored" FontSize="20" Header="Condition" Binding="{Binding Condition, Mode=OneWay}" IsReadOnly="True" Width="*" />
+      <DataGridTextColumn CellStyleClasses="colored" FontSize="20" Header="Error text" Binding="{Binding ErrorText, Mode=OneWay}" IsReadOnly="True" />
     </DataGrid.Columns>
   </DataGrid>
 </DockPanel>

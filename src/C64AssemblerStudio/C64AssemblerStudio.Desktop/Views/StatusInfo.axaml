@@ -8,10 +8,10 @@
              x:DataType="viewModels:StatusInfoViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.StatusInfo">
     <StackPanel Name="Content" Orientation="Horizontal">
-        <TextBlock Classes="pc_value"
+        <TextBlock Classes="pc_value" FontSize="20" FontWeight="Bold"
                    Text="{Binding BuildingStatus, Converter={x:Static converters:StudioConverters.BuildStatusToString}}"
                    IsVisible="{Binding BuildingStatus, Converter={x:Static converters:StudioConverters.IsBuildStatusVisible}}" />
-        <TextBlock Classes="pc_value"
+        <TextBlock Classes="pc_value" FontSize="20" FontWeight="Bold"
                    Text="{Binding DebuggingStatus, Converter={x:Static converters:StudioConverters.DebuggingStatusToString}}"
                    IsVisible="{Binding DebuggingStatus, Converter={x:Static converters:StudioConverters.IsDebuggingStatusVisible}}" />
         <!-- <TextBlock Classes="pc_value" Text="{Binding StepMode, Converter={StaticResource StepModeToStringConverter}}" -->

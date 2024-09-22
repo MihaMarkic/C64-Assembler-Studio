@@ -16,8 +16,8 @@
         <TabControl.ItemTemplate>
             <DataTemplate>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Caption}" FontSize="15" VerticalAlignment="Center" />
-                    <TextBlock Text="*" IsVisible="{Binding HasChanges}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Caption}" FontSize="20" VerticalAlignment="Center" />
+                    <TextBlock Text="*" IsVisible="{Binding HasChanges}" VerticalAlignment="Center" FontSize="20" />
                     <Button Command="{Binding $parent[TabControl].((fvm:FilesViewModel)DataContext).CloseFileCommand}"
                             CommandParameter="{Binding}" VerticalAlignment="Top"
                             Padding="4" Background="Transparent">

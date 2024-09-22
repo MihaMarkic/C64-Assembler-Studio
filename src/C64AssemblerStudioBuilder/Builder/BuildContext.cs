@@ -29,6 +29,7 @@ public class BuildContext : FrostingContext
         DesktopProjectDirectory = SolutionDirectory + context.Directory("C64AssemblerStudio.Desktop");
         DesktopProject = DesktopProjectDirectory .CombineWithFilePath(context.File("C64AssemblerStudio.Desktop.csproj"));
         PublishRootDirectory = SolutionDirectory + context.Directory("publish");
+        Architecture = context.Argument("architecture", TargetArchitecture.WinX64);
         PublishDirectory = PublishRootDirectory + this.Directory(Architecture switch
         {
             TargetArchitecture.WinX64 => "win_x64",
@@ -37,7 +38,6 @@ public class BuildContext : FrostingContext
             TargetArchitecture.Dependent => "dependent",
             _ => throw new Exception($"Unknown architecture {Architecture}")
         });
-        Architecture = context.Argument("architecture", TargetArchitecture.WinX64);
         BuildType = context.Argument("buildType", BuildType.Scoop);
         // verify arguments validity
         switch (BuildType)

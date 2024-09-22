@@ -22,9 +22,14 @@ public class SelfContainedPublishTask : FrostingTask<BuildContext>
             Runtime = context.TargetRuntime,
             OutputDirectory = context.PublishDirectory,
         };
-        context.Information(settings.ToString());
-        
-        context.DeleteDirectory(context.PublishDirectory, new DeleteDirectorySettings{ Force = true, Recursive = true });
+
+        if (context.DirectoryExists(context.PublishDirectory))
+        {
+            context.DeleteDirectory(context.PublishDirectory,
+                new DeleteDirectorySettings { Force = false, Recursive = true });
+            context.Information("Deleted");
+        }
+        context.CreateDirectory(context.PublishDirectory);
         context.DotNetPublish(context.DesktopProject.FullPath, settings);
     }
 }

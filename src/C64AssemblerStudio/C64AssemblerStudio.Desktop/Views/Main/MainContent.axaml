@@ -100,7 +100,7 @@
                             </TabControl.ContentTemplate>
                             <TabControl.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Header}" />
+                                    <TextBlock Text="{Binding Header}" FontSize="20" />
                                 </DataTemplate>
                             </TabControl.ItemTemplate>
                         </TabControl>
