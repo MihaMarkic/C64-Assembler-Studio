@@ -84,29 +84,37 @@ public partial class AddressEntryParser : Parser {
 	}
 
 	public partial class AddressContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext arguments() {
-			return GetRuleContext<ArgumentsContext>(0);
-		}
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode Eof() { return GetToken(AddressEntryParser.Eof, 0); }
 		public AddressContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
 		public override int RuleIndex { get { return RULE_address; } }
+	 
+		public AddressContext() { }
+		public virtual void CopyFrom(AddressContext context) {
+			base.CopyFrom(context);
+		}
+	}
+	public partial class RootContext : AddressContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext arguments() {
+			return GetRuleContext<ArgumentsContext>(0);
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode Eof() { return GetToken(AddressEntryParser.Eof, 0); }
+		public RootContext(AddressContext context) { CopyFrom(context); }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override void EnterRule(IParseTreeListener listener) {
 			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
-			if (typedListener != null) typedListener.EnterAddress(this);
+			if (typedListener != null) typedListener.EnterRoot(this);
 		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override void ExitRule(IParseTreeListener listener) {
 			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
-			if (typedListener != null) typedListener.ExitAddress(this);
+			if (typedListener != null) typedListener.ExitRoot(this);
 		}
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitAddress(this);
+			if (typedVisitor != null) return typedVisitor.VisitRoot(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
@@ -116,6 +124,7 @@ public partial class AddressEntryParser : Parser {
 		AddressContext _localctx = new AddressContext(Context, State);
 		EnterRule(_localctx, 0, RULE_address);
 		try {
+			_localctx = new RootContext(_localctx);
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 6;

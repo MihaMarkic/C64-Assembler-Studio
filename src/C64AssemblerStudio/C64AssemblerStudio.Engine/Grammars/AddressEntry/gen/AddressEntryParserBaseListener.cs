@@ -36,17 +36,19 @@ using ParserRuleContext = Antlr4.Runtime.ParserRuleContext;
 [System.CLSCompliant(false)]
 public partial class AddressEntryParserBaseListener : IAddressEntryParserListener {
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="AddressEntryParser.address"/>.
+	/// Enter a parse tree produced by the <c>Root</c>
+	/// labeled alternative in <see cref="AddressEntryParser.address"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterAddress([NotNull] AddressEntryParser.AddressContext context) { }
+	public virtual void EnterRoot([NotNull] AddressEntryParser.RootContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="AddressEntryParser.address"/>.
+	/// Exit a parse tree produced by the <c>Root</c>
+	/// labeled alternative in <see cref="AddressEntryParser.address"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitAddress([NotNull] AddressEntryParser.AddressContext context) { }
+	public virtual void ExitRoot([NotNull] AddressEntryParser.RootContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by the <c>Multiplication</c>
 	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.

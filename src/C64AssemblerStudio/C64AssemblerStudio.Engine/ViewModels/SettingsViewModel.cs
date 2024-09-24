@@ -44,7 +44,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         VerifyValues();
         VerifyValuesCommand = new RelayCommand(VerifyValues);
         _ipAddressValidator = serviceScope.CreateIpAddressValidator(nameof(ViceAddress));
-        _ipAddressValidator.Update(_globals.Settings.ViceAddress);
+        _ipAddressValidator.Update(Settings.ViceAddress);
         var errorHandlerBuilder = ErrorHandler.CreateBuilder()
             .AddValidator(nameof(ViceAddress), _ipAddressValidator);
         _errorHandler = errorHandlerBuilder.Build();
@@ -99,6 +99,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
 
     protected override void Closing()
     {
+        Settings.ViceAddress = _ipAddressValidator.Text;
         _settingsManager.Save(Settings);
         base.Closing();
     }
@@ -106,7 +107,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     {
         if (disposing)
         {
-            _globals.Settings.PropertyChanged -= Settings_PropertyChanged;
+            Settings.PropertyChanged -= Settings_PropertyChanged;
         }
         base.Dispose(disposing);
     }

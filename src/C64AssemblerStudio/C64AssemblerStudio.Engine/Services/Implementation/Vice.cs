@@ -60,7 +60,7 @@ public class Vice : NotifiableObject, IVice
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _bridge.ConnectedChanged += BridgeOnConnectedChanged;
         _bridge.ViceResponse += BridgeOnViceResponse;
-        _bridge.Start();
+        _bridge.Start(_globals.Settings.ViceMonitorPort);
     }
 
     private void OnRegistersUpdated(RegistersEventArgs e) => RegistersUpdated?.Invoke(this, e);
@@ -303,7 +303,7 @@ public class Vice : NotifiableObject, IVice
         _process = null;
     }
 
-    internal Process? StartVice()
+    private Process? StartVice()
     {
         string? realVicePath = _globals.Settings.RealVicePath;
         if (!string.IsNullOrWhiteSpace(realVicePath))

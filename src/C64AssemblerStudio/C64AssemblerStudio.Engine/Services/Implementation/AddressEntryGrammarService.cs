@@ -73,6 +73,11 @@ public class AddressEntryGrammarService : IAddressEntryGrammarService
             _labelsMap = labelsMap;
         }
 
+        public override ushort VisitRoot(AddressEntryParser.RootContext context)
+        {
+            return Visit(context.arguments());
+        }
+
         public override ushort VisitPlus(AddressEntryParser.PlusContext context)
         {
             return (ushort)(Visit(context.left) + Visit(context.right));

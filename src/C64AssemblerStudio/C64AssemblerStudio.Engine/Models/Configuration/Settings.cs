@@ -1,6 +1,9 @@
-﻿using System.Data.Common;
+﻿using System.ComponentModel;
+using System.Data.Common;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using C64AssemblerStudio.Core;
+using CommunityToolkit.Diagnostics;
 
 namespace C64AssemblerStudio.Engine.Models.Configuration;
 
@@ -8,6 +11,7 @@ public class Settings : NotifiableObject
 {
     public const int MaxRecentProjects = 10;
     public const string DefaultViceAddress = "localhost:6802";
+    public const int DeafultViceAddressPort = 6802;
 
     /// <summary>
     /// User selected path to VICE files.
@@ -46,9 +50,23 @@ public class Settings : NotifiableObject
     }
     public string BinaryMonitorArgument => $"--binarymonitor --binarymonitoraddress ip4://127.0.0.1:{ViceMonitorPort}";
 
-    public int? ViceMonitorPort
+    public ushort ViceMonitorPort
     {
-        get => null;
+        get
+        {
+            if (ViceAddress is not null)
+            {
+                int colon = ViceAddress.IndexOf(':');
+                if (colon >= 0)
+                {
+                    if (ushort.TryParse(ViceAddress.AsSpan()[colon..], out ushort port))
+                    {
+                        return port;
+                    }
+                }
+            }
+            return DeafultViceAddressPort;
+        }
     }
     public void AddRecentProject(string path)
     {

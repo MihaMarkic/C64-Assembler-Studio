@@ -32,11 +32,12 @@ using IToken = Antlr4.Runtime.IToken;
 [System.CLSCompliant(false)]
 public interface IAddressEntryParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="AddressEntryParser.address"/>.
+	/// Visit a parse tree produced by the <c>Root</c>
+	/// labeled alternative in <see cref="AddressEntryParser.address"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitAddress([NotNull] AddressEntryParser.AddressContext context);
+	Result VisitRoot([NotNull] AddressEntryParser.RootContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>Multiplication</c>
 	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.

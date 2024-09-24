@@ -5,7 +5,8 @@ options {
 }
 
 address
-    : arguments EOF;
+    : arguments EOF                            # Root
+    ;
 
 arguments
     : OPEN_PARENS arguments CLOSE_PARENS        # Parens

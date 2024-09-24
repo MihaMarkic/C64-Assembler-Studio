@@ -197,14 +197,14 @@ public class MainViewModel : ViewModel
         DebugOutput.AddLine("Stepped into");
     }
 
-    internal async Task StepOverAsync()
+    private async Task StepOverAsync()
     {
         DebugOutput.AddLine("Stepping over");
         await Vice.StepOverAsync();
         DebugOutput.AddLine("Stepped over");
     }
 
-    internal async Task StopDebuggingAsync()
+    private async Task StopDebuggingAsync()
     {
         if (IsDebuggingStarting)
         {

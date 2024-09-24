@@ -35,7 +35,8 @@ using ParserRuleContext = Antlr4.Runtime.ParserRuleContext;
 [System.CLSCompliant(false)]
 public partial class AddressEntryParserBaseVisitor<Result> : AbstractParseTreeVisitor<Result>, IAddressEntryParserVisitor<Result> {
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="AddressEntryParser.address"/>.
+	/// Visit a parse tree produced by the <c>Root</c>
+	/// labeled alternative in <see cref="AddressEntryParser.address"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -43,7 +44,7 @@ public partial class AddressEntryParserBaseVisitor<Result> : AbstractParseTreeVi
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitAddress([NotNull] AddressEntryParser.AddressContext context) { return VisitChildren(context); }
+	public virtual Result VisitRoot([NotNull] AddressEntryParser.RootContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by the <c>Multiplication</c>
 	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.

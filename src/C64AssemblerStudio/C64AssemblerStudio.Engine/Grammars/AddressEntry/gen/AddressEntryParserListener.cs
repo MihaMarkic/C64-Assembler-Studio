@@ -31,15 +31,17 @@ using IToken = Antlr4.Runtime.IToken;
 [System.CLSCompliant(false)]
 public interface IAddressEntryParserListener : IParseTreeListener {
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="AddressEntryParser.address"/>.
+	/// Enter a parse tree produced by the <c>Root</c>
+	/// labeled alternative in <see cref="AddressEntryParser.address"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterAddress([NotNull] AddressEntryParser.AddressContext context);
+	void EnterRoot([NotNull] AddressEntryParser.RootContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="AddressEntryParser.address"/>.
+	/// Exit a parse tree produced by the <c>Root</c>
+	/// labeled alternative in <see cref="AddressEntryParser.address"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitAddress([NotNull] AddressEntryParser.AddressContext context);
+	void ExitRoot([NotNull] AddressEntryParser.RootContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>Multiplication</c>
 	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.

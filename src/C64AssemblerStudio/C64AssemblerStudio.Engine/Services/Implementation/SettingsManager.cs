@@ -2,6 +2,7 @@
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace C64AssemblerStudio.Engine.Services.Implementation;
 
@@ -49,9 +50,15 @@ public class SettingsManager : ISettingsManager
         return result;
     }
     public void Save(Settings settings) => Save(settings, _settingsPath, true);
+
     public void Save<T>(T settings, string path, bool createDirectory)
     {
-        var data = JsonSerializer.Serialize(settings);
+        var data = JsonSerializer.Serialize(settings,
+            new JsonSerializerOptions
+            {
+                IgnoreReadOnlyProperties = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+            });
         try
         {
             if (createDirectory)
