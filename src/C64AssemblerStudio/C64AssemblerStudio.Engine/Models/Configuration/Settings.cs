@@ -6,10 +6,13 @@ namespace C64AssemblerStudio.Engine.Models.Configuration;
 public class Settings : NotifiableObject
 {
     public const int MaxRecentProjects = 10;
+    public const string DefaultViceAddress = "localhost:6802";
+
     /// <summary>
     /// User selected path to VICE files.
     /// </summary>
     public string? VicePath { get; set; }
+
     /// <summary>
     /// Signals that VICE files are contained in ./bin subdirectory.
     /// True by default because of legacy.
@@ -17,6 +20,11 @@ public class Settings : NotifiableObject
     public bool ViceFilesInBinDirectory { get; set; } = true;
     public bool ResetOnStop { get; set; }
     public bool IsAutoUpdateEnabled { get; set; }
+    /// <summary>
+    /// Defines VICE's IP address to bind to.
+    /// </summary>
+    /// <remarks>When null, it uses default localhost:6502</remarks>
+    public string? ViceAddress { get; set; }
     public ObservableCollection<string> RecentProjects { get; set; } = new ObservableCollection<string>();
     [JsonIgnore]
     public string? LastAccessedDirectory => RecentProjects.Count > 0 ? RecentProjects[0] : null;

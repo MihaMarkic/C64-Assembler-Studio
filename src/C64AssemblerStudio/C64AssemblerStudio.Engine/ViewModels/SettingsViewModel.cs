@@ -36,11 +36,13 @@ public sealed class SettingsViewModel : OverlayContentViewModel
                 break;
         }
     }
-    public void VerifyValues()
+
+    private void VerifyValues()
     {
         VerifyVicePath();
     }
-    public void VerifyVicePath()
+
+    private void VerifyVicePath()
     {
         if (string.IsNullOrWhiteSpace(Settings.VicePath))
         {
