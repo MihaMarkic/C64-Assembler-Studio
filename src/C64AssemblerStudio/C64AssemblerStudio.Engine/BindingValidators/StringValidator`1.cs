@@ -8,7 +8,6 @@
 public abstract class StringValidator<TSource> : BindingValidator, IBindingValidator
 {
     readonly Action<TSource> _assignToSource;
-    public string? TextValue { get; protected set; }
     public abstract string? ConvertTo(TSource source);
     protected abstract (bool IsValid, TSource Value, string? error) ConvertFrom(string? text);
 
@@ -16,7 +15,7 @@ public abstract class StringValidator<TSource> : BindingValidator, IBindingValid
     {
         _assignToSource = assignToSource;
     }
-    public void UpdateText(string? text)
+    public override void Update(string? text)
     {
         var (isValid, value, error) = ConvertFrom(text);
         if (isValid)
@@ -28,6 +27,6 @@ public abstract class StringValidator<TSource> : BindingValidator, IBindingValid
         {
             Errors = ImmutableArray<string>.Empty.Add(error ?? "Unknown error");
         }
-        TextValue = text;
+        base.Update(text);
     }
 }

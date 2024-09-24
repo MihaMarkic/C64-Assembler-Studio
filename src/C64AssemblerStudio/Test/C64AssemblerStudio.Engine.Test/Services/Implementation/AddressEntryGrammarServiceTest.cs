@@ -8,7 +8,7 @@ namespace C64AssemblerStudio.Engine.Test.Services.Implementation;
 
 public class AddressEntryGrammarServiceTest: BaseTest<AddressEntryGrammarService>
 {
-    protected static readonly FrozenDictionary<string, Label> EmptyLabelsMap = FrozenDictionary<string, Label>.Empty;
+    private static readonly FrozenDictionary<string, Label> EmptyLabelsMap = FrozenDictionary<string, Label>.Empty;
     [TestFixture]
     public class CalculateAddress : AddressEntryGrammarServiceTest
     {
@@ -58,6 +58,25 @@ public class AddressEntryGrammarServiceTest: BaseTest<AddressEntryGrammarService
         public void GivenUnknownLabel_ThrowsException()
         {
             Assert.Throws<Exception>(() => Target.CalculateAddress(EmptyLabelsMap, "label"));
+        }
+    }
+
+    [TestFixture]
+    public class VerifyText : AddressEntryGrammarServiceTest
+    {
+        [Test]
+        public void GiveInvalidHexNumber_ReturnsHasErrors()
+        {
+            var actual = Target.VerifyText("$rgf");
+            
+            Assert.That(actual.HasError, Is.True);
+        }
+        [Test]
+        public void GivenInvalidPostfixToken_ReturnsHasErrors()
+        {
+            var actual = Target.VerifyText("$FF $A0");
+            
+            Assert.That(actual.HasError, Is.True);
         }
     }
 }

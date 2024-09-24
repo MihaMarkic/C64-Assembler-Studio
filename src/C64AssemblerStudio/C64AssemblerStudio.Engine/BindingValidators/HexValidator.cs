@@ -15,7 +15,7 @@ public class HexValidator : StringValidator<ushort?>
     {
         this.digits = digits;
         hexFormat = $"X{digits}";
-        TextValue = ConvertTo(initialValue);
+        Text = ConvertTo(initialValue);
     }
 
     protected override (bool IsValid, ushort? Value, string? error) ConvertFrom(string? text)

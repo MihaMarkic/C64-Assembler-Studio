@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from D:/Git/Righthand/C64/C64-Assembler-Studio/src/C64AssemblerStudio/C64AssemblerStudio.Engine/Grammars/AddressEntry/AddressEntryLexer.g4 by ANTLR 4.13.1
+// Generated from D:/GitProjects/Righthand/C64/C64-Assembler-Studio/src/C64AssemblerStudio/C64AssemblerStudio.Engine/Grammars/AddressEntry/AddressEntryLexer.g4 by ANTLR 4.13.1
 
 // Unreachable code detected
 #pragma warning disable 0162

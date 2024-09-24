@@ -19,18 +19,20 @@ public class AddressEntryGrammarService : IAddressEntryGrammarService
 
         var input = new AntlrInputStream(text);
         var lexer = new AddressEntryLexer(input);
+        var lexerErrorListener = new LexerErrorsListener();
+        lexer.AddErrorListener(lexerErrorListener);
         var tokenStream = new CommonTokenStream(lexer);
         var parser = new AddressEntryParser(tokenStream)
         {
             BuildParseTree = true
         };
-        var errorListener = new ErrorListener();
+        var errorListener = new ParserErrorListener();
         parser.AddErrorListener(errorListener);
-        var tree = parser.arguments();
+        var tree = parser.address();
         var listener = new AddressEntryParserBaseListener();
         ParseTreeWalker.Default.Walk(listener, tree);
 
-        return (errorListener.HasErrors, [..errorListener.Errors]);
+        return (errorListener.HasErrors || lexerErrorListener.HasErrors, [..errorListener.Errors]);
     }
 
     public ushort? CalculateAddress(IDictionary<string, Label> labels, string? text)
@@ -49,10 +51,20 @@ public class AddressEntryGrammarService : IAddressEntryGrammarService
         };
 
         var evaluator = new EvaluatorVisitor(labels);
-        return evaluator.Visit(parser.arguments());
+        return evaluator.Visit(parser.address());
+    }
+    
+    private class LexerErrorsListener: IAntlrErrorListener<int>
+    {
+        public bool HasErrors { get; private set; }
+        public void SyntaxError(TextWriter output, IRecognizer recognizer, int offendingSymbol, int line, int charPositionInLine,
+            string msg, RecognitionException e)
+        {
+            HasErrors = true;
+        }
     }
 
-    internal class EvaluatorVisitor : AddressEntryParserBaseVisitor<ushort>
+    private class EvaluatorVisitor : AddressEntryParserBaseVisitor<ushort>
     {
         private readonly IDictionary<string, Label> _labelsMap;
 
@@ -137,7 +149,7 @@ public class AddressEntryGrammarService : IAddressEntryGrammarService
     }
 
 
-    internal class ErrorListener : IAntlrErrorListener<IToken>
+    private class ParserErrorListener : IAntlrErrorListener<IToken>
     {
         public bool HasErrors => Errors.Count > 0;
         public List<SyntaxError> Errors { get; } = new();

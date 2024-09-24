@@ -38,7 +38,16 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
     private readonly IVice _vice;
     private readonly BreakpointsViewModel _breakpoints;
     private readonly BreakpointViewModel _sourceBreakpoint;
-    public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
+    private readonly ErrorHandler _errorHandler;
+    
+    bool INotifyDataErrorInfo.HasErrors => _errorHandler.HasErrors;
+    event EventHandler<DataErrorsChangedEventArgs>? INotifyDataErrorInfo.ErrorsChanged
+    {
+        add => _errorHandler.ErrorsChanged += value;
+        remove => _errorHandler.ErrorsChanged -= value;
+    }
+    IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName) => _errorHandler.GetErrors(propertyName);
+
     public string? SaveError { get; private set; }
     public BreakpointViewModel Breakpoint { get; }
     public Action<SimpleDialogResult>? Close { get; set; }
@@ -47,30 +56,26 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
     public RelayCommand CancelCommand { get; }
     public RelayCommand ClearBindingCommand { get; }
     public BreakpointDetailDialogMode Mode { get; }
-    public bool HasChanges { get; private set; }
-    public bool HasErrors { get; private set; }
-    public bool CanUpdate => HasChanges && !HasErrors;
     public bool IsDebugging => _vice.IsDebugging;
     public bool HasCreateButton => Mode == BreakpointDetailDialogMode.Create;
-
     public bool HasApplyButton =>
         false; // Mode == BreakpointDetailDialogMode.Update; // disabled for now, perhaps enabled in the future
 
     public bool HasSaveButton => Mode == BreakpointDetailDialogMode.Update;
     public string? StartAddress
     {
-        get => _startAddressEntryValidator.TextValue;
+        get => _startAddressEntryValidator.Text;
         set => _startAddressEntryValidator.Update(value);
     }
     public string? EndAddress
     {
-        get => _endAddressEntryValidator.TextValue;
+        get => _endAddressEntryValidator.Text;
         set => _endAddressEntryValidator.Update(value);
     }
 
     public string? BreakpointConditions
     {
-        get => _breakpointConditionsValidator.TextValue;
+        get => _breakpointConditionsValidator.Text;
         set => _breakpointConditionsValidator.Update(value);
     }
     public bool IsAddressRangeReadOnly => IsBreakpointBound;
@@ -80,10 +85,11 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
     public bool IsLoadStoreModeEnabled => Breakpoint.Bind is not BreakpointLineBind;
     public ImmutableArray<SyntaxEditorError> ConditionsErrors { get; private set; }
     public ImmutableArray<SyntaxEditorToken> Tokens { get; private set; }
-    private readonly FrozenDictionary<string, ImmutableArray<IBindingValidator>> _validators;
+    
     private readonly AddressEntryValidator _startAddressEntryValidator;
     private readonly AddressEntryValidator _endAddressEntryValidator;
     private readonly BreakpointConditionsValidator _breakpointConditionsValidator;
+
     public BreakpointDetailViewModel(ILogger<BreakpointDetailViewModel> logger, IServiceScope serviceScope,
         Globals globals, IVice vice,
         BreakpointsViewModel breakpoints, BreakpointViewModel breakpoint, BreakpointDetailDialogMode mode)
@@ -103,18 +109,12 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
         _startAddressEntryValidator = serviceScope.CreateAddressEntryValidator(nameof(StartAddress), isMandatory: true);
         _endAddressEntryValidator = serviceScope.CreateAddressEntryValidator(nameof(EndAddress), isMandatory: false);
         _breakpointConditionsValidator = serviceScope.CreateBreakpointConditionValidator(nameof(BreakpointConditions));
-        var validatorsBuilder = new Dictionary<string, ImmutableArray<IBindingValidator>>
-        {
-            { nameof(StartAddress), [_startAddressEntryValidator] },
-            { nameof(EndAddress), [_endAddressEntryValidator] },
-            { nameof(BreakpointConditions), [_breakpointConditionsValidator] }
-        };
-        _validators = validatorsBuilder.ToFrozenDictionary();
-        // bind all validators
-        foreach (var validator in _validators.Values.SelectMany(a => a))
-        {
-            validator.HasErrorsChanged += ValidatorHasErrorsChanged;
-        }
+        var errorHandlerBuilder = ErrorHandler.CreateBuilder()
+            .AddValidator(nameof(StartAddress), _startAddressEntryValidator)
+            .AddValidator(nameof(EndAddress), _endAddressEntryValidator)
+            .AddValidator(nameof(BreakpointConditions), _breakpointConditionsValidator);
+        _errorHandler = errorHandlerBuilder.Build();
+        _errorHandler.ErrorsChanged += ErrorHandlerOnErrorsChanged;
         _breakpointConditionsValidator.PropertyChanged += BreakpointConditionsValidatorOnPropertyChanged;
         switch (Breakpoint.Bind)
         {
@@ -127,6 +127,12 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
         ConditionsErrors = [];
         Tokens = [];
         _breakpointConditionsValidator.Update(Breakpoint.Condition);
+    }
+
+    private void ErrorHandlerOnErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
+    {
+        SaveCommand.RaiseCanExecuteChanged();
+        CreateCommand.RaiseCanExecuteChanged();
     }
 
     private void BreakpointConditionsValidatorOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -152,7 +158,7 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
         }
     }
 
-    internal void ClearBinding()
+    private void ClearBinding()
     {
         Breakpoint.Bind = BreakpointNoBind.Empty;
         UpdateNoBindAddressesFromViewModel(BreakpointNoBind.Empty);
@@ -162,18 +168,8 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
         StartAddress = noBind.StartAddress;
         EndAddress = noBind.EndAddress;
     }
-    internal bool CanSave() => !HasErrors && Breakpoint.IsChangedFrom(_sourceBreakpoint);
-    [SuppressPropertyChangedWarnings]
-    void OnErrorsChanged(DataErrorsChangedEventArgs e) => ErrorsChanged?.Invoke(this, e);
-    void ValidatorHasErrorsChanged(object? sender, EventArgs e)
-    {
-        var validator = (IBindingValidator)sender!;
-        HasErrors = _validators.Values
-            .SelectMany(a => a)
-            .Any(v => v.HasErrors);
-        OnErrorsChanged(new DataErrorsChangedEventArgs(validator.SourcePropertyName));
-    }
 
+    private bool CanSave() => !_errorHandler.HasErrors && Breakpoint.IsChangedFrom(_sourceBreakpoint);
     private ImmutableArray<ConditionCompletionSuggestionModel> GetLabelsSuggestions()
     {
         var project = (KickAssProjectViewModel)_globals.Project;
@@ -225,27 +221,9 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
             _ => ImmutableArray<ConditionCompletionSuggestionModel>.Empty,
         };
     }
-
-    public IEnumerable GetErrors(string? propertyName)
-    {
-        if (!string.IsNullOrEmpty(propertyName) && _validators.TryGetValue(propertyName, out var propertyValidators))
-        {
-            var errors = new List<string>();
-            foreach (var pv in propertyValidators)
-            {
-                errors.AddRange(pv.Errors);
-            }
-            HasErrors = errors.Count > 0;
-            return errors.ToImmutableArray();
-        }
-        else
-        {
-            return Enumerable.Empty<string>();
-        }
-    }
     void Breakpoint_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        HasChanges = true;
+        _errorHandler.HasChanges = true;
         SaveError = null;
         SaveCommand.RaiseCanExecuteChanged();
         CreateCommand.RaiseCanExecuteChanged();
@@ -301,7 +279,6 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
         base.OnPropertyChanged(name);
         switch (name)
         {
-            case nameof(HasErrors):
             case nameof(StartAddress):
             case nameof(EndAddress):
                 SaveCommand.RaiseCanExecuteChanged();

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from D:/Git/Righthand/C64/C64-Assembler-Studio/src/C64AssemblerStudio/C64AssemblerStudio.Engine/Grammars/AddressEntry/AddressEntryParser.g4 by ANTLR 4.13.1
+// Generated from D:/GitProjects/Righthand/C64/C64-Assembler-Studio/src/C64AssemblerStudio/C64AssemblerStudio.Engine/Grammars/AddressEntry/AddressEntryParser.g4 by ANTLR 4.13.1
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -34,6 +34,16 @@ using ParserRuleContext = Antlr4.Runtime.ParserRuleContext;
 [System.Diagnostics.DebuggerNonUserCode]
 [System.CLSCompliant(false)]
 public partial class AddressEntryParserBaseVisitor<Result> : AbstractParseTreeVisitor<Result>, IAddressEntryParserVisitor<Result> {
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="AddressEntryParser.address"/>.
+	/// <para>
+	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
+	/// on <paramref name="context"/>.
+	/// </para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	public virtual Result VisitAddress([NotNull] AddressEntryParser.AddressContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by the <c>Multiplication</c>
 	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.

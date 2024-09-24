@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Data.Common;
+using System.Text.Json.Serialization;
 using C64AssemblerStudio.Core;
 
 namespace C64AssemblerStudio.Engine.Models.Configuration;
@@ -25,7 +26,7 @@ public class Settings : NotifiableObject
     /// </summary>
     /// <remarks>When null, it uses default localhost:6502</remarks>
     public string? ViceAddress { get; set; }
-    public ObservableCollection<string> RecentProjects { get; set; } = new ObservableCollection<string>();
+    public ObservableCollection<string> RecentProjects { get; set; } = new();
     [JsonIgnore]
     public string? LastAccessedDirectory => RecentProjects.Count > 0 ? RecentProjects[0] : null;
     /// <summary>
@@ -43,7 +44,12 @@ public class Settings : NotifiableObject
             return null;
         }
     }
-    public string BinaryMonitorArgument => "-binarymonitor";
+    public string BinaryMonitorArgument => $"--binarymonitor --binarymonitoraddress ip4://127.0.0.1:{ViceMonitorPort}";
+
+    public int? ViceMonitorPort
+    {
+        get => null;
+    }
     public void AddRecentProject(string path)
     {
         if (!RecentProjects.Contains(path))

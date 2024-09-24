@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from D:/Git/Righthand/C64/C64-Assembler-Studio/src/C64AssemblerStudio/C64AssemblerStudio.Engine/Grammars/AddressEntry/AddressEntryParser.g4 by ANTLR 4.13.1
+// Generated from D:/GitProjects/Righthand/C64/C64-Assembler-Studio/src/C64AssemblerStudio/C64AssemblerStudio.Engine/Grammars/AddressEntry/AddressEntryParser.g4 by ANTLR 4.13.1
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -35,6 +35,18 @@ using ParserRuleContext = Antlr4.Runtime.ParserRuleContext;
 [System.Diagnostics.DebuggerNonUserCode]
 [System.CLSCompliant(false)]
 public partial class AddressEntryParserBaseListener : IAddressEntryParserListener {
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="AddressEntryParser.address"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterAddress([NotNull] AddressEntryParser.AddressContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="AddressEntryParser.address"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitAddress([NotNull] AddressEntryParser.AddressContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by the <c>Multiplication</c>
 	/// labeled alternative in <see cref="AddressEntryParser.arguments"/>.

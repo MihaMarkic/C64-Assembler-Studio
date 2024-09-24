@@ -4,6 +4,9 @@ options {
     tokenVocab = AddressEntryLexer;
 }
 
+address
+    : arguments EOF;
+
 arguments
     : OPEN_PARENS arguments CLOSE_PARENS        # Parens
     | left=arguments STAR right=arguments       # Multiplication

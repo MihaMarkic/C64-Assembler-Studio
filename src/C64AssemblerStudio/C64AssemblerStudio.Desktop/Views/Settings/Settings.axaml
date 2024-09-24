@@ -30,7 +30,8 @@
       <CheckBox IsChecked="{Binding Settings.ResetOnStop}">Reset On Stop</CheckBox>
       <TextBlock Classes="info" Margin="28,0,0,6">Resets VICE when upon Stop button click. Otherwise application is left running.</TextBlock>
       <TextBlock Classes="verticalLabel">VICE IP address</TextBlock>
-      <TextBox Text="{Binding Settings.ViceAddress}" Margin="0,0,4,0" Watermark="{x:Static conf:Settings.DefaultViceAddress}" />
+      <TextBox Text="{Binding ViceAddress}" Margin="0,0,4,0" Watermark="{x:Static conf:Settings.DefaultViceAddress}" />
+      <TextBlock Classes="info">Supported format is IP:PORT (note: connecting to remote computer is not supported at this time and is IP is ignored)</TextBlock>
     </StackPanel>
   </DockPanel>
 </UserControl>

@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Core;
+﻿using System.Diagnostics.CodeAnalysis;
+using C64AssemblerStudio.Core;
 using PropertyChanged;
 
 namespace C64AssemblerStudio.Engine.BindingValidators;
@@ -8,7 +9,7 @@ public abstract class BindingValidator : NotifiableObject, IBindingValidator
     public event EventHandler? HasErrorsChanged;
     public ImmutableArray<string> Errors { get; protected set; } = ImmutableArray<string>.Empty;
     public bool HasErrors => !Errors.IsDefaultOrEmpty;
-
+    public string? Text { get; protected set; }
     protected BindingValidator(string sourcePropertyName)
     {
         SourcePropertyName = sourcePropertyName;
@@ -32,5 +33,24 @@ public abstract class BindingValidator : NotifiableObject, IBindingValidator
                 break;
         }
         base.OnPropertyChanged(name);
+    }
+    
+
+    protected void ClearError()
+    {
+        if (HasErrors)
+        {
+            Errors = ImmutableArray<string>.Empty;
+        }   
+    }
+
+    protected void SetError(string errorText)
+    {
+        Errors = ImmutableArray<string>.Empty.Add(errorText);
+    }
+
+    public virtual void Update(string? text)
+    {
+        Text = text;
     }
 }

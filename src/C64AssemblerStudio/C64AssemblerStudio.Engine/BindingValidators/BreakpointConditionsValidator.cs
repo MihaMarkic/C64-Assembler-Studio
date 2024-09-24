@@ -6,7 +6,6 @@ namespace C64AssemblerStudio.Engine.BindingValidators;
 public class BreakpointConditionsValidator: BindingValidator
 {
     private readonly IBreakpointConditionGrammarService _grammarService;
-    public string? TextValue { get; protected set; }
     public ImmutableArray<SyntaxEditorError> GrammarErrors { get; private set; } = [];
     public ImmutableArray<SyntaxEditorToken> Tokens { get; private set; } = [];
     public BreakpointConditionsValidator(IBreakpointConditionGrammarService grammarService, string sourcePropertyName) : base(sourcePropertyName)
@@ -15,15 +14,15 @@ public class BreakpointConditionsValidator: BindingValidator
     }
 
     private CancellationTokenSource? _updateStatusCts;
-    public void Update(string? text)
+    public override void Update(string? text)
     {
-        TextValue = text;
+        base.Update(text);
         _updateStatusCts?.Cancel();
         _updateStatusCts = new();
         _ = UpdateStatusAsync(text, _updateStatusCts.Token);
     }
 
-    internal async Task UpdateStatusAsync(string? text, CancellationToken ct = default)
+    private async Task UpdateStatusAsync(string? text, CancellationToken ct = default)
     {
         try
         {
@@ -31,28 +30,22 @@ public class BreakpointConditionsValidator: BindingValidator
             await Task.Delay(200, ct);
             var (hasErrors, errors, tokens) = await _grammarService.VerifyTextAsync(text, ct);
             ct.ThrowIfCancellationRequested();
-            UpdateError(hasErrors,
-                errors.IsEmpty
+            if (hasErrors)
+            {
+                SetError(errors.IsEmpty
                     ? "Unknown error"
                     : string.Join(Environment.NewLine, errors.Select(e => $"{e.Line}:{e.Column} {e.Message}")));
+            }
+            else
+            {
+                ClearError();
+            }
             GrammarErrors = errors;
             Tokens = tokens;
         }
         catch (OperationCanceledException)
         {
             // do nothing
-        }
-    }
-
-    void UpdateError(bool hasError, string errorText)
-    {
-        if (HasErrors && !hasError)
-        {
-            Errors = [];
-        }
-        else if (!HasErrors && hasError)
-        {
-            Errors = ImmutableArray<string>.Empty.Add(errorText);
         }
     }
 }

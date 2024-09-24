@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from D:/Git/Righthand/C64/C64-Assembler-Studio/src/C64AssemblerStudio/C64AssemblerStudio.Engine/Grammars/AddressEntry/AddressEntryParser.g4 by ANTLR 4.13.1
+// Generated from D:/GitProjects/Righthand/C64/C64-Assembler-Studio/src/C64AssemblerStudio/C64AssemblerStudio.Engine/Grammars/AddressEntry/AddressEntryParser.g4 by ANTLR 4.13.1
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -39,9 +39,9 @@ public partial class AddressEntryParser : Parser {
 		OPEN_PARENS=1, CLOSE_PARENS=2, PLUS=3, MINUS=4, STAR=5, DIV=6, DEC_NUMBER=7, 
 		HEX_NUMBER=8, BIN_NUMBER=9, UNQUOTED_STRING=10, EOL=11, WS=12;
 	public const int
-		RULE_arguments = 0, RULE_argument = 1;
+		RULE_address = 0, RULE_arguments = 1, RULE_argument = 2;
 	public static readonly string[] ruleNames = {
-		"arguments", "argument"
+		"address", "arguments", "argument"
 	};
 
 	private static readonly string[] _LiteralNames = {
@@ -81,6 +81,58 @@ public partial class AddressEntryParser : Parser {
 		: base(input, output, errorOutput)
 	{
 		Interpreter = new ParserATNSimulator(this, _ATN, decisionToDFA, sharedContextCache);
+	}
+
+	public partial class AddressContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ArgumentsContext arguments() {
+			return GetRuleContext<ArgumentsContext>(0);
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode Eof() { return GetToken(AddressEntryParser.Eof, 0); }
+		public AddressContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_address; } }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void EnterRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.EnterAddress(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override void ExitRule(IParseTreeListener listener) {
+			IAddressEntryParserListener typedListener = listener as IAddressEntryParserListener;
+			if (typedListener != null) typedListener.ExitAddress(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			IAddressEntryParserVisitor<TResult> typedVisitor = visitor as IAddressEntryParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAddress(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public AddressContext address() {
+		AddressContext _localctx = new AddressContext(Context, State);
+		EnterRule(_localctx, 0, RULE_address);
+		try {
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 6;
+			arguments(0);
+			State = 7;
+			Match(Eof);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
 	}
 
 	public partial class ArgumentsContext : ParserRuleContext {
@@ -264,13 +316,13 @@ public partial class AddressEntryParser : Parser {
 		int _parentState = State;
 		ArgumentsContext _localctx = new ArgumentsContext(Context, _parentState);
 		ArgumentsContext _prevctx = _localctx;
-		int _startState = 0;
-		EnterRecursionRule(_localctx, 0, RULE_arguments, _p);
+		int _startState = 2;
+		EnterRecursionRule(_localctx, 2, RULE_arguments, _p);
 		try {
 			int _alt;
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 10;
+			State = 15;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
 			case OPEN_PARENS:
@@ -279,11 +331,11 @@ public partial class AddressEntryParser : Parser {
 				Context = _localctx;
 				_prevctx = _localctx;
 
-				State = 5;
+				State = 10;
 				Match(OPEN_PARENS);
-				State = 6;
+				State = 11;
 				arguments(0);
-				State = 7;
+				State = 12;
 				Match(CLOSE_PARENS);
 				}
 				break;
@@ -295,7 +347,7 @@ public partial class AddressEntryParser : Parser {
 				_localctx = new ArgContext(_localctx);
 				Context = _localctx;
 				_prevctx = _localctx;
-				State = 9;
+				State = 14;
 				argument();
 				}
 				break;
@@ -303,7 +355,7 @@ public partial class AddressEntryParser : Parser {
 				throw new NoViableAltException(this);
 			}
 			Context.Stop = TokenStream.LT(-1);
-			State = 26;
+			State = 31;
 			ErrorHandler.Sync(this);
 			_alt = Interpreter.AdaptivePredict(TokenStream,2,Context);
 			while ( _alt!=2 && _alt!=global::Antlr4.Runtime.Atn.ATN.INVALID_ALT_NUMBER ) {
@@ -312,7 +364,7 @@ public partial class AddressEntryParser : Parser {
 						TriggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					State = 24;
+					State = 29;
 					ErrorHandler.Sync(this);
 					switch ( Interpreter.AdaptivePredict(TokenStream,1,Context) ) {
 					case 1:
@@ -320,11 +372,11 @@ public partial class AddressEntryParser : Parser {
 						_localctx = new MultiplicationContext(new ArgumentsContext(_parentctx, _parentState));
 						((MultiplicationContext)_localctx).left = _prevctx;
 						PushNewRecursionContext(_localctx, _startState, RULE_arguments);
-						State = 12;
+						State = 17;
 						if (!(Precpred(Context, 5))) throw new FailedPredicateException(this, "Precpred(Context, 5)");
-						State = 13;
+						State = 18;
 						Match(STAR);
-						State = 14;
+						State = 19;
 						((MultiplicationContext)_localctx).right = arguments(6);
 						}
 						break;
@@ -333,11 +385,11 @@ public partial class AddressEntryParser : Parser {
 						_localctx = new DivisionContext(new ArgumentsContext(_parentctx, _parentState));
 						((DivisionContext)_localctx).left = _prevctx;
 						PushNewRecursionContext(_localctx, _startState, RULE_arguments);
-						State = 15;
+						State = 20;
 						if (!(Precpred(Context, 4))) throw new FailedPredicateException(this, "Precpred(Context, 4)");
-						State = 16;
+						State = 21;
 						Match(DIV);
-						State = 17;
+						State = 22;
 						((DivisionContext)_localctx).right = arguments(5);
 						}
 						break;
@@ -346,11 +398,11 @@ public partial class AddressEntryParser : Parser {
 						_localctx = new PlusContext(new ArgumentsContext(_parentctx, _parentState));
 						((PlusContext)_localctx).left = _prevctx;
 						PushNewRecursionContext(_localctx, _startState, RULE_arguments);
-						State = 18;
+						State = 23;
 						if (!(Precpred(Context, 3))) throw new FailedPredicateException(this, "Precpred(Context, 3)");
-						State = 19;
+						State = 24;
 						Match(PLUS);
-						State = 20;
+						State = 25;
 						((PlusContext)_localctx).right = arguments(4);
 						}
 						break;
@@ -359,18 +411,18 @@ public partial class AddressEntryParser : Parser {
 						_localctx = new MinusContext(new ArgumentsContext(_parentctx, _parentState));
 						((MinusContext)_localctx).left = _prevctx;
 						PushNewRecursionContext(_localctx, _startState, RULE_arguments);
-						State = 21;
+						State = 26;
 						if (!(Precpred(Context, 2))) throw new FailedPredicateException(this, "Precpred(Context, 2)");
-						State = 22;
+						State = 27;
 						Match(MINUS);
-						State = 23;
+						State = 28;
 						((MinusContext)_localctx).right = arguments(3);
 						}
 						break;
 					}
 					} 
 				}
-				State = 28;
+				State = 33;
 				ErrorHandler.Sync(this);
 				_alt = Interpreter.AdaptivePredict(TokenStream,2,Context);
 			}
@@ -483,16 +535,16 @@ public partial class AddressEntryParser : Parser {
 	[RuleVersion(0)]
 	public ArgumentContext argument() {
 		ArgumentContext _localctx = new ArgumentContext(Context, State);
-		EnterRule(_localctx, 2, RULE_argument);
+		EnterRule(_localctx, 4, RULE_argument);
 		try {
-			State = 33;
+			State = 38;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
 			case UNQUOTED_STRING:
 				_localctx = new LabelContext(_localctx);
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 29;
+				State = 34;
 				Match(UNQUOTED_STRING);
 				}
 				break;
@@ -500,7 +552,7 @@ public partial class AddressEntryParser : Parser {
 				_localctx = new DecNumberContext(_localctx);
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 30;
+				State = 35;
 				Match(DEC_NUMBER);
 				}
 				break;
@@ -508,7 +560,7 @@ public partial class AddressEntryParser : Parser {
 				_localctx = new HexNumberContext(_localctx);
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 31;
+				State = 36;
 				Match(HEX_NUMBER);
 				}
 				break;
@@ -516,7 +568,7 @@ public partial class AddressEntryParser : Parser {
 				_localctx = new BinNumberContext(_localctx);
 				EnterOuterAlt(_localctx, 4);
 				{
-				State = 32;
+				State = 37;
 				Match(BIN_NUMBER);
 				}
 				break;
@@ -537,7 +589,7 @@ public partial class AddressEntryParser : Parser {
 
 	public override bool Sempred(RuleContext _localctx, int ruleIndex, int predIndex) {
 		switch (ruleIndex) {
-		case 0: return arguments_sempred((ArgumentsContext)_localctx, predIndex);
+		case 1: return arguments_sempred((ArgumentsContext)_localctx, predIndex);
 		}
 		return true;
 	}
@@ -552,17 +604,18 @@ public partial class AddressEntryParser : Parser {
 	}
 
 	private static int[] _serializedATN = {
-		4,1,12,36,2,0,7,0,2,1,7,1,1,0,1,0,1,0,1,0,1,0,1,0,3,0,11,8,0,1,0,1,0,1,
-		0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,5,0,25,8,0,10,0,12,0,28,9,0,1,1,
-		1,1,1,1,1,1,3,1,34,8,1,1,1,0,1,0,2,0,2,0,0,41,0,10,1,0,0,0,2,33,1,0,0,
-		0,4,5,6,0,-1,0,5,6,5,1,0,0,6,7,3,0,0,0,7,8,5,2,0,0,8,11,1,0,0,0,9,11,3,
-		2,1,0,10,4,1,0,0,0,10,9,1,0,0,0,11,26,1,0,0,0,12,13,10,5,0,0,13,14,5,5,
-		0,0,14,25,3,0,0,6,15,16,10,4,0,0,16,17,5,6,0,0,17,25,3,0,0,5,18,19,10,
-		3,0,0,19,20,5,3,0,0,20,25,3,0,0,4,21,22,10,2,0,0,22,23,5,4,0,0,23,25,3,
-		0,0,3,24,12,1,0,0,0,24,15,1,0,0,0,24,18,1,0,0,0,24,21,1,0,0,0,25,28,1,
-		0,0,0,26,24,1,0,0,0,26,27,1,0,0,0,27,1,1,0,0,0,28,26,1,0,0,0,29,34,5,10,
-		0,0,30,34,5,7,0,0,31,34,5,8,0,0,32,34,5,9,0,0,33,29,1,0,0,0,33,30,1,0,
-		0,0,33,31,1,0,0,0,33,32,1,0,0,0,34,3,1,0,0,0,4,10,24,26,33
+		4,1,12,41,2,0,7,0,2,1,7,1,2,2,7,2,1,0,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,
+		3,1,16,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,30,8,1,
+		10,1,12,1,33,9,1,1,2,1,2,1,2,1,2,3,2,39,8,2,1,2,0,1,2,3,0,2,4,0,0,45,0,
+		6,1,0,0,0,2,15,1,0,0,0,4,38,1,0,0,0,6,7,3,2,1,0,7,8,5,0,0,1,8,1,1,0,0,
+		0,9,10,6,1,-1,0,10,11,5,1,0,0,11,12,3,2,1,0,12,13,5,2,0,0,13,16,1,0,0,
+		0,14,16,3,4,2,0,15,9,1,0,0,0,15,14,1,0,0,0,16,31,1,0,0,0,17,18,10,5,0,
+		0,18,19,5,5,0,0,19,30,3,2,1,6,20,21,10,4,0,0,21,22,5,6,0,0,22,30,3,2,1,
+		5,23,24,10,3,0,0,24,25,5,3,0,0,25,30,3,2,1,4,26,27,10,2,0,0,27,28,5,4,
+		0,0,28,30,3,2,1,3,29,17,1,0,0,0,29,20,1,0,0,0,29,23,1,0,0,0,29,26,1,0,
+		0,0,30,33,1,0,0,0,31,29,1,0,0,0,31,32,1,0,0,0,32,3,1,0,0,0,33,31,1,0,0,
+		0,34,39,5,10,0,0,35,39,5,7,0,0,36,39,5,8,0,0,37,39,5,9,0,0,38,34,1,0,0,
+		0,38,35,1,0,0,0,38,36,1,0,0,0,38,37,1,0,0,0,39,5,1,0,0,0,4,15,29,31,38
 	};
 
 	public static readonly ATN _ATN =

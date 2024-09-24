@@ -64,4 +64,10 @@ public static class ServiceProviderExtension
         return ActivatorUtilities.CreateInstance<BreakpointConditionsValidator>(serviceScope.ServiceProvider,
             sourcePropertyName);
     }
+    public static IpAddressValidator CreateIpAddressValidator(this IServiceScope serviceScope,
+        string sourcePropertyName)
+    {
+        return ActivatorUtilities.CreateInstance<IpAddressValidator>(serviceScope.ServiceProvider,
+            sourcePropertyName);
+    }
 }
