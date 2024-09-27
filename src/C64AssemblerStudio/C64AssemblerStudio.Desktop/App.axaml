@@ -1,12 +1,16 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cc="clr-namespace:AvaloniaEdit.CodeCompletion;assembly=AvaloniaEdit"
-             xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints"
+             xmlns:idc="using:Dock.Avalonia.Controls"
+             xmlns:acr="using:Avalonia.Controls.Recycling"
              xmlns:bvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
              x:Class="C64AssemblerStudio.Desktop.App"
              RequestedThemeVariant="Default">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
     <Application.Resources>
+        <!-- Dock.Avalonia -->
+        <acr:ControlRecycling x:Key="ControlRecyclingKey" TryToUseIdAsKey="True" />
+        <Color x:Key="RegionColor">Transparent</Color>
         <!-- default font family for code -->
         <FontFamily x:Key="CodeFont">resm:C64AssemblerStudio.Desktop.Assets.Fonts.?assembly=C64AssemblerStudio.Desktop#Fira Code</FontFamily>
         <FontFamily x:Key="C64Mono">resm:C64AssemblerStudio.Desktop.Assets.Fonts.?assembly=C64AssemblerStudio.Desktop#C64 Pro Mono</FontFamily>
@@ -37,6 +41,10 @@
         <FluentTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+        <StyleInclude Source="avares://Dock.Avalonia/Themes/DockFluentTheme.axaml" />
+        <Style Selector="idc|DockControl">
+            <Setter Property="(acr:ControlRecyclingDataTemplate.ControlRecycling)" Value="{StaticResource ControlRecyclingKey}" />
+        </Style>
         <StyleInclude Source="/Styles/AppStyles.xaml" />
     </Application.Styles>
     <Application.DataTemplates>

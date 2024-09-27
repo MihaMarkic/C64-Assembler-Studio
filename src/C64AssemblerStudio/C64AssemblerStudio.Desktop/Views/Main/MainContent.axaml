@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia"
              xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
              xmlns:v="clr-namespace:C64AssemblerStudio.Desktop.Views"
              xmlns:vs="clr-namespace:C64AssemblerStudio.Desktop.Views.Settings"
@@ -13,7 +12,7 @@
              xmlns:tools="clr-namespace:C64AssemblerStudio.Desktop.Views.Tools"
              xmlns:tvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
              xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
-             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="C64AssemblerStudio.Desktop.Views.Main.MainContent"
              x:DataType="vm:MainViewModel">
     <UserControl.Resources>
@@ -30,103 +29,69 @@
         <DataTemplate DataType="vm:IProjectViewModel">
             <vs:ProjectSettings />
         </DataTemplate>
-        <!--<DataTemplate DataType="vm:DebuggerViewModel">
-      <v:Debugger />
-    </DataTemplate>-->
     </UserControl.DataTemplates>
     <DockPanel x:Name="Source" LastChildFill="True" Margin="4">
         <mv:MainMenu DockPanel.Dock="Top" />
         <mv:MainToolbar DockPanel.Dock="Top" />
         <Grid>
-            <DockPanel IsVisible="{Binding OverlayContent, Converter={x:Static ObjectConverters.IsNull}}">
-                <ctl:DockTool DockPanel.Dock="Bottom" Height="200"
-                              Title="{Binding #BottomTabs.((tvm:IToolView)SelectedItem).Header}"
-                              HorizontalContentAlignment="Stretch">
-                    <ctl:DockTool.HeaderContext>
-                        <ContentControl Content="{Binding #BottomTabs.((tvm:IToolView)SelectedItem)}">
-                            <ContentControl.DataTemplates>
-                                <DataTemplate DataType="tvm:ErrorMessagesViewModel">
-                                    <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
-                                </DataTemplate>
-                                <DataTemplate DataType="tvm:BuildOutputViewModel">
-                                    <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
-                                </DataTemplate>
-                                <DataTemplate DataType="tvm:DebugOutputViewModel">
-                                    <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
-                                </DataTemplate>
-                                <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
-                                    <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
-                                </DataTemplate>
-                                <DataTemplate DataType="tvm:RegistersViewModel" />
-                                <DataTemplate DataType="breakpoints:BreakpointsViewModel" />
-                                <DataTemplate DataType="tvm:MemoryViewerViewModel" /> 
-                                <DataTemplate DataType="tvm:CallStackViewModel" />
-                            </ContentControl.DataTemplates>
-                        </ContentControl>
-                    </ctl:DockTool.HeaderContext>
-                    <Grid>
-                        <TabControl x:Name="BottomTabs" TabStripPlacement="Bottom" ItemsSource="{Binding BottomTools}" SelectedItem="{Binding SelectedBottomTool}">
-                            <TabControl.ContentTemplate>
-                                <DataTemplate DataType="tvm:IToolView">
-                                    <ContentControl Content="{Binding}">
-                                        <ContentControl.DataTemplates>
-                                            <DataTemplate DataType="tvm:ErrorMessagesViewModel">
-                                                <tools:ErrorMessages />
-                                            </DataTemplate>
-                                            <DataTemplate DataType="tvm:BuildOutputViewModel">
-                                                <tools:BuildOutput />
-                                            </DataTemplate>
-                                            <DataTemplate DataType="tvm:DebugOutputViewModel">
-                                                <tools:DebugOutput />
-                                            </DataTemplate>
-                                            <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
-                                                <tools:CompilerErrors />
-                                            </DataTemplate>
-                                            <DataTemplate DataType="tvm:RegistersViewModel">
-                                                <tools:Registers />
-                                            </DataTemplate>
-                                            <DataTemplate DataType="breakpoints:BreakpointsViewModel">
-                                                <tools:Breakpoints />
-                                            </DataTemplate>
-                                            <DataTemplate DataType="tvm:MemoryViewerViewModel">
-                                                <tools:MemoryViewer />
-                                            </DataTemplate>
-                                            <DataTemplate DataType="tvm:CallStackViewModel">
-                                                <tools:CallStack />
-                                            </DataTemplate>
-                                        </ContentControl.DataTemplates>
-                                    </ContentControl>
-                                </DataTemplate>
-                            </TabControl.ContentTemplate>
-                            <TabControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Header}" />
-                                </DataTemplate>
-                            </TabControl.ItemTemplate>
-                        </TabControl>
-                        <v:StatusInfo DataContext="{Binding StatusInfo}" HorizontalAlignment="Right"
-                          VerticalAlignment="Bottom" Margin="0,0,4,4"/>
-                    </Grid>
-                </ctl:DockTool>
-                <ctl:DockSizer Height="5" Margin="0,2" DockPanel.Dock="Bottom" Orientation="Horizontal" />
-                <ctl:DockTool DockPanel.Dock="Left" Width="300" Title="Project Explorer">
-                    <ctl:DockTool.HeaderContext>
-                        <Button Classes="docktool" Command="{Binding ProjectExplorer.RefreshCommand}">
-                            <Image Width="12" Height="12">
-                                <SvgImage Source="/Assets/Icons/sync.svg" />
-                            </Image>
-                        </Button>
-                    </ctl:DockTool.HeaderContext>
-                    <v:ProjectExplorer DataContext="{Binding ProjectExplorer}" />
-                </ctl:DockTool>
-                <ctl:DockSizer Width="5" Margin="2,0" DockPanel.Dock="Left" Orientation="Vertical" />
-                <!-- <v:SourceFilesViewer DataContext="{Binding #Source.DataContext.DebuggerViewModel.SourceFileViewerViewModel}"/> -->
-                <Grid>
-                    <fv:FilesViewer DataContext="{Binding Files}" IsVisible="{Binding #Source.((vm:MainViewModel)DataContext).IsProjectOpen}" />
-                    <mv:StartPage DataContext="{Binding StartPage}" IsVisible="{Binding !#Source.((vm:MainViewModel)DataContext).IsProjectOpen}"  />
-                </Grid>
-            </DockPanel>
-            <ContentControl Content="{Binding OverlayContent}" />
+            <DockControl x:Name="Dock" InitializeLayout="True" InitializeFactory="True"
+                         IsVisible="{Binding #Dock.((vm:MainViewModel)DataContext).DisplayMode, Converter={x:Static c:StudioConverters.EqualTo}, ConverterParameter={x:Static vm:MainViewDisplayMode.Normal}}">
+                <DockControl.Factory>
+                    <Factory />
+                </DockControl.Factory>
+
+                <RootDock x:Name="Root" Id="Root" IsCollapsable="False" DefaultDockable="{Binding #MainLayout}">
+                    <!-- Windows -->
+
+                    <RootDock.Windows />
+                    <ProportionalDock x:Name="MainLayout" Id="MainLayout" Orientation="Horizontal">
+                        <!-- Left -->
+                        <ToolDock x:Name="LeftPane" Id="LeftPane" Proportion="0.25" Alignment="Left">
+                            <Tool x:Name="SolutionExplorer" Id="SolutionExplorer" Title="Solution Explorer"
+                                  x:DataType="Tool">
+                                <TextBlock Text="{Binding Title}" />
+                            </Tool>
+                        </ToolDock>
+                        <ProportionalDockSplitter x:Name="LeftSplitter" Id="LeftSplitter" />
+                        <ProportionalDock x:Name="TopPane" Id="TopPane" Orientation="Vertical">
+                            <ProportionalDock x:Name="RightPane" Id="RightPane" Orientation="Horizontal">
+                                <!-- Documents -->
+                                <DocumentDock x:Name="DocumentsPane" Id="DocumentsPane" CanCreateDocument="True"
+                                              ActiveDockable="StartPage">
+                                    <Document x:Name="StartPage" Id="StartPage" Title="Start Page"
+                                              x:DataType="Document">
+                                    </Document>
+                                </DocumentDock>
+                                <ProportionalDockSplitter x:Name="RightSplitter" Id="RightSplitter" />
+                                <!-- Properties -->
+                                <ToolDock x:Name="PropertiesPane" Id="PropertiesPane" Proportion="0.3"
+                                          Alignment="Right">
+                                    <Tool x:Name="Properties" Id="Properties" Title="Properties" x:DataType="Tool">
+                                        <TextBlock Text="{Binding Title}" />
+                                    </Tool>
+                                </ToolDock>
+                            </ProportionalDock>
+                            <ProportionalDockSplitter x:Name="BottomSplitter" Id="BottomSplitter" />
+                            <!-- Bottom -->
+                            <ToolDock x:Name="BottomPane" Id="BottomPane" Proportion="0.3" Alignment="Bottom"
+                                      ActiveDockable="ErrorMessages">
+                                <Tool x:Name="ErrorMessages" Id="ErrorMessages" Title="Error Messages">
+                                    <tools:ErrorMessages
+                                        DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).ErrorMessages}" />
+                                </Tool>
+                                <Tool x:Name="Breakpoints" Id="Breakpoints" Title="Breakpoints">
+                                    <tools:Breakpoints
+                                        DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).Breakpoints}" />
+                                </Tool>
+                            </ToolDock>
+                        </ProportionalDock>
+                    </ProportionalDock>
+                </RootDock>
+            </DockControl>
+            <ContentControl Content="{Binding OverlayContent}"
+                            IsVisible="{Binding #Dock.((vm:MainViewModel)DataContext).DisplayMode, Converter={x:Static c:StudioConverters.EqualTo}, ConverterParameter={x:Static vm:MainViewDisplayMode.Overlay}}" />
+            <mv:StartPage DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).StartPage}" 
+                          IsVisible="{Binding #Dock.((vm:MainViewModel)DataContext).DisplayMode, Converter={x:Static c:StudioConverters.EqualTo}, ConverterParameter={x:Static vm:MainViewDisplayMode.StartPage}}"  />
         </Grid>
     </DockPanel>
 </UserControl>

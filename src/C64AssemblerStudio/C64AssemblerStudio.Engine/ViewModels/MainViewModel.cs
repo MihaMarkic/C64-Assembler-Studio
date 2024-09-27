@@ -18,6 +18,12 @@ using Righthand.RetroDbgDataProvider.KickAssembler.Services.Implementation;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
+public enum MainViewDisplayMode
+{
+    Normal,
+    StartPage,
+    Overlay,
+}
 public class MainViewModel : ViewModel
 {
     private readonly ILogger<MainViewModel> _logger;
@@ -59,13 +65,11 @@ public class MainViewModel : ViewModel
     public BuildOutputViewModel BuildOutput { get; }
     public DebugOutputViewModel DebugOutput { get; }
     public CompilerErrorsOutputViewModel CompilerErrors { get; }
-    public ImmutableArray<IToolView> BottomTools { get; }
     public IToolView? SelectedBottomTool { get; set; }
     public StatusInfoViewModel StatusInfo { get; }
     public RegistersViewModel Registers { get; }
     public BreakpointsViewModel Breakpoints { get; }
     public MemoryViewerViewModel MemoryViewer { get; }
-
     public CallStackViewModel CallStack { get; }
 
     // TODO implement
@@ -75,6 +79,23 @@ public class MainViewModel : ViewModel
     public bool IsDebuggingPaused => Vice.IsPaused;
     public bool IsBuilding { get; private set; }
     public bool IsProjectOpen => _globals.IsProjectOpen;
+
+    public MainViewDisplayMode DisplayMode
+    {
+        get
+        {
+            if (StartPage is not null)
+            {
+                return MainViewDisplayMode.StartPage;
+            }
+            if (OverlayContent is not null)
+            {
+                return MainViewDisplayMode.Overlay;
+            }
+
+            return MainViewDisplayMode.Normal;
+        }
+    }
 
     /// <summary>
     /// Tracks whether user held shift when it performed an action.
@@ -119,8 +140,6 @@ public class MainViewModel : ViewModel
         Breakpoints = breakpoints;
         MemoryViewer = memoryViewer;
         CallStack = callStack;
-        BottomTools =
-            [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer, CallStack];
         CreateStartPage();
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
@@ -502,9 +521,9 @@ public class MainViewModel : ViewModel
         return false;
     }
 
-    internal async Task<bool> CloseProjectAsync()
+    private async Task<bool> CloseProjectAsync()
     {
-        if (await CanCloseProject())
+        if (IsProjectOpen && await CanCloseProject())
         {
             Files.RemoveProjectFiles();
             _globals.ResetProject();

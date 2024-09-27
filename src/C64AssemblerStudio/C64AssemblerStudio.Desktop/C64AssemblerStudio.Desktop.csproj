@@ -22,7 +22,7 @@
     <AvaloniaXaml Include="Styles\AppStyles.xaml">
       <Generator>MSBuild:Compile</Generator>
     </AvaloniaXaml>
-    <Compile Update="Views\Main\MainContent.axaml.cs">
+    <Compile Update="Views\Main\MainContentOriginal.axaml.cs">
       <DependentUpon>MainContent.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
@@ -108,6 +108,8 @@
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.1.0" />
     <PackageReference Include="AvaloniaEdit.TextMate" Version="11.1.0" />
     <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.3.0" />
+    <PackageReference Include="Dock.Avalonia" Version="11.1.0.3" />
+    <PackageReference Include="Dock.Model.Avalonia" Version="11.1.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />

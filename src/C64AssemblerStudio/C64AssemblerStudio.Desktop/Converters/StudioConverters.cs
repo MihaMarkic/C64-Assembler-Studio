@@ -19,6 +19,7 @@ public static class StudioConverters
     public static readonly IValueConverter AppendDirectorySeparator =
         new FuncValueConverter<string?, string?>(s => string.IsNullOrWhiteSpace(s) ? "": $"{s}{(s.EndsWith(Path.DirectorySeparatorChar) ? "": Path.DirectorySeparatorChar)}");
     public static readonly IValueConverter ErrorToBrush = new FuncValueConverter<bool, IBrush?>(e => e ? Brushes.Red : null);
+    public static readonly IValueConverter EqualTo = new FuncValueConverter<object?, object?, bool>((v, p) => v?.Equals(p) ?? false);
 
     public static readonly IValueConverter ToEditorLine =
         new FuncValueConverter<int, int>(l => l + 1);
