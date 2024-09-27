@@ -523,15 +523,19 @@ public class MainViewModel : ViewModel
 
     private async Task<bool> CloseProjectAsync()
     {
-        if (IsProjectOpen && await CanCloseProject())
+        if (IsProjectOpen)
         {
-            Files.RemoveProjectFiles();
-            _globals.ResetProject();
-            CreateStartPage();
-            return true;
-        }
+            if (await CanCloseProject())
+            {
+                Files.RemoveProjectFiles();
+                _globals.ResetProject();
+                CreateStartPage();
+                return true;
+            }
 
-        return false;
+            return false;
+        }
+        return true;
     }
 
     public async Task<bool> CanCloseProject()

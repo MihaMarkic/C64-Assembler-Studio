@@ -47,17 +47,16 @@
                     <ProportionalDock x:Name="MainLayout" Id="MainLayout" Orientation="Horizontal">
                         <!-- Left -->
                         <ToolDock x:Name="LeftPane" Id="LeftPane" Proportion="0.25" Alignment="Left">
-                            <Tool x:Name="SolutionExplorer" Id="SolutionExplorer" Title="Solution Explorer"
-                                  x:DataType="Tool">
-                                <TextBlock Text="{Binding Title}" />
+                            <Tool x:Name="ProjectExplorer" Id="ProjectExplorer" Title="Project Explorer">
+                                <v:ProjectExplorer DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).ProjectExplorer}" />
                             </Tool>
                         </ToolDock>
                         <ProportionalDockSplitter x:Name="LeftSplitter" Id="LeftSplitter" />
                         <ProportionalDock x:Name="TopPane" Id="TopPane" Orientation="Vertical">
                             <ProportionalDock x:Name="RightPane" Id="RightPane" Orientation="Horizontal">
                                 <!-- Documents -->
-                                <DocumentDock x:Name="DocumentsPane" Id="DocumentsPane" CanCreateDocument="True"
-                                              ActiveDockable="StartPage">
+                                <DocumentDock x:Name="DocumentsPane" Id="DocumentsPane" CanCreateDocument="False"
+                                              ActiveDockable="StartPage" IsCollapsable="False">
                                     <Document x:Name="StartPage" Id="StartPage" Title="Start Page"
                                               x:DataType="Document">
                                     </Document>
@@ -66,8 +65,9 @@
                                 <!-- Properties -->
                                 <ToolDock x:Name="PropertiesPane" Id="PropertiesPane" Proportion="0.3"
                                           Alignment="Right">
-                                    <Tool x:Name="Properties" Id="Properties" Title="Properties" x:DataType="Tool">
-                                        <TextBlock Text="{Binding Title}" />
+                                    <Tool x:Name="CallStack" Id="CallStack" Title="Call Stack">
+                                        <tools:CallStack
+                                            DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).CallStack}" />
                                     </Tool>
                                 </ToolDock>
                             </ProportionalDock>
@@ -79,9 +79,26 @@
                                     <tools:ErrorMessages
                                         DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).ErrorMessages}" />
                                 </Tool>
+                                <Tool x:Name="CompilerErrors" Id="CompilerErrors"
+                                      Title="Compiler Errors">
+                                    <tools:ErrorMessages
+                                        DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).ErrorMessages}" />
+                                </Tool>
                                 <Tool x:Name="Breakpoints" Id="Breakpoints" Title="Breakpoints">
                                     <tools:Breakpoints
                                         DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).Breakpoints}" />
+                                </Tool>
+                                <Tool x:Name="DebugOutput" Id="DebugOutput" Title="Debug Output">
+                                    <tools:DebugOutput
+                                        DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).DebugOutput}" />
+                                </Tool>
+                                <Tool x:Name="Registers" Id="Registers" Title="Registers">
+                                    <tools:Registers
+                                        DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).Registers}" />
+                                </Tool>
+                                <Tool x:Name="MemoryViewer" Id="MemoryViewer" Title="Memory Viewer">
+                                    <tools:MemoryViewer
+                                        DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).MemoryViewer}" />
                                 </Tool>
                             </ToolDock>
                         </ProportionalDock>
