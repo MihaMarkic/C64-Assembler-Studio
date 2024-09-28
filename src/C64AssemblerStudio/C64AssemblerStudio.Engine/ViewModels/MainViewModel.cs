@@ -84,13 +84,13 @@ public class MainViewModel : ViewModel
     {
         get
         {
-            if (StartPage is not null)
-            {
-                return MainViewDisplayMode.StartPage;
-            }
             if (OverlayContent is not null)
             {
                 return MainViewDisplayMode.Overlay;
+            }
+            if (StartPage is not null)
+            {
+                return MainViewDisplayMode.StartPage;
             }
 
             return MainViewDisplayMode.Normal;
