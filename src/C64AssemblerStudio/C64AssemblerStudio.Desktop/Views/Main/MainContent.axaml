@@ -74,7 +74,7 @@
                             <ProportionalDockSplitter x:Name="BottomSplitter" Id="BottomSplitter" />
                             <!-- Bottom -->
                             <ToolDock x:Name="BottomPane" Id="BottomPane" Proportion="0.3" Alignment="Bottom"
-                                      ActiveDockable="ErrorMessages">
+                                      ActiveDockable="{Binding #BuildOutput}">
                                 <Tool x:Name="ErrorMessages" Id="ErrorMessages" Title="Error Messages">
                                     <tools:ErrorMessages
                                         DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).ErrorMessages}" />
@@ -82,7 +82,7 @@
                                 <Tool x:Name="CompilerErrors" Id="CompilerErrors"
                                       Title="Compiler Errors">
                                     <tools:ErrorMessages
-                                        DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).ErrorMessages}" />
+                                        DataContext="{Binding #Dock.((vm:MainViewModel)DataContext).CompilerErrors}" />
                                 </Tool>
                                 <Tool x:Name="BuildOutput" Id="BuildOutput" Title="Build Output">
                                     <tools:BuildOutput

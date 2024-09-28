@@ -6,5 +6,10 @@ namespace C64AssemblerStudio.Desktop.Views;
 public class UserControl<T> : UserControl
     where T: ViewModel
 {
-    protected T? ViewModel => (T?)DataContext;
+    protected T? ViewModel;
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        ViewModel = (T?)DataContext;
+    }
 }

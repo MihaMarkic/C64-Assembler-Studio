@@ -43,6 +43,7 @@ public class MainViewModel : ViewModel
     public ObservableCollection<string> RecentProjects => _globals.Settings.RecentProjects;
     public Func<OpenFileDialogModel, CancellationToken, Task<string?>>? ShowCreateProjectFileDialogAsync { get; set; }
     public Func<OpenFileDialogModel, CancellationToken, Task<string?>>? ShowOpenProjectFileDialogAsync { get; set; }
+    public Action<IToolView>? FocusToolView { get; set; }
     public RelayCommandAsync NewProjectCommand { get; }
     public RelayCommand OpenProjectCommand { get; }
     public RelayCommand<string> OpenProjectFromPathCommand { get; }
@@ -65,7 +66,6 @@ public class MainViewModel : ViewModel
     public BuildOutputViewModel BuildOutput { get; }
     public DebugOutputViewModel DebugOutput { get; }
     public CompilerErrorsOutputViewModel CompilerErrors { get; }
-    public IToolView? SelectedBottomTool { get; set; }
     public StatusInfoViewModel StatusInfo { get; }
     public RegistersViewModel Registers { get; }
     public BreakpointsViewModel Breakpoints { get; }
@@ -330,7 +330,7 @@ public class MainViewModel : ViewModel
             var saveAllTask = Files.SaveAllAsync();
             BuildOutput.Clear();
             CompilerErrors.Clear();
-            SelectedBottomTool = BuildOutput;
+            FocusToolView?.Invoke(BuildOutput);
             var project = (KickAssProjectViewModel)Project;
 #if DEBUG
             string kickAssPath = Path.Combine(_hostEnvironment.ContentRootPath!, "..", "..", "..", "..", "..", "..",
@@ -355,7 +355,7 @@ public class MainViewModel : ViewModel
                 if (!fileErrors.IsEmpty)
                 {
                     CompilerErrors.AddLines(fileErrors);
-                    SelectedBottomTool = CompilerErrors;
+                    FocusToolView?.Invoke(CompilerErrors);
                 }
             }
             else
