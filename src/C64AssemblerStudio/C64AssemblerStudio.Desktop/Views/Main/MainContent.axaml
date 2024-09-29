@@ -6,12 +6,10 @@
              xmlns:v="clr-namespace:C64AssemblerStudio.Desktop.Views"
              xmlns:vs="clr-namespace:C64AssemblerStudio.Desktop.Views.Settings"
              xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
-             xmlns:ctl="clr-namespace:C64AssemblerStudio.Desktop.Controls"
              xmlns:mv="clr-namespace:C64AssemblerStudio.Desktop.Views.Main"
              xmlns:fv="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
              xmlns:tools="clr-namespace:C64AssemblerStudio.Desktop.Views.Tools"
-             xmlns:tvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
-             xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
+             xmlns:files="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="C64AssemblerStudio.Desktop.Views.Main.MainContent"
              x:DataType="vm:MainViewModel">
@@ -39,10 +37,13 @@
                 <DockControl.Factory>
                     <Factory />
                 </DockControl.Factory>
-
+                <DockControl.DataTemplates>
+                    <DataTemplate DataType="files:AssemblerFileViewModel">
+                        <fv:AssemblerFile />
+                    </DataTemplate>
+                </DockControl.DataTemplates>
                 <RootDock x:Name="Root" Id="Root" IsCollapsable="False" DefaultDockable="{Binding #MainLayout}">
                     <!-- Windows -->
-
                     <RootDock.Windows />
                     <ProportionalDock x:Name="MainLayout" Id="MainLayout" Orientation="Horizontal">
                         <!-- Left -->
@@ -56,10 +57,14 @@
                             <ProportionalDock x:Name="RightPane" Id="RightPane" Orientation="Horizontal">
                                 <!-- Documents -->
                                 <DocumentDock x:Name="DocumentsPane" Id="DocumentsPane" CanCreateDocument="False"
-                                              ActiveDockable="StartPage" IsCollapsable="False">
-                                    <Document x:Name="StartPage" Id="StartPage" Title="Start Page"
-                                              x:DataType="Document">
-                                    </Document>
+                                              IsCollapsable="False" >
+                                    <DocumentDock.DocumentTemplate>
+                                        <DocumentTemplate>
+                                            <Grid x:DataType="Document">
+                                                <ContentControl Content="{Binding Context}" />
+                                            </Grid>
+                                        </DocumentTemplate>
+                                    </DocumentDock.DocumentTemplate>
                                 </DocumentDock>
                                 <ProportionalDockSplitter x:Name="RightSplitter" Id="RightSplitter" />
                                 <!-- Properties -->
