@@ -44,4 +44,9 @@ public static class StringExtension
     {
         return tabWidth - position % tabWidth;
     }
+
+    public static ImmutableArray<string> AsSplitStringArray(this string? source, char separator = ';')
+    {
+        return source is not null ? [..source.Split(separator)] : ImmutableArray<string>.Empty;
+    }
 }

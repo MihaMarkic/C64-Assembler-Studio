@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Common;
@@ -14,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using Righthand.MessageBus;
-using Righthand.RetroDbgDataProvider.KickAssembler.Services.Implementation;
+using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -321,7 +320,7 @@ public class MainViewModel : ViewModel
             string kickAssPath =
                 Path.Combine(_hostEnvironment.ContentRootPath!, "KickAssembler", "KickAss.jar");
 #endif
-            var settings = new KickAssemblerCompilerSettings(null);
+            var settings = new KickAssemblerCompilerSettings(null, project.Configuration.ValueOrThrow().LibDir.AsSplitStringArray());
             string directory = Project.Directory.ValueOrThrow();
             string file = "main.asm";
             await saveAllTask;

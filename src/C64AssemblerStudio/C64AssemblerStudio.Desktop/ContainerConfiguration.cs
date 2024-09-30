@@ -30,6 +30,7 @@ public static class ContainerConfiguration
         services.AddEngine(messagesHistory);
         services.AddCore();
         services.AddSingleton<ISystemInfo, SystemInfo>();
+        services.AddSingleton<ISystemDialogs, SystemDialogs>();
         //services.AddAcme();
         //services.AddOscar64();
         return services;

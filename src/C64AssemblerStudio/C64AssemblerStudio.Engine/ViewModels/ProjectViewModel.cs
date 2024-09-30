@@ -1,7 +1,9 @@
 ﻿using System.Collections.Frozen;
 using System.ComponentModel;
+using System.Windows.Input;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
+using C64AssemblerStudio.Engine.Models.SystemDialogs;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
@@ -28,6 +30,7 @@ public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel,
 {
     protected readonly ILogger<ProjectViewModel<TConfiguration>> Logger;
     private readonly ISettingsManager _settingsManager;
+    protected readonly ISystemDialogs SystemDialogs;
     public TConfiguration? Configuration { get; private set; }
     Project? IProjectViewModel.Configuration => Configuration;
     public AssemblerAppInfo? AppInfo { get; protected set; }
@@ -37,10 +40,11 @@ public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel,
     public string? BreakpointsSettingsPath => Directory is not null ? System.IO.Path.Combine(Directory, "breakpoints.json") : null;
 
     protected ProjectViewModel(ILogger<ProjectViewModel<TConfiguration>> logger, ISettingsManager settingsManager,
-        IDispatcher dispatcher) : base(dispatcher)
+        ISystemDialogs systemDialogs, IDispatcher dispatcher) : base(dispatcher)
     {
         _settingsManager = settingsManager;
         Logger = logger;
+        SystemDialogs = systemDialogs;
     }
     public void Init(TConfiguration configuration, string? path)
     {
@@ -59,8 +63,8 @@ public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel,
 public class EmptyProjectViewModel : ProjectViewModel<EmptyProject>
 {
     public EmptyProjectViewModel(ILogger<ProjectViewModel<EmptyProject>> logger, ISettingsManager settingsManager,
-        IDispatcher dispatcher)
-        : base(logger, settingsManager, dispatcher)
+        ISystemDialogs systemDialogs, IDispatcher dispatcher)
+        : base(logger, settingsManager, systemDialogs, dispatcher)
     {
     }
 
@@ -77,17 +81,51 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
     public FrozenDictionary<string, AssemblySegment>? ByteDump { get; private set; }
     public ImmutableArray<ByteDumpLine>? ByteDumpLines { get; private set; }
     public FrozenDictionary<string, Label>? Labels { get; private set; }
+    public RelayCommandAsync OpenLibDirCommand { get; }
 
     public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject>> logger, ISettingsManager settingsManager,
-        IDispatcher dispatcher, IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
+        ISystemDialogs systemDialogs, IDispatcher dispatcher, IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
         IKickAssemblerProgramInfoBuilder programInfoBuilder,
         IKickAssemblerByteDumpParser byteDumpParser)
-        : base(logger, settingsManager, dispatcher)
+        : base(logger, settingsManager, systemDialogs, dispatcher)
     {
         Compiler = compiler;
         DbgParser = dbgParser;
         ProgramInfoBuilder = programInfoBuilder;
         ByteDumpParser = byteDumpParser;
+        OpenLibDirCommand = new RelayCommandAsync(OpenLibDirAsync);
+    }
+
+    private async Task OpenLibDirAsync()
+    {
+        if (Configuration is null)
+        {
+            throw new Exception("Configuration should be loaded at this point");
+        }
+        var newDirectory =
+            await SystemDialogs.OpenDirectoryAsync(new OpenDirectory(Configuration.LibDir, "Select LibDir"));
+        var path = newDirectory.SingleOrDefault();
+        if (path is not null)
+        {
+            if (!string.IsNullOrWhiteSpace(Configuration.LibDir))
+            {
+                Configuration.LibDir += $";{newDirectory.SingleOrDefault()}";
+            }
+            else
+            {
+                Configuration.LibDir = newDirectory.SingleOrDefault();
+            }
+        }
+    }
+
+    protected override void Closing()
+    {
+        if (string.IsNullOrWhiteSpace(Configuration.ValueOrThrow().LibDir))
+        {
+            // when empty string, store rather null to clear save file of that property
+            Configuration!.LibDir = null;
+        }
+        base.Closing();
     }
 
     public override async Task LoadDebugDataAsync(CancellationToken ct = default)

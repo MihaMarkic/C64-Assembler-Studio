@@ -7,5 +7,13 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:KickAssProjectViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Settings.KickAssProjectSettings">
-    KickAss specific settings (none for now)
+    <StackPanel Orientation="Vertical">
+        <TextBlock>KickAss specific settings</TextBlock>
+        <TextBlock Classes="verticalLabel">VICE directory</TextBlock>
+        <DockPanel LastChildFill="True">
+            <Button x:Name="Open" DockPanel.Dock="Right" Command="{Binding OpenLibDirCommand}">Add</Button>
+            <TextBox Text="{Binding Configuration.LibDir, FallbackValue=null}" Margin="0,0,4,0" />
+        </DockPanel>
+        <TextBlock Classes="info">None or more directories separated by ';' char</TextBlock>
+    </StackPanel>
 </UserControl>

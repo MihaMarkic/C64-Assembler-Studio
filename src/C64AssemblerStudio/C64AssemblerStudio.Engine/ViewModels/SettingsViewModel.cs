@@ -4,6 +4,7 @@ using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.BindingValidators;
 using C64AssemblerStudio.Engine.Models.Configuration;
+using C64AssemblerStudio.Engine.Models.SystemDialogs;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,9 +14,10 @@ namespace C64AssemblerStudio.Engine.ViewModels;
 
 public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErrorInfo
 {
-    readonly ILogger<SettingsViewModel> _logger;
-    readonly Globals _globals;
-    readonly ISettingsManager _settingsManager;
+    private readonly ILogger<SettingsViewModel> _logger;
+    private readonly Globals _globals;
+    private readonly ISettingsManager _settingsManager;
+    private readonly ISystemDialogs _systemDialogs;
     public Settings Settings => _globals.Settings;
     private readonly ErrorHandler _errorHandler;
     public bool IsVicePathGood { get; private set; }
@@ -26,6 +28,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         set => _ipAddressValidator.Update(value);
     }
     public RelayCommand VerifyValuesCommand { get; }
+    public RelayCommandAsync OpenViceDirectoryCommand { get; }
     private readonly IpAddressValidator _ipAddressValidator;
     bool INotifyDataErrorInfo.HasErrors => _errorHandler.HasErrors;
     event EventHandler<DataErrorsChangedEventArgs>? INotifyDataErrorInfo.ErrorsChanged
@@ -35,11 +38,12 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     }
     IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName) => _errorHandler.GetErrors(propertyName);
     public SettingsViewModel(ILogger<SettingsViewModel> logger, Globals globals, IDispatcher dispatcher,
-        ISettingsManager settingsManager, IServiceScope serviceScope) : base(dispatcher)
+        ISettingsManager settingsManager, ISystemDialogs systemDialogs, IServiceScope serviceScope) : base(dispatcher)
     {
         _logger = logger;
         _globals = globals;
         _settingsManager = settingsManager;
+        _systemDialogs = systemDialogs;
         globals.Settings.PropertyChanged += Settings_PropertyChanged;
         VerifyValues();
         VerifyValuesCommand = new RelayCommand(VerifyValues);
@@ -49,11 +53,27 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
             .AddValidator(nameof(ViceAddress), _ipAddressValidator);
         _errorHandler = errorHandlerBuilder.Build();
         _errorHandler.ErrorsChanged += ErrorHandlerOnErrorsChanged;
+        OpenViceDirectoryCommand = new RelayCommandAsync(OpenViceDirectoryAsync);
     }
 
     private void ErrorHandlerOnErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
     {
         CloseCommand.RaiseCanExecuteChanged();
+    }
+    
+    private async Task OpenViceDirectoryAsync()
+    {
+        if (Settings is null)
+        {
+            throw new Exception("Settings should be loaded at this point");
+        }
+        var newDirectory =
+            await _systemDialogs.OpenDirectoryAsync(new OpenDirectory(Settings.VicePath, "VICE directory selection"));
+        var path = newDirectory.SingleOrDefault();
+        if (path is not null)
+        {
+            Settings.VicePath = path;
+        }
     }
 
     void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)

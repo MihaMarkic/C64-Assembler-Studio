@@ -20,7 +20,7 @@
       <TextBlock Classes="h1">Settings</TextBlock>
       <TextBlock Classes="verticalLabel">VICE directory</TextBlock>
       <DockPanel LastChildFill="True">
-        <Button x:Name="Open" DockPanel.Dock="Right" Click="OpenViceDirectory">...</Button>
+        <Button x:Name="Open" DockPanel.Dock="Right" Command="{Binding OpenViceDirectoryCommand}">...</Button>
         <TextBox Text="{Binding Settings.VicePath}" Margin="0,0,4,0" />
       </DockPanel>
       <StackPanel Orientation="Horizontal">
