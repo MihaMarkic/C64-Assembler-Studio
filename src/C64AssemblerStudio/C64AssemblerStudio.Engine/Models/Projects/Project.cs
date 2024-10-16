@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections.Frozen;
+using System.Text.Json.Serialization;
 using C64AssemblerStudio.Core;
 
 namespace C64AssemblerStudio.Engine.Models.Projects;
@@ -15,4 +16,16 @@ public abstract class Project: NotifiableObject
     /// </summary>
     public DebugAutoStartMode AutoStartMode { get; set; } = DebugAutoStartMode.Vice;
     public string? StopAtLabel { get; set; }
+    /// <summary>
+    /// Project #define symbols separated by semicolon.
+    /// </summary>
+    /// <remarks>They can be override in source code by #define and #undef.</remarks>
+    public string SymbolsDefine { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Returns <see cref="SymbolsDefine"/> as <see cref="FrozenSet{String}"/>.
+    /// </summary>
+    public FrozenSet<string> SymbolsDefineSet => SymbolsDefine.Split(';').Select(d => d.Trim())
+        .Where(d => !string.IsNullOrWhiteSpace(d))
+        .ToFrozenSet();
 }

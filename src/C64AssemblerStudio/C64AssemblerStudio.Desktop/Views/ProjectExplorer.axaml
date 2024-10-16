@@ -28,6 +28,12 @@
                 </ContextMenu>
             </TreeView.ContextMenu>
             <TreeView.DataTemplates>
+                <TreeDataTemplate DataType="mp:ProjectLibraries" ItemsSource="{Binding Items}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Background="Transparent">
+                        <TextBlock Text="LIB:" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </TreeDataTemplate>
                 <TreeDataTemplate DataType="mp:ProjectDirectory" ItemsSource="{Binding Items}">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Background="Transparent">
                         <StackPanel.ContextMenu>

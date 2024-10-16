@@ -8,7 +8,8 @@ using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Projects;
 
-public abstract class ProjectViewModel<TConfiguration, TParsedFileType>: OverlayContentViewModel, IProjectViewModel
+public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : OverlayContentViewModel,
+    IProjectViewModel<TParsedFileType>
     where TConfiguration : Project
     where TParsedFileType : ParsedSourceFile
 {
@@ -22,7 +23,7 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType>: Overlay
 
     public string? Path { get; set; }
     public string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
-    public string? FullPrgPath => Directory is not null ? System.IO.Path.Combine(Directory, "build", "main.prg"): null;
+    public string? FullPrgPath => Directory is not null ? System.IO.Path.Combine(Directory, "build", "main.prg") : null;
     public string? BreakpointsSettingsPath => Directory is not null ? System.IO.Path.Combine(Directory, "breakpoints.json") : null;
 
     protected ProjectViewModel(ILogger<ProjectViewModel<TConfiguration, TParsedFileType>> logger, ISettingsManager settingsManager,

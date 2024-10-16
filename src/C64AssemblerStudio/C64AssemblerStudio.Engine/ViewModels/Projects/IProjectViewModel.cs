@@ -16,8 +16,13 @@ public interface IProjectViewModel: IDisposable
     public string? BreakpointsSettingsPath { get; }
     event PropertyChangedEventHandler? PropertyChanged;
     Task LoadDebugDataAsync(CancellationToken ct = default);
+}
+
+public interface IProjectViewModel<out TParsedFileType>: IProjectViewModel
+    where TParsedFileType : ParsedSourceFile
+{
     /// <summary>
     /// Provides access to source code parser.
     /// </summary>
-    ISourceCodeParser<ParsedSourceFile> SourceCodeParser { get; }
+    ISourceCodeParser<TParsedFileType> SourceCodeParser { get; }
 }

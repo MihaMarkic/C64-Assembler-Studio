@@ -27,6 +27,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
         _logger = logger;
         _globals = globals;
         _globals.PropertyChanged += GlobalsOnPropertyChanged;
+        Items.Add(new ProjectLibraries { Parent = null, Name = "Libraries"});
         _ = RefreshAsync();
     }
     private async void GlobalsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -76,7 +77,10 @@ public class ProjectFilesWatcherViewModel: ViewModel
             await _refreshCts.CancelNullableAsync();
 
             IsProjectOpen = _globals.Project is not EmptyProjectViewModel;
-            Items.Clear();
+            while (Items.Count > 1)
+            {
+                Items.RemoveAt(1);
+            }
             if (_globals.Project is KickAssProjectViewModel project)
             {
                 _refreshCts = new CancellationTokenSource();

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Frozen;
+using System.ComponentModel;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Common;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
+using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -398,7 +400,7 @@ public class MainViewModel : ViewModel
             if (!File.Exists(mainAsmFile))
             {
                 var assembly = this.GetType().Assembly;
-                using (Stream s = assembly.GetManifestResourceStream(
+                using (var s = assembly.GetManifestResourceStream(
                            "C64AssemblerStudio.Engine.Resources.main.template")!)
                 using (var output = File.OpenWrite(mainAsmFile))
                 {
@@ -412,13 +414,13 @@ public class MainViewModel : ViewModel
         }
         catch (Exception ex)
         {
-            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, "Failed creating project", ex.Message));
+            await _dispatcher.DispatchAsync(new ErrorMessage(ErrorMessageLevel.Error, "Failed creating project", ex.Message));
         }
 
         return false;
     }
 
-    internal void ShowProjectSettings()
+    private void ShowProjectSettings()
     {
         if (!IsShowingProject)
         {
@@ -426,7 +428,7 @@ public class MainViewModel : ViewModel
         }
     }
 
-    public async void OpenProject()
+    private async void OpenProject()
     {
         if (ShowOpenProjectFileDialogAsync is not null)
         {
@@ -442,7 +444,7 @@ public class MainViewModel : ViewModel
         }
     }
 
-    internal async void OpenProjectFromPath(string? path)
+    private async void OpenProjectFromPath(string? path)
     {
         // runs async because it manipulates most recent list
         await Task.Delay(1);
@@ -452,7 +454,7 @@ public class MainViewModel : ViewModel
         }
     }
 
-    internal async Task<bool> OpenProjectFromPathInternalAsync(string? path, CancellationToken ct = default)
+    private async Task<bool> OpenProjectFromPathInternalAsync(string? path, CancellationToken ct = default)
     {
         const string errorTitle = "Failed opening project";
         if (path is null)
@@ -482,6 +484,10 @@ public class MainViewModel : ViewModel
                 var projectViewModel = _scope.ServiceProvider.CreateScopedContent<KickAssProjectViewModel>();
                 projectViewModel.Init(kickAssConfiguration, path);
                 _globals.SetProject(projectViewModel);
+                string projectDirectory = Path.GetDirectoryName(path).ValueOrThrow();
+                _ = projectViewModel.SourceCodeParser.InitialParseAsync(projectDirectory,
+                    FrozenDictionary<string, InMemoryFileContent>.Empty,
+                    kickAssConfiguration.SymbolsDefineSet, kickAssConfiguration.LibDirArray, ct);
             }
             else
             {
@@ -502,7 +508,7 @@ public class MainViewModel : ViewModel
         return false;
     }
 
-    internal async Task<bool> CloseProjectAsync()
+    private async Task<bool> CloseProjectAsync()
     {
         if (await CanCloseProject())
         {

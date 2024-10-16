@@ -66,3 +66,13 @@ public class ProjectFile : ProjectItem
     public string GetRelativeFilePath() => Path.Combine(GetRelativeDirectory(), Name);
     public bool CanOpen => FileType == FileType.Assembler;
 }
+
+public class ProjectLibraries : ProjectItem
+{
+    public ObservableCollection<ProjectLibrary> Items { get; } = [new ProjectLibrary { Name = "One", Parent = null }];
+}
+
+public class ProjectLibrary : ProjectDirectory
+{
+    
+}
