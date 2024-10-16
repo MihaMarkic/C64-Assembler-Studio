@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
 
 namespace C64AssemblerStudio.Engine.ViewModels;

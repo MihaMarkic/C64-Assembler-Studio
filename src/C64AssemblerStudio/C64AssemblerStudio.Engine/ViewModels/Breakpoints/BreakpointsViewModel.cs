@@ -10,6 +10,7 @@ using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Implementation;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;

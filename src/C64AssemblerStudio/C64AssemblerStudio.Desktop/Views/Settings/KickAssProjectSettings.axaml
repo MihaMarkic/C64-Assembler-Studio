@@ -4,8 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
              xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:project="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Projects;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:KickAssProjectViewModel"
+             x:DataType="project:KickAssProjectViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Settings.KickAssProjectSettings">
     <StackPanel Orientation="Vertical">
         <TextBlock>KickAss specific settings</TextBlock>

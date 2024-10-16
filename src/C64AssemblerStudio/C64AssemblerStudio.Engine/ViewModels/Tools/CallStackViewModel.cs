@@ -1,6 +1,7 @@
 ﻿using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using CommunityToolkit.Diagnostics;
 using FuzzySharp;
 using Microsoft.Extensions.Logging;

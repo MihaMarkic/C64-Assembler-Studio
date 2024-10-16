@@ -5,6 +5,7 @@ using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Dialogs;
 using C64AssemblerStudio.Engine.ViewModels.Files;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Righthand.MessageBus;

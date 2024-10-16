@@ -7,6 +7,7 @@ using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Dialogs;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;

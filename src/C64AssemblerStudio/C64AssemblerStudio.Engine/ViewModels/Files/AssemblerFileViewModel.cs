@@ -10,10 +10,12 @@ using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.KickAssembler;
 using Righthand.RetroDbgDataProvider.Models.Program;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
@@ -44,7 +46,6 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private readonly CallStackViewModel _callStack;
     public BreakpointsViewModel Breakpoints { get; }
     public event EventHandler? BreakpointsChanged;
-    private ImmutableArray<ImmutableArray<IToken>> _tokens = ImmutableArray<ImmutableArray<IToken>>.Empty;
     public ImmutableArray<Line?> Lines { get; private set; } = ImmutableArray<Line?>.Empty;
     public FrozenDictionary<int, ImmutableArray<SyntaxError>> Errors { get; private set; }
     public RelayCommandWithParameterAsync<int> AddOrRemoveBreakpointCommand { get; }
@@ -201,17 +202,17 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
     IToken? FindTokenAtLocation(int line, int column)
     {
-        if (_tokens.Length >= line)
-        {
-            var tokens = _tokens[line - 1];
-            foreach (var t in tokens)
-            {
-                if (t.Column <= column && t.Column + t.Text.Length >= column)
-                {
-                    return t;
-                }
-            }
-        }
+        // if (_tokens.Length >= line)
+        // {
+        //     var tokens = _tokens[line - 1];
+        //     foreach (var t in tokens)
+        //     {
+        //         if (t.Column <= column && t.Column + t.Text.Length >= column)
+        //         {
+        //             return t;
+        //         }
+        //     }
+        // }
 
         return null;
     }
@@ -236,7 +237,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         switch (name)
         {
             case nameof(Content):
-                _ = ParseTextAsync();
+                //_ = ParseTextAsync();
                 break;
             case nameof(IsByteDumpVisible):
                 if (IsByteDumpVisible)
@@ -306,107 +307,107 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     }
 
     private CancellationTokenSource? _ctsParser;
-    internal async Task ParseTextAsync(CancellationToken ct = default)
-    {
-        await _ctsParser.CancelNullableAsync(ct: ct); 
-        _ctsParser = new();
-        try
-        {
-            await Task.Delay(50, ct);
-            (Lines, var tokens) = await Task.Run(() => ParseText(Logger, Content, _ctsParser.Token), _ctsParser.Token);
-            var tokensBuilder = new List<IToken>?[Lines.Length];
-            foreach (var t in tokens)
-            {
-                tokensBuilder[t.Line-1] ??= new();
-                tokensBuilder[t.Line-1]!.Add(t);
-            }
-            _tokens = [..tokensBuilder.Select(a => a?.ToImmutableArray() ?? ImmutableArray<IToken>.Empty)];
-            UpdateErrors();
-        }
-        catch (OperationCanceledException)
-        {
-        }
-    }
+    // internal async Task ParseTextAsync(CancellationToken ct = default)
+    // {
+    //     await _ctsParser.CancelNullableAsync(ct: ct); 
+    //     _ctsParser = new();
+    //     try
+    //     {
+    //         await Task.Delay(50, ct);
+    //         (Lines, var tokens) = await Task.Run(() => ParseText(Logger, Content, _ctsParser.Token), _ctsParser.Token);
+    //         var tokensBuilder = new List<IToken>?[Lines.Length];
+    //         foreach (var t in tokens)
+    //         {
+    //             tokensBuilder[t.Line-1] ??= new();
+    //             tokensBuilder[t.Line-1]!.Add(t);
+    //         }
+    //         _tokens = [..tokensBuilder.Select(a => a?.ToImmutableArray() ?? ImmutableArray<IToken>.Empty)];
+    //         UpdateErrors();
+    //     }
+    //     catch (OperationCanceledException)
+    //     {
+    //     }
+    // }
 
-    internal static (ImmutableArray<Line?> Lines, ImmutableArray<IToken> Tokens) ParseText(ILogger logger,
-        string content, CancellationToken ct = default)
-    {
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            return (ImmutableArray<Line?>.Empty, ImmutableArray<IToken>.Empty);
-        }
-
-        var input = new AntlrInputStream(content);
-        var lexer = new KickAssemblerLexer(input);
-        var tokenStream = new CommonTokenStream(lexer);
-        var parser = new KickAssemblerParser(tokenStream)
-        {
-            BuildParseTree = true
-        };
-        var tree = parser.program();
-        var listener = new KickAssemblerParserBaseListener();
-        ParseTreeWalker.Default.Walk(listener, tree);
-
-        var tokens = tokenStream.GetTokens();
-        int linesCount = content.Count(c => c == '\n') + 1;
-        var builder = IterateTokens(linesCount, tokens, ct);
-
-        var lines = builder.Select(l => l is not null ? new Line([..l]) : null);
-        return ([..lines], [..tokens]);
-    }
-
-    internal static List<LineItem>?[] IterateTokens(int linesCount, IList<IToken> tokens, CancellationToken ct)
-    {
-        List<LineItem>?[] builder = new List<LineItem>?[linesCount];
-
-        for (var i = 0; i < tokens.Count; i++)
-        {
-            var token = tokens[i];
-            ct.ThrowIfCancellationRequested();
-            bool ignore = false;
-            if (Map.TryGetValue(token.Type, out var tokenType))
-            {
-                var line = builder[token.Line - 1];
-                if (line is null)
-                {
-                    line = new();
-                    builder[token.Line - 1] = line;
-                }
-
-                int startIndex = token.StartIndex;
-                switch (tokenType)
-                {
-                    case TokenType.Directive:
-                        if (i > 0)
-                        {
-                            var previous = tokens[i - 1];
-                            if (previous.Type == KickAssemblerLexer.DOT && previous.Line == token.Line)
-                            {
-                                startIndex = token.StartIndex - 1;
-                            }
-                        }
-                        break;
-                    case TokenType.InstructionExtension:
-                        if (i > 1 && tokens[i-1].Type == KickAssemblerLexer.DOT 
-                            && Map.TryGetValue(tokens[i-2].Type, out var instructionTokenType) && instructionTokenType == TokenType.Instruction)
-                        {
-                            startIndex = token.StartIndex - 1;
-                        }
-                        else
-                        {
-                            ignore = true;
-                        }
-                        break;
-                }
-
-                if (!ignore)
-                {
-                    line.Add(new LineItem(startIndex, token.StopIndex, tokenType));
-                }
-            }
-        }
-        return builder;
-    }
+    // internal static (ImmutableArray<Line?> Lines, ImmutableArray<IToken> Tokens) ParseText(ILogger logger,
+    //     string content, CancellationToken ct = default)
+    // {
+    //     if (string.IsNullOrWhiteSpace(content))
+    //     {
+    //         return (ImmutableArray<Line?>.Empty, ImmutableArray<IToken>.Empty);
+    //     }
+    //
+    //     var input = new AntlrInputStream(content);
+    //     var lexer = new KickAssemblerLexer(input);
+    //     var tokenStream = new CommonTokenStream(lexer);
+    //     var parser = new KickAssemblerParser(tokenStream)
+    //     {
+    //         BuildParseTree = true
+    //     };
+    //     var tree = parser.program();
+    //     var listener = new KickAssemblerParserBaseListener();
+    //     ParseTreeWalker.Default.Walk(listener, tree);
+    //
+    //     var tokens = tokenStream.GetTokens();
+    //     int linesCount = content.Count(c => c == '\n') + 1;
+    //     var builder = IterateTokens(linesCount, tokens, ct);
+    //
+    //     var lines = builder.Select(l => l is not null ? new Line([..l]) : null);
+    //     return ([..lines], [..tokens]);
+    // }
+    //
+    // internal static List<LineItem>?[] IterateTokens(int linesCount, IList<IToken> tokens, CancellationToken ct)
+    // {
+    //     List<LineItem>?[] builder = new List<LineItem>?[linesCount];
+    //
+    //     for (var i = 0; i < tokens.Count; i++)
+    //     {
+    //         var token = tokens[i];
+    //         ct.ThrowIfCancellationRequested();
+    //         bool ignore = false;
+    //         if (Map.TryGetValue(token.Type, out var tokenType))
+    //         {
+    //             var line = builder[token.Line - 1];
+    //             if (line is null)
+    //             {
+    //                 line = new();
+    //                 builder[token.Line - 1] = line;
+    //             }
+    //
+    //             int startIndex = token.StartIndex;
+    //             switch (tokenType)
+    //             {
+    //                 case TokenType.Directive:
+    //                     if (i > 0)
+    //                     {
+    //                         var previous = tokens[i - 1];
+    //                         if (previous.Type == KickAssemblerLexer.DOT && previous.Line == token.Line)
+    //                         {
+    //                             startIndex = token.StartIndex - 1;
+    //                         }
+    //                     }
+    //                     break;
+    //                 case TokenType.InstructionExtension:
+    //                     if (i > 1 && tokens[i-1].Type == KickAssemblerLexer.DOT 
+    //                         && Map.TryGetValue(tokens[i-2].Type, out var instructionTokenType) && instructionTokenType == TokenType.Instruction)
+    //                     {
+    //                         startIndex = token.StartIndex - 1;
+    //                     }
+    //                     else
+    //                     {
+    //                         ignore = true;
+    //                     }
+    //                     break;
+    //             }
+    //
+    //             if (!ignore)
+    //             {
+    //                 line.Add(new LineItem(startIndex, token.StopIndex, tokenType));
+    //             }
+    //         }
+    //     }
+    //     return builder;
+    // }
 
     static FrozenDictionary<int, TokenType> BuildMap()
     {
@@ -531,17 +532,17 @@ public class AssemblerFileViewModel : ProjectFileViewModel
           { KickAssemblerLexer.OP_COALESCING_ASSIGNMENT , TokenType.Operator },
           { KickAssemblerLexer.OP_RANGE                 , TokenType.Operator },
           // Directives
-          { KickAssemblerLexer.BINARY_TEXT, TokenType.Directive },
-          { KickAssemblerLexer.C64_TEXT, TokenType.Directive },
-          { KickAssemblerLexer.TEXT_TEXT, TokenType.Directive },
-          { KickAssemblerLexer.ENCODING, TokenType.Directive },
-          { KickAssemblerLexer.FILL, TokenType.Directive },
-          { KickAssemblerLexer.FILLWORD, TokenType.Directive },
-          { KickAssemblerLexer.LOHIFILL, TokenType.Directive },
+          { KickAssemblerLexer.DOTBINARY, TokenType.Directive },
+          { KickAssemblerLexer.DOTC64, TokenType.Directive },
+          { KickAssemblerLexer.DOTTEXT, TokenType.Directive },
+          { KickAssemblerLexer.DOTENCODING, TokenType.Directive },
+          { KickAssemblerLexer.DOTFILL, TokenType.Directive },
+          { KickAssemblerLexer.DOTFILLWORD, TokenType.Directive },
+          { KickAssemblerLexer.DOTLOHIFILL, TokenType.Directive },
           { KickAssemblerLexer.BYTE, TokenType.Directive },
           { KickAssemblerLexer.WORD, TokenType.Directive },
           { KickAssemblerLexer.DWORD, TokenType.Directive },
-          { KickAssemblerLexer.CPU, TokenType.Directive },
+          { KickAssemblerLexer.DOTCPU, TokenType.Directive },
           { KickAssemblerLexer.CPU6502NOILLEGALS, TokenType.Directive },
           { KickAssemblerLexer.CPU6502, TokenType.Directive },
           { KickAssemblerLexer.DTV, TokenType.Directive },
@@ -565,12 +566,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
           { KickAssemblerLexer.MACRO, TokenType.Directive },
           { KickAssemblerLexer.PSEUDOCOMMAND, TokenType.Directive },
           { KickAssemblerLexer.PSEUDOPC, TokenType.Directive },
-          { KickAssemblerLexer.UNDEF, TokenType.Directive },
-          { KickAssemblerLexer.ENDIF, TokenType.Directive },
-          { KickAssemblerLexer.ELIF, TokenType.Directive },
-          { KickAssemblerLexer.IMPORT, TokenType.Directive },
-          { KickAssemblerLexer.IMPORTONCE, TokenType.Directive },
-          { KickAssemblerLexer.IMPORTIF, TokenType.Directive },
+          { KickAssemblerLexer.HASHUNDEF, TokenType.Directive },
+          { KickAssemblerLexer.HASHENDIF, TokenType.Directive },
+          { KickAssemblerLexer.HASHELIF, TokenType.Directive },
+          { KickAssemblerLexer.HASHIMPORT, TokenType.Directive },
+          { KickAssemblerLexer.HASHIMPORTONCE, TokenType.Directive },
+          { KickAssemblerLexer.HASHIMPORTIF, TokenType.Directive },
           { KickAssemblerLexer.NAMESPACE, TokenType.Directive },
           { KickAssemblerLexer.SEGMENT, TokenType.Directive },
           { KickAssemblerLexer.SEGMENTDEF, TokenType.Directive },

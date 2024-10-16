@@ -1,6 +1,4 @@
 ﻿using System.Collections.Frozen;
-using System.ComponentModel;
-using System.Windows.Input;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Models.SystemDialogs;
@@ -12,66 +10,9 @@ using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
 using Righthand.RetroDbgDataProvider.Models.Program;
 using Label = Righthand.RetroDbgDataProvider.Models.Program.Label;
 
-namespace C64AssemblerStudio.Engine.ViewModels;
+namespace C64AssemblerStudio.Engine.ViewModels.Projects;
 
-public interface IProjectViewModel: IDisposable
-{
-    RelayCommand CloseCommand { get; }
-    string? Path { get; set; }
-    string? Directory { get; }
-    Project? Configuration { get; }
-    string? FullPrgPath { get; }
-    public string? BreakpointsSettingsPath { get; }
-    event PropertyChangedEventHandler? PropertyChanged;
-    Task LoadDebugDataAsync(CancellationToken ct = default);
-}
-public abstract class ProjectViewModel<TConfiguration>: OverlayContentViewModel, IProjectViewModel
-    where TConfiguration : Project
-{
-    protected readonly ILogger<ProjectViewModel<TConfiguration>> Logger;
-    private readonly ISettingsManager _settingsManager;
-    protected readonly ISystemDialogs SystemDialogs;
-    public TConfiguration? Configuration { get; private set; }
-    Project? IProjectViewModel.Configuration => Configuration;
-    public AssemblerAppInfo? AppInfo { get; protected set; }
-    public string? Path { get; set; }
-    public string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
-    public string? FullPrgPath => Directory is not null ? System.IO.Path.Combine(Directory, "build", "main.prg"): null;
-    public string? BreakpointsSettingsPath => Directory is not null ? System.IO.Path.Combine(Directory, "breakpoints.json") : null;
-
-    protected ProjectViewModel(ILogger<ProjectViewModel<TConfiguration>> logger, ISettingsManager settingsManager,
-        ISystemDialogs systemDialogs, IDispatcher dispatcher) : base(dispatcher)
-    {
-        _settingsManager = settingsManager;
-        Logger = logger;
-        SystemDialogs = systemDialogs;
-    }
-    public void Init(TConfiguration configuration, string? path)
-    {
-        Configuration = configuration;
-        Path = path;
-    }
-
-    public abstract Task LoadDebugDataAsync(CancellationToken ct = default);
-    protected override void Closing()
-    {
-        _settingsManager.Save<Project>(Configuration.ValueOrThrow(), Path.ValueOrThrow(), false);
-        base.Closing();
-    }
-}
-
-public class EmptyProjectViewModel : ProjectViewModel<EmptyProject>
-{
-    public EmptyProjectViewModel(ILogger<ProjectViewModel<EmptyProject>> logger, ISettingsManager settingsManager,
-        ISystemDialogs systemDialogs, IDispatcher dispatcher)
-        : base(logger, settingsManager, systemDialogs, dispatcher)
-    {
-    }
-
-    public override Task LoadDebugDataAsync(CancellationToken ct = default) => throw new NotImplementedException();
-}
-
-public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
+public class KickAssProjectViewModel : ProjectViewModel<KickAssProject, KickAssemblerParsedSourceFile>
 {
     public IKickAssemblerCompiler Compiler { get; }
     public IKickAssemblerDbgParser DbgParser { get; }
@@ -83,11 +24,12 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject>
     public FrozenDictionary<string, Label>? Labels { get; private set; }
     public RelayCommandAsync OpenLibDirCommand { get; }
 
-    public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject>> logger, ISettingsManager settingsManager,
+    public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject, KickAssemblerParsedSourceFile>> logger, ISettingsManager settingsManager,
         ISystemDialogs systemDialogs, IDispatcher dispatcher, IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
         IKickAssemblerProgramInfoBuilder programInfoBuilder,
-        IKickAssemblerByteDumpParser byteDumpParser)
-        : base(logger, settingsManager, systemDialogs, dispatcher)
+        IKickAssemblerByteDumpParser byteDumpParser,
+        IKickAssemblerSourceCodeParser sourceCodeParser)
+        : base(logger, settingsManager, systemDialogs, dispatcher, sourceCodeParser)
     {
         Compiler = compiler;
         DbgParser = dbgParser;

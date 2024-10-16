@@ -3,6 +3,7 @@ using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
