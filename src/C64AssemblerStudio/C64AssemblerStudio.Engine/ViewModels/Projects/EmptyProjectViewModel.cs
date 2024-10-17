@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,7 @@ namespace C64AssemblerStudio.Engine.ViewModels.Projects;
 
 public class EmptyProjectViewModel : ProjectViewModel<EmptyProject, ParsedSourceFile>
 {
-    private class EmptySourceCodeParser : ISourceCodeParser<ParsedSourceFile>
+    private class EmptySourceCodeParser : DisposableObject, ISourceCodeParser<ParsedSourceFile>
     {
         public event EventHandler<FilesChangedEventArgs>? FilesChanged;
         public IParsedFilesIndex<ParsedSourceFile> AllFiles => ImmutableParsedFilesIndex<ParsedSourceFile>.Empty;

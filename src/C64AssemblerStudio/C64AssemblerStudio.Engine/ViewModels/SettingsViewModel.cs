@@ -117,11 +117,11 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         return !_errorHandler.HasErrors;
     }
 
-    protected override void Closing()
+    protected override async Task ClosingAsync(CancellationToken ct = default)
     {
         Settings.ViceAddress = _ipAddressValidator.Text;
         _settingsManager.Save(Settings);
-        base.Closing();
+        await base.ClosingAsync(ct);
     }
     protected override void Dispose(bool disposing)
     {

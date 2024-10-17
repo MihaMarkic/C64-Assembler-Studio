@@ -51,23 +51,23 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject, KickAsse
         {
             if (!string.IsNullOrWhiteSpace(Configuration.LibDir))
             {
-                Configuration.LibDir += $";{newDirectory.SingleOrDefault()}";
+                Configuration.LibDir += $";{path}";
             }
             else
             {
-                Configuration.LibDir = newDirectory.SingleOrDefault();
+                Configuration.LibDir = path;
             }
         }
     }
 
-    protected override void Closing()
+    protected override async Task ClosingAsync(CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(Configuration.ValueOrThrow().LibDir))
         {
             // when empty string, store rather null to clear save file of that property
-            Configuration!.LibDir = null;
+            Configuration!.LibDir = string.Empty;
         }
-        base.Closing();
+        await base.ClosingAsync(ct);
     }
 
     public override async Task LoadDebugDataAsync(CancellationToken ct = default)

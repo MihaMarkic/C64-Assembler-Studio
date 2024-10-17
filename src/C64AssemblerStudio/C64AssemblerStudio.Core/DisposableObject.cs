@@ -1,27 +1,33 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace C64AssemblerStudio.Core;
 
 /// <summary>
 /// Base class for disposing.
 /// </summary>
-public abstract class DisposableObject : IDisposable
+public abstract class DisposableObject : IDisposable, IAsyncDisposable
 {
-    protected bool disposed;
+    private bool _disposed;
 
     protected virtual void Dispose(bool disposing)
     {
-        disposed = true;
+        _disposed = true;
     }
     [JsonIgnore]
-    public bool IsDisposed
-    {
-        get { return disposed; }
-    }
+    public bool IsDisposed => _disposed;
 
     public void Dispose()
     {
         Dispose(true);
+        GC.SuppressFinalize(this);
     }
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsyncCore().ConfigureAwait(false);
+
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual Task DisposeAsyncCore() => Task.CompletedTask;
 }

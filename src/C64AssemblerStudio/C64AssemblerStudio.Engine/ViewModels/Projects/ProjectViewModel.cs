@@ -42,9 +42,21 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
     }
 
     public abstract Task LoadDebugDataAsync(CancellationToken ct = default);
-    protected override void Closing()
+
+    protected override async Task ClosingAsync(CancellationToken ct = default)
     {
-        _settingsManager.Save<Project>(Configuration.ValueOrThrow(), Path.ValueOrThrow(), false);
-        base.Closing();
+        await _settingsManager.SaveAsync<Project>(Configuration.ValueOrThrow(), Path.ValueOrThrow(), false, ct);
+        await SourceCodeParser.DisposeAsync();
+        await base.ClosingAsync(ct);
+    }
+
+    protected override async Task DisposeAsyncCore()
+    {
+        if (!IsDisposed)
+        {
+            await SourceCodeParser.DisposeAsync();
+        }
+
+        await base.DisposeAsyncCore();
     }
 }

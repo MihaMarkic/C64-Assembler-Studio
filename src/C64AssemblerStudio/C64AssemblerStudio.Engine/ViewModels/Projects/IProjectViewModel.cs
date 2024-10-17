@@ -8,7 +8,7 @@ namespace C64AssemblerStudio.Engine.ViewModels.Projects;
 
 public interface IProjectViewModel: IDisposable
 {
-    RelayCommand CloseCommand { get; }
+    RelayCommandAsync CloseCommand { get; }
     string? Path { get; set; }
     string? Directory { get; }
     Project? Configuration { get; }
