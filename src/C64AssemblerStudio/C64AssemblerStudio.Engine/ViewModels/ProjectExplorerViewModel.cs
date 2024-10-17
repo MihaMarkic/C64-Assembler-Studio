@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Core.Extensions;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
@@ -27,6 +28,9 @@ public class ProjectExplorerViewModel : ViewModel
     public RelayCommandWithParameter<ProjectFile> OpenFileCommand { get; }
     public RelayCommand<ProjectDirectory> AddFileCommand { get; }
     public RelayCommand<ProjectDirectory> AddDirectoryCommand { get; }
+    public RelayCommand AddLibraryCommand { get; }
+    public RelayCommand<ProjectLibrary> AddRootLibraryFileCommand { get; }
+    public RelayCommand<ProjectLibrary> RemoveLibraryCommand { get; }
     public RelayCommandWithParameterAsync<ProjectItem> RenameItemCommand { get; }
     public RelayCommandWithParameter<ProjectItem> DeleteItemCommand { get; }
     public RelayCommandWithParameter<ProjectItem> OpenInExplorerCommand { get; }
@@ -49,18 +53,50 @@ public class ProjectExplorerViewModel : ViewModel
         DeleteItemCommand = new RelayCommandWithParameter<ProjectItem>(DeleteItem);
         RefreshCommand = new RelayCommandAsync(_projectFilesWatcher.RefreshAsync);
         OpenInExplorerCommand = new RelayCommandWithParameter<ProjectItem>(OpenInExplorer);
+        // disabled for now
+        AddLibraryCommand = new RelayCommand(AddLibrary, () => false);
+        RemoveLibraryCommand = new RelayCommand<ProjectLibrary>(RemoveLibrary, l => l is not null && false);
+        AddRootLibraryFileCommand = new RelayCommand<ProjectLibrary>(AddRootLibraryFile);
     }
 
+    private void AddLibrary()
+    {
+        
+    }
+
+    private void RemoveLibrary(ProjectLibrary? library)
+    {
+        
+    }
     private void OpenFile(ProjectFile file)
     {
         var message = new OpenFileMessage(file);
         _dispatcher.Dispatch(message);
     }
+
     private void OpenInExplorer(ProjectItem item)
     {
-        string path = Path.Combine(_globals.Project.Directory.ValueOrThrow(), item.GetRelativeDirectory());
-        Process.Start(OsDependent.FileAppOpenName, path);
+        string path;
+        if (item is ProjectLibrary library)
+        {
+            path = library.AbsolutePath;
+        }
+        else if (item is ProjectDirectory directory)
+        {
+            path = GetAbsoluteDirectoryPath(directory);
+        }
+        else if (item is ProjectFile)
+        {
+            path = GetAbsoluteDirectoryForItem(item);
+        }
+        else
+        {
+            throw new ArgumentException($"Unsupported ProjectItem type {item.GetType().Name}", nameof(item));
+        }
+
+        Process.Start(OsDependent.FileAppOpenName, path.ConvertsDirectorySeparators());
     }
+
     private void ProjectFilesWatcherOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
@@ -89,9 +125,47 @@ public class ProjectExplorerViewModel : ViewModel
         }
     }
 
+    private string GetAbsoluteDirectoryPath(ProjectDirectory directory)
+    {
+        var relativeDirectoryPath = directory.GetRelativeDirectory();
+        var rootParent = directory.GetRootDirectory();
+        var rootDirectory = GetRootDirectory(directory);
+        string result;
+        if (rootParent is ProjectLibrary library)
+        {
+            result = Path.Combine(rootDirectory, relativeDirectoryPath, directory.Name);
+        }
+        else
+        {
+            result = Path.Combine(rootDirectory, directory.GetRelativeDirectory(), directory.Name);
+        }
+
+        return result;
+    }
+
+    private string GetAbsoluteDirectoryForItem(ProjectItem item)
+    {
+        var rootDirectory = GetRootDirectory(item);
+        return Path.Combine(rootDirectory, item.GetRelativeDirectory());
+    }
+
+    private string GetRootDirectory(ProjectItem item)
+    {
+        var rootParent = item.GetRootDirectory();
+        string result;
+        if (rootParent is ProjectLibrary library)
+        {
+            return library.AbsolutePath;
+        }
+        else
+        {
+            return _globals.Project.Directory.ValueOrThrow();
+        }
+    }
+
     private void DeleteDirectory(ProjectDirectory directory)
     {
-        string path = Path.Combine(_globals.Project.Directory.ValueOrThrow(), directory.GetRelativeDirectory(), directory.Name);
+        string path = GetAbsoluteDirectoryPath(directory);
         try
         {
             File.Delete(path);
@@ -104,7 +178,7 @@ public class ProjectExplorerViewModel : ViewModel
 
     private void DeleteFile(ProjectFile file)
     {
-        string path = Path.Combine(_globals.Project.Directory.ValueOrThrow(), file.GetRelativeDirectory(), file.Name);
+        string path = Path.Combine(GetAbsoluteDirectoryForItem(file), file.Name);
         try
         {
             File.Delete(path);
@@ -115,27 +189,23 @@ public class ProjectExplorerViewModel : ViewModel
         }
     }
 
-    internal void AddFile(ProjectDirectory? parent)
+    private void AddFile(ProjectDirectory? parent)
     {
         Debug.WriteLine($"Parent is null: {(parent is null)}");
         _ = AddFileAsync(parent);
     }
-
-    string GetRootDirectory(ProjectDirectory? parent)
+    private void AddRootLibraryFile(ProjectLibrary? library)
     {
-        string projectRoot = Path.GetDirectoryName(_globals.Project.Path.ValueOrThrow()).ValueOrThrow();
-        if (parent is not null)
-        {
-            return Path.Combine(projectRoot, parent.GetRelativeDirectory());
-        }
-        return projectRoot;
+        Debug.WriteLine($"Library name is {library?.Name} and absolute path is {library?.AbsolutePath}");
+        _ = AddFileAsync(library);
     }
-    internal async Task AddFileAsync(ProjectDirectory? parent)
+
+    private async Task AddFileAsync(ProjectDirectory? parent)
     {
         using (var scope = _serviceScopeFactory.CreateScope())
         {
             var detailViewModel = scope.ServiceProvider.GetRequiredService<AddFileDialogViewModel>();
-            detailViewModel.RootDirectory = GetRootDirectory(parent);
+            detailViewModel.RootDirectory = GetAbsoluteDirectoryPath(parent.ValueOrThrow());
             var message =
                 new ShowModalDialogMessage<AddFileDialogViewModel, SimpleDialogResult>(
                     "Add new file",
@@ -149,16 +219,18 @@ public class ProjectExplorerViewModel : ViewModel
             await message.Result;
         }
     }
-    internal void AddDirectory(ProjectDirectory? parent)
+
+    private void AddDirectory(ProjectDirectory? parent)
     {
         _ = AddDirectoryAsync(parent);
     }
-    internal async Task AddDirectoryAsync(ProjectDirectory? parent)
+
+    private async Task AddDirectoryAsync(ProjectDirectory? parent)
     {
         using (var scope = _serviceScopeFactory.CreateScope())
         {
             var detailViewModel = scope.ServiceProvider.GetRequiredService<AddDirectoryDialogViewModel>();
-            detailViewModel.RootDirectory = GetRootDirectory(parent);
+            detailViewModel.RootDirectory = GetAbsoluteDirectoryPath(parent.ValueOrThrow());
             var message =
                 new ShowModalDialogMessage<AddDirectoryDialogViewModel, SimpleDialogResult>(
                     "Add new directory",
@@ -172,12 +244,13 @@ public class ProjectExplorerViewModel : ViewModel
             await message.Result;
         }
     }
-    internal async Task RenameItemAsync(ProjectItem item)
+
+    private async Task RenameItemAsync(ProjectItem item)
     {
         using (var scope = _serviceScopeFactory.CreateScope())
         {
             var detailViewModel = scope.ServiceProvider.GetRequiredService<RenameItemDialogViewModel>();
-            detailViewModel.RootDirectory = GetRootDirectory(item.Parent);
+            detailViewModel.RootDirectory = GetAbsoluteDirectoryForItem(item);
             detailViewModel.Item = item;
             string itemType = item is ProjectDirectory ? "directory" : "file";
             var message =
@@ -203,7 +276,7 @@ public class ProjectExplorerViewModel : ViewModel
         var directory = _globals.Project.Directory;
         if (directory is not null && fullPath.StartsWith(directory, OsDependent.FileStringComparison))
         {
-            var relativePath = fullPath[(directory.Length)..].TrimStart(System.IO.Path.DirectorySeparatorChar);
+            var relativePath = fullPath[(directory.Length)..].TrimStart(Path.DirectorySeparatorChar);
             return FindProjectFile(relativePath);
         }
 
@@ -215,9 +288,9 @@ public class ProjectExplorerViewModel : ViewModel
     /// </summary>
     /// <param name="relativePath"></param>
     /// <returns></returns>
-    public ProjectFile? FindProjectFile(string relativePath)
+    private ProjectFile? FindProjectFile(string relativePath)
     {
-        var parts = relativePath.Split(System.IO.Path.DirectorySeparatorChar);
+        var parts = relativePath.Split(Path.DirectorySeparatorChar);
         ObservableCollection<ProjectItem> items = Items;
         foreach (string part in parts[0..^1])
         {
@@ -287,7 +360,7 @@ public class ProjectExplorerViewModel : ViewModel
     {
         if (disposing)
         {
-            //_globals.PropertyChanged -= GlobalsOnPropertyChanged;
+            _projectFilesWatcher.PropertyChanged -= ProjectFilesWatcherOnPropertyChanged;
         }
 
         base.Dispose(disposing);

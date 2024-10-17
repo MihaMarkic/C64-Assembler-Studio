@@ -14,6 +14,7 @@ public interface IProjectViewModel: IDisposable
     Project? Configuration { get; }
     string? FullPrgPath { get; }
     public string? BreakpointsSettingsPath { get; }
+    ImmutableArray<string> Libraries { get; }
     event PropertyChangedEventHandler? PropertyChanged;
     Task LoadDebugDataAsync(CancellationToken ct = default);
 }

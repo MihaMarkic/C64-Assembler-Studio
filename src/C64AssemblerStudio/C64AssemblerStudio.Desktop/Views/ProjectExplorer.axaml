@@ -29,10 +29,36 @@
             </TreeView.ContextMenu>
             <TreeView.DataTemplates>
                 <TreeDataTemplate DataType="mp:ProjectLibraries" ItemsSource="{Binding Items}">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Background="Transparent">
-                        <TextBlock Text="LIB:" />
-                        <TextBlock Text="{Binding Name}" />
-                    </StackPanel>
+                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Stretch" Background="Transparent">
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Library.." />
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
+                </TreeDataTemplate>
+                <TreeDataTemplate DataType="mp:ProjectLibrary" ItemsSource="{Binding Items}">
+                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Stretch" Background="Transparent">
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add">
+                                    <MenuItem Header="File"
+                                              Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddFileCommand}"
+                                              CommandParameter="{Binding}" />
+                                    <MenuItem Header="Directory"
+                                              Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddDirectoryCommand}"
+                                              CommandParameter="{Binding}" />
+                                </MenuItem>
+                                <MenuItem Header="Remove"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).RemoveLibraryCommand}"
+                                          CommandParameter="{Binding}" />
+                                <Separator />
+                                <MenuItem Header="Open In Explorer"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).OpenInExplorerCommand}"
+                                          CommandParameter="{Binding}" />
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
                 </TreeDataTemplate>
                 <TreeDataTemplate DataType="mp:ProjectDirectory" ItemsSource="{Binding Items}">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Background="Transparent">

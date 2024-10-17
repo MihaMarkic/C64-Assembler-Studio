@@ -12,18 +12,35 @@ public abstract class ProjectItem: NotifiableObject
     public string GetRelativeDirectory()
     {
         var sb = new StringBuilder();
-        if (this is ProjectDirectory)
-        {
-            sb.Append(Name);
-        }
         ProjectDirectory? current = Parent;
         while (current is not null)
         {
+            // ProjectLibrary shouldn't be included in relative path, since it has absolute path
+            // also it sits on top of chain, hence we exit here
+            if (current is ProjectLibrary)
+            {
+                break;
+            }
             sb.Insert(0, $"{current.Name}{Path.DirectorySeparatorChar}");
             current = current.Parent;
         }
 
         return sb.ToString();
+    }
+    /// <summary>
+    /// Returns top parent which has to be of supertype <see cref="ProjectDirectory"/>.
+    /// </summary>
+    /// <returns></returns>
+    public ProjectDirectory? GetRootDirectory()
+    {
+        ProjectItem? current = this;
+        while (current.Parent is not null)
+        {
+            current = current.Parent;
+        }
+
+        // root has to be a ProjectDirectory instance 
+        return current as ProjectLibrary;
     }
     /// <summary>
     /// Compares full path to <param name="other"></param>
@@ -62,17 +79,17 @@ public class ProjectDirectory : ProjectItem
 
 public class ProjectFile : ProjectItem
 {
-    public required FileType FileType { get; init; }
+    public required FileType FileType { get; set; }
     public string GetRelativeFilePath() => Path.Combine(GetRelativeDirectory(), Name);
     public bool CanOpen => FileType == FileType.Assembler;
 }
 
 public class ProjectLibraries : ProjectItem
 {
-    public ObservableCollection<ProjectLibrary> Items { get; } = [new ProjectLibrary { Name = "One", Parent = null }];
+    public ObservableCollection<ProjectLibrary> Items { get; } = [];
 }
 
 public class ProjectLibrary : ProjectDirectory
 {
-    
+    public required string AbsolutePath { get; init; }
 }

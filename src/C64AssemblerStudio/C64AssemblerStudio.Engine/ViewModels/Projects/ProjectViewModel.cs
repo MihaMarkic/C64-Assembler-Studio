@@ -22,6 +22,7 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
     public ISourceCodeParser<TParsedFileType> SourceCodeParser { get; }
 
     public string? Path { get; set; }
+    public ImmutableArray<string> Libraries => Configuration?.LibDirArray ?? ImmutableArray<string>.Empty;
     public string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
     public string? FullPrgPath => Directory is not null ? System.IO.Path.Combine(Directory, "build", "main.prg") : null;
     public string? BreakpointsSettingsPath => Directory is not null ? System.IO.Path.Combine(Directory, "breakpoints.json") : null;
