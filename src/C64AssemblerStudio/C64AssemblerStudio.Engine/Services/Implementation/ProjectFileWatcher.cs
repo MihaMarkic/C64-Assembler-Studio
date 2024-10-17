@@ -11,21 +11,18 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
     private readonly ILogger<ProjectFileWatcher> _logger;
     private readonly FileSystemWatcher _fileWatcher;
     private readonly FileSystemWatcher _directoryWatcher;
-    private readonly string _rootDirectory;
-    private readonly ObservableCollection<ProjectItem> _items;
+    private readonly ProjectRootDirectory _rootDirectory;
 
-    public ProjectFileWatcher(string rootDirectory, ObservableCollection<ProjectItem> items,
-        ILogger<ProjectFileWatcher> logger)
+    public ProjectFileWatcher(ProjectRootDirectory rootDirectory, ILogger<ProjectFileWatcher> logger)
     {
         _logger = logger;
-        _items = items;
         // if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         // {
         //     Debug.WriteLine("Project file watcher disabled on MacOS");
         //     return;
         // }
         _rootDirectory = rootDirectory;
-        _fileWatcher = new FileSystemWatcher(_rootDirectory)
+        _fileWatcher = new FileSystemWatcher(_rootDirectory.AbsolutePath)
         {
             NotifyFilter = NotifyFilters.Attributes
                            | NotifyFilters.FileName
@@ -40,7 +37,7 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
         _fileWatcher.IncludeSubdirectories = true;
         _fileWatcher.EnableRaisingEvents = true;
         
-        _directoryWatcher = new FileSystemWatcher(_rootDirectory)
+        _directoryWatcher = new FileSystemWatcher(_rootDirectory.AbsolutePath)
         {
             NotifyFilter = NotifyFilters.Attributes
                            | NotifyFilters.DirectoryName
@@ -53,25 +50,6 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
         _directoryWatcher.IncludeSubdirectories = true;
         _directoryWatcher.EnableRaisingEvents = true;
         _logger.LogInformation("Watching directory {Directory}", _rootDirectory);
-    }
-    IEnumerable<ProjectItem> CollectDirectoriesAndFiles(ProjectDirectory? parent, string path)
-    {
-        foreach (var d in Directory.GetDirectories(path))
-        {
-            var directory = new ProjectDirectory { Name = Path.GetFileName(d).ValueOrThrow(), Parent = parent };
-            foreach (var i in CollectDirectoriesAndFiles(directory, d))
-            {
-                directory.Items.Add(i);
-            }
-
-            yield return directory;
-        }
-
-        foreach (var f in Directory.GetFiles(path))
-        {
-            var fileType = ProjectFileClassificator.Classify(f);
-            yield return new ProjectFile { Name = Path.GetFileName(f), FileType = fileType, Parent = parent };
-        }
     }
 
     protected override void Dispose(bool disposing)
@@ -130,17 +108,15 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
     private void OnCreated(FileSystemEventArgs e, Func<ProjectDirectory?, ProjectItem> creation)
     {
         _logger.LogDebug("Created file {File}", e.FullPath);
-        var directory = FindMatchingDirectory(_rootDirectory,
-            Path.GetDirectoryName(e.Name).ValueOrThrow());
-        ObservableCollection<ProjectItem> target = directory is null ? _items : directory.Items;
+        var target = FindMatchingDirectory(Path.GetDirectoryName(e.Name).ValueOrThrow());
 
-        if (target.Any(i => string.Equals(i.Name, e.Name, OsDependent.FileStringComparison)))
+        if (target.Items.Any(i => string.Equals(i.Name, e.Name, OsDependent.FileStringComparison)))
         {
             _logger.LogError("File {File} already exists", e.FullPath);
             return;
         }
 
-        target.Add(creation(directory));
+        target.Items.Add(creation(target));
     }
 
     private void OnFileCreated(object sender, FileSystemEventArgs e)
@@ -149,20 +125,20 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
         {
             Name = Path.GetFileName(e.Name).ValueOrThrow(), 
             FileType = FileType.Assembler, 
-            Parent = directory
+            Parent = directory,
         });
     }
 
-    internal ProjectDirectory? FindMatchingDirectory(string projectPath, string directoryRelativePath)
+    internal ProjectDirectory FindMatchingDirectory(string directoryRelativePath)
     {
         var parts = directoryRelativePath.Split(Path.DirectorySeparatorChar);
         ProjectDirectory? current = null;
         if (parts.Length == 1 && string.IsNullOrWhiteSpace(parts[0]))
         {
-            return null;
+            return _rootDirectory;
         }
 
-        current = _items.OfType<ProjectDirectory>().SingleOrDefault(d => string.Equals(d.Name, parts[0], OsDependent.FileStringComparison));
+        current = _rootDirectory.Items.OfType<ProjectDirectory>().SingleOrDefault(d => string.Equals(d.Name, parts[0], OsDependent.FileStringComparison));
         if (current is not null)
         {
             foreach (string part in parts.Skip(1))
@@ -177,8 +153,8 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
 
         if (current is null)
         {
-            _logger.LogError("Couldn't match root of {AddedFile} to {ProjectRoot}", directoryRelativePath, projectPath);
-            throw new Exception($"Couldn't match root of {directoryRelativePath} to {projectPath}");
+            _logger.LogError("Couldn't match root of {AddedFile} to {ProjectRoot}", directoryRelativePath, _rootDirectory.AbsolutePath);
+            throw new Exception($"Couldn't match root of {directoryRelativePath} to {_rootDirectory.AbsolutePath}");
         }
         return current;
     }
@@ -186,20 +162,17 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
     
     private void OnDeleted(FileSystemEventArgs e)
     {
-        _logger.LogDebug("Created file {File}", e.FullPath);
-        var directory = FindMatchingDirectory(_rootDirectory,
-            Path.GetDirectoryName(e.Name).ValueOrThrow());
-        ObservableCollection<ProjectItem> target = directory is null ? _items : directory.Items;
+        var target = FindMatchingDirectory(Path.GetDirectoryName(e.Name).ValueOrThrow());
 
         var fileName = Path.GetFileName(e.Name);
-        var item = target.SingleOrDefault(i => string.Equals(i.Name, fileName, OsDependent.FileStringComparison)); 
+        var item = target.Items.SingleOrDefault(i => string.Equals(i.Name, fileName, OsDependent.FileStringComparison)); 
         if (item is null)
         {
             _logger.LogError("Couldn't find {Item} to delete", e.FullPath);
             return;
         }
 
-        target.Remove(item);
+        target.Items.Remove(item);
     }
 
     private void OnFileDeleted(object sender, FileSystemEventArgs e)
@@ -210,12 +183,10 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
     private void OnRenamed(RenamedEventArgs e)
     {
         _logger.LogDebug("Renamed file {OldName} to {NewName}", e.OldName, e.Name);
-        var directory = FindMatchingDirectory(_rootDirectory,
-            Path.GetDirectoryName(e.OldName).ValueOrThrow());
-        ObservableCollection<ProjectItem> target = directory is null ? _items : directory.Items;
+        var target = FindMatchingDirectory(Path.GetDirectoryName(e.OldName).ValueOrThrow());
 
         var oldFileName = Path.GetFileName(e.OldName);
-        var item = target.SingleOrDefault(i => string.Equals(i.Name, oldFileName, OsDependent.FileStringComparison)); 
+        var item = target.Items.SingleOrDefault(i => string.Equals(i.Name, oldFileName, OsDependent.FileStringComparison)); 
         if (item is null)
         {
             _logger.LogError("Couldn't find {Item} to rename", e.FullPath);

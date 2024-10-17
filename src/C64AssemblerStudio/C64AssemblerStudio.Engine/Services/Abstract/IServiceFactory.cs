@@ -8,5 +8,5 @@ namespace C64AssemblerStudio.Engine.Services.Abstract;
 /// </summary>
 public interface IServiceFactory
 {
-    IProjectFileWatcher CreateProjectFileWatcher(string rootDirectory, ObservableCollection<ProjectItem> items);
+    IProjectFileWatcher CreateProjectFileWatcher(ProjectRootDirectory rootDirectory);
 }

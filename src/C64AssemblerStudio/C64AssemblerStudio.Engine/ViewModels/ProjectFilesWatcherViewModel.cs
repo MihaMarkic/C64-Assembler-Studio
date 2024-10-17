@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Implementation;
@@ -19,8 +17,9 @@ public class ProjectFilesWatcherViewModel: ViewModel
     public bool IsRefreshing { get; private set; }
     public bool IsProjectChanging { get; private set; }
     public bool IsProjectOpen { get; private set; }
-    public ObservableCollection<ProjectItem> Items { get; } = new();
-    public ProjectLibraries Libraries { get; }
+    public ObservableCollection<ProjectItem> Items => Root?.Items ?? [];
+    public ProjectLibraries? Libraries { get; private set; }
+    public ProjectRoot? Root { get; private set; }
 
     public ProjectFilesWatcherViewModel(ILogger<ProjectFilesWatcherViewModel> logger, IServiceFactory serviceFactory,
         Globals globals)
@@ -29,8 +28,6 @@ public class ProjectFilesWatcherViewModel: ViewModel
         _serviceFactory = serviceFactory;
         _globals = globals;
         _globals.PropertyChanged += GlobalsOnPropertyChanged;
-        Libraries = new ProjectLibraries { Parent = null, Name = "Libraries" }; 
-        Items.Add(Libraries);
         _ = RefreshAsync();
     }
     private async void GlobalsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -93,21 +90,30 @@ public class ProjectFilesWatcherViewModel: ViewModel
 
                 var project = _globals.Project;
                 var directory = Path.GetDirectoryName(project.Path).ValueOrThrow();
+                // virtual hidden root
+                Root = new ProjectRoot
+                {
+                    AbsoluteRootPath = Path.GetFullPath(Path.GetDirectoryName(project.Path)!).ValueOrThrow(),
+                    Name = "Hidden root",
+                    Parent = null,
+                };
+                Libraries = new ProjectLibraries { Parent = null, Name = "Libraries" }; 
+                Root.Items.Add(Libraries);
                 var tasks = new List<Task>(project.Libraries.Length + 1);
-                var projectRefreshTask = RefreshProjectStructureAsync(directory, parent: null, Items, ct);
+                var projectRefreshTask = RefreshProjectStructureAsync(Root, ct);
                 tasks.Add(projectRefreshTask);
                 for (int i = 0; i < project.Libraries.Length; i++)
                 {
                     var libraryPath = project.Libraries[i];
-                    string absoluteLibraryPath = Path.Combine(directory, libraryPath);
+                    string absoluteLibraryPath = Path.GetFullPath(Path.Combine(directory, libraryPath));
                     var library = new ProjectLibrary
                     {
                         Name = Path.GetFileNameWithoutExtension(libraryPath),
                         Parent = null,
-                        AbsolutePath = absoluteLibraryPath,
+                        AbsoluteRootPath = absoluteLibraryPath,
                     };
                     Libraries.Items.Add(library);
-                    tasks.Add(RefreshProjectStructureAsync(absoluteLibraryPath, library, Libraries.Items[i].Items, ct));
+                    tasks.Add(RefreshProjectStructureAsync(library, ct));
                 }
 
                 await Task.WhenAll(tasks);
@@ -119,16 +125,16 @@ public class ProjectFilesWatcherViewModel: ViewModel
         }
     }
 
-    private async Task RefreshProjectStructureAsync(string directory, ProjectDirectory? parent, ObservableCollection<ProjectItem> items, CancellationToken ct)
+    private async Task RefreshProjectStructureAsync(ProjectRootDirectory rootDirectory, CancellationToken ct)
     {
         try
         {
-            if (Directory.Exists(directory))
+            if (Directory.Exists(rootDirectory.AbsolutePath))
             {
                 var newItems = await Task.Run(() =>
                 {
                     var internalItems = new List<ProjectItem>();
-                    foreach (var i in CollectDirectoriesAndFiles(parent, directory))
+                    foreach (var i in CollectDirectoriesAndFiles(rootDirectory, rootDirectory.AbsolutePath))
                     {
                         if (ct.IsCancellationRequested)
                         {
@@ -143,12 +149,12 @@ public class ProjectFilesWatcherViewModel: ViewModel
                 ct.ThrowIfCancellationRequested();
                 foreach (var i in newItems)
                 {
-                    items.Add(i);
+                    rootDirectory.Items.Add(i);
                 }
             }
             else
             {
-                _logger.LogError("Project directory {Directory} does not exist", directory);
+                _logger.LogError("Project directory {Directory} does not exist", rootDirectory.AbsolutePath);
             }
         }
         catch (Exception ex)
@@ -159,14 +165,14 @@ public class ProjectFilesWatcherViewModel: ViewModel
     
     void Start(string rootDirectory, ImmutableArray<string> libraries)
     {
-        var fileWatcher = _serviceFactory.CreateProjectFileWatcher(rootDirectory, Items);
+        var fileWatcher = _serviceFactory.CreateProjectFileWatcher(Root.ValueOrThrow());
         _projectFileWatchers.Add(fileWatcher);
         for (int i = 0; i < libraries.Length; i++)
         {
             var libraryPath = libraries[i];
             var library = Libraries.Items[i];
             var absoluteLibraryDirectory = Path.Combine(rootDirectory, libraryPath);
-            var libraryFileWatcher =  _serviceFactory.CreateProjectFileWatcher(absoluteLibraryDirectory, library.Items);
+            var libraryFileWatcher =  _serviceFactory.CreateProjectFileWatcher(library);
             _projectFileWatchers.Add(libraryFileWatcher);
         }
     }
@@ -179,7 +185,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
         }
         _projectFileWatchers.Clear();
     }
-    IEnumerable<ProjectItem> CollectDirectoriesAndFiles(ProjectDirectory? parent, string path)
+    IEnumerable<ProjectItem> CollectDirectoriesAndFiles(ProjectDirectory parent, string path)
     {
         foreach (var d in Directory.GetDirectories(path))
         {
@@ -203,7 +209,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
     {
         if (!IsDisposed && disposing)
         {
-            // Disengage();
+            _globals.PropertyChanged -= GlobalsOnPropertyChanged;
         }
         base.Dispose(disposing);
     }

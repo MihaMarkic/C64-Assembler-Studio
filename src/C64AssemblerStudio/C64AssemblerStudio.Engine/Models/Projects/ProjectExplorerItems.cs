@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
-using C64AssemblerStudio.Engine.ViewModels;
 
 namespace C64AssemblerStudio.Engine.Models.Projects;
 
@@ -9,39 +8,55 @@ public abstract class ProjectItem: NotifiableObject
 {
     public required ProjectDirectory? Parent { get; init; }
     public required string Name { get; set; }
-    public string GetRelativeDirectory()
+    public string RelativeDirectory
     {
-        var sb = new StringBuilder();
+        get
+        {
+            var sb = new StringBuilder();
+            foreach (var p in GetParents(includeRoot: false))
+            {
+                sb.Insert(0, $"{p.Name}{Path.DirectorySeparatorChar}");
+            }
+
+            return sb.ToString();
+        }
+    }
+    
+    /// <summary>
+    /// Returns absolute path for directory below this one.
+    /// </summary>
+    /// <returns></returns>
+    public virtual string AbsoluteDirectory
+    {
+        get
+        {
+            var relative = RelativeDirectory;
+            var root = Root.ValueOrThrow();
+            return Path.Combine(root.AbsoluteRootPath, relative);
+        }
+    }
+    /// <summary>
+    /// Returns full path.
+    /// </summary>
+    /// <returns></returns>
+    public virtual string AbsolutePath => Path.Combine(AbsoluteDirectory, Name);
+
+    public ProjectRootDirectory? Root => (ProjectRootDirectory?)GetParents(includeRoot: true).LastOrDefault();
+
+    public IEnumerable<ProjectDirectory> GetParents(bool includeRoot)
+    {
         ProjectDirectory? current = Parent;
         while (current is not null)
         {
-            // ProjectLibrary shouldn't be included in relative path, since it has absolute path
-            // also it sits on top of chain, hence we exit here
-            if (current is ProjectLibrary)
+            if (!includeRoot && current.Parent is null)
             {
                 break;
             }
-            sb.Insert(0, $"{current.Name}{Path.DirectorySeparatorChar}");
+            yield return current;
             current = current.Parent;
         }
-
-        return sb.ToString();
     }
-    /// <summary>
-    /// Returns top parent which has to be of supertype <see cref="ProjectDirectory"/>.
-    /// </summary>
-    /// <returns></returns>
-    public ProjectDirectory? GetRootDirectory()
-    {
-        ProjectItem? current = this;
-        while (current.Parent is not null)
-        {
-            current = current.Parent;
-        }
-
-        // root has to be a ProjectDirectory instance 
-        return current as ProjectLibrary;
-    }
+    
     /// <summary>
     /// Compares full path to <param name="other"></param>
     /// </summary>
@@ -54,8 +69,8 @@ public abstract class ProjectItem: NotifiableObject
             return false;
         }
 
-        string thisDirectory = GetRelativeDirectory();
-        string otherDirectory = other.GetRelativeDirectory();
+        string thisDirectory = RelativeDirectory;
+        string otherDirectory = other.RelativeDirectory;
         if (!thisDirectory.Equals(otherDirectory, OsDependent.FileStringComparison))
         {
             return false;
@@ -80,7 +95,7 @@ public class ProjectDirectory : ProjectItem
 public class ProjectFile : ProjectItem
 {
     public required FileType FileType { get; set; }
-    public string GetRelativeFilePath() => Path.Combine(GetRelativeDirectory(), Name);
+    public string GetRelativeFilePath() => Path.Combine(RelativeDirectory, Name);
     public bool CanOpen => FileType == FileType.Assembler;
 }
 
@@ -89,7 +104,14 @@ public class ProjectLibraries : ProjectItem
     public ObservableCollection<ProjectLibrary> Items { get; } = [];
 }
 
-public class ProjectLibrary : ProjectDirectory
+public abstract class ProjectRootDirectory : ProjectDirectory
 {
-    public required string AbsolutePath { get; init; }
+    public required string AbsoluteRootPath { get; init; }
+    public override string AbsolutePath => AbsoluteRootPath;
+    public override string AbsoluteDirectory => AbsoluteRootPath;
 }
+
+public class ProjectLibrary : ProjectRootDirectory
+{ }
+public class ProjectRoot: ProjectRootDirectory
+{ }

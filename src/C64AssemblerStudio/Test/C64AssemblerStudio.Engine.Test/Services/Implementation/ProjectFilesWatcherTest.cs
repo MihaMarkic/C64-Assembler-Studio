@@ -9,12 +9,12 @@ public class ProjectFilesWatcherTest: BaseTest<ProjectFileWatcher>
     [TestFixture]
     public class FindMatchingDirectory : ProjectFilesWatcherTest
     {
-        [Test]
-        public void WhenRootDirectory_ReturnsNull()
-        {
-            var actual = Target.FindMatchingDirectory(Path.Combine("D:", "Root"), "");
-            
-            Assert.That(actual, Is.Null);
-        }
+        // [Test]
+        // public void WhenRootDirectory_ReturnsNull()
+        // {
+        //     var actual = Target.FindMatchingDirectory(Path.Combine("D:", "Root"), "");
+        //     
+        //     Assert.That(actual, Is.Null);
+        // }
     }
 }

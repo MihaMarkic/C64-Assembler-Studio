@@ -14,9 +14,9 @@ public class ServiceFactory : IServiceFactory
         _serviceProvider = serviceProvider;
     }
 
-    public IProjectFileWatcher CreateProjectFileWatcher(string rootDirectory, ObservableCollection<ProjectItem> items)
+    public IProjectFileWatcher CreateProjectFileWatcher(ProjectRootDirectory rootDirectory)
     {
         var logger = _serviceProvider.GetRequiredService<ILogger<ProjectFileWatcher>>();
-        return new ProjectFileWatcher(rootDirectory, items, logger);
+        return new ProjectFileWatcher(rootDirectory, logger);
     }
 }

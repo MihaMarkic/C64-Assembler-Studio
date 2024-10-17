@@ -39,7 +39,7 @@ public abstract class ProjectFileViewModel : FileViewModel
     {
         using (BusyIndicator.Increase())
         {
-            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.GetRelativeDirectory(),
+            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.RelativeDirectory,
                 File.Name);
             try
             {
@@ -78,7 +78,7 @@ public abstract class ProjectFileViewModel : FileViewModel
     {
         using (BusyIndicator.Increase())
         {
-            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.GetRelativeDirectory(),
+            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.RelativeDirectory,
                 File.Name);
             try
             {

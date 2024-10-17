@@ -43,7 +43,7 @@
                             <ContextMenu>
                                 <MenuItem Header="Add">
                                     <MenuItem Header="File"
-                                              Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddFileCommand}"
+                                              Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddRootLibraryFileCommand}"
                                               CommandParameter="{Binding}" />
                                     <MenuItem Header="Directory"
                                               Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddDirectoryCommand}"

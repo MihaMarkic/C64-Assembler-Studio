@@ -1,6 +1,7 @@
 ﻿using System.Collections.Frozen;
 using System.Text.Json.Serialization;
 using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Core.Extensions;
 
 namespace C64AssemblerStudio.Engine.Models.Projects;
 
@@ -37,5 +38,5 @@ public abstract class Project: NotifiableObject
     /// Returns <see cref="LibDir"/> as <see cref="ImmutableArray{String}"/>.
     /// </summary>
     public ImmutableArray<string> LibDirArray =>
-        [..LibDir.Split(';').Select(d => d.Trim()).Where(d => !string.IsNullOrWhiteSpace(d))];
+        [..LibDir.Split(';').Select(d => d.ConvertsDirectorySeparators().Trim()).Where(d => !string.IsNullOrWhiteSpace(d))];
 }
