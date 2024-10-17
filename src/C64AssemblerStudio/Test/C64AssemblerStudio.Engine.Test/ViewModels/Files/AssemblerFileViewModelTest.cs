@@ -11,9 +11,9 @@ namespace C64AssemblerStudio.Engine.Test.ViewModels.Files;
 
 public class AssemblerFileViewModelTest: BaseTest<AssemblerFileViewModel>
 {
-    [TestFixture]
-    public class ParseText : AssemblerFileViewModelTest
-    {
+    // [TestFixture]
+    // public class ParseText : AssemblerFileViewModelTest
+    // {
         // [Test]
         // public void WhenEmptyContent_ReturnsEmpty()
         // {
@@ -22,11 +22,11 @@ public class AssemblerFileViewModelTest: BaseTest<AssemblerFileViewModel>
         //     Assert.That(actual.Lines, Is.Empty);
         //     Assert.That(actual.Tokens, Is.Empty);
         // }
-    }
-
-    [TestFixture]
-    public class IterateTokens : AssemblerFileViewModelTest
-    {
+    // }
+    //
+    // [TestFixture]
+    // public class IterateTokens : AssemblerFileViewModelTest
+    // {
         // [Test]
         // public void WhenInstructionExtensionIsUsed_DetectsProperly()
         // {
@@ -41,5 +41,5 @@ public class AssemblerFileViewModelTest: BaseTest<AssemblerFileViewModel>
         //     
         //     Assert.That(actual.Single()!.Count, Is.EqualTo(3));
         // }
-    }
+    // }
 }

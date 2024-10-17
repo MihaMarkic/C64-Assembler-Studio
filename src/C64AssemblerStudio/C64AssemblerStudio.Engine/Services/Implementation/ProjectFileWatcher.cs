@@ -108,7 +108,7 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
     private void OnCreated(FileSystemEventArgs e, Func<ProjectDirectory?, ProjectItem> creation)
     {
         _logger.LogDebug("Created file {File}", e.FullPath);
-        var target = FindMatchingDirectory(Path.GetDirectoryName(e.Name).ValueOrThrow());
+        var target = FindMatchingDirectory(_rootDirectory, Path.GetDirectoryName(e.Name).ValueOrThrow(), _logger);
 
         if (target.Items.Any(i => string.Equals(i.Name, e.Name, OsDependent.FileStringComparison)))
         {
@@ -129,16 +129,16 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
         });
     }
 
-    internal ProjectDirectory FindMatchingDirectory(string directoryRelativePath)
+    internal static ProjectDirectory FindMatchingDirectory(ProjectRootDirectory rootDirectory, string directoryRelativePath, ILogger logger)
     {
         var parts = directoryRelativePath.Split(Path.DirectorySeparatorChar);
         ProjectDirectory? current = null;
         if (parts.Length == 1 && string.IsNullOrWhiteSpace(parts[0]))
         {
-            return _rootDirectory;
+            return rootDirectory;
         }
 
-        current = _rootDirectory.Items.OfType<ProjectDirectory>().SingleOrDefault(d => string.Equals(d.Name, parts[0], OsDependent.FileStringComparison));
+        current = rootDirectory.Items.OfType<ProjectDirectory>().SingleOrDefault(d => string.Equals(d.Name, parts[0], OsDependent.FileStringComparison));
         if (current is not null)
         {
             foreach (string part in parts.Skip(1))
@@ -153,8 +153,8 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
 
         if (current is null)
         {
-            _logger.LogError("Couldn't match root of {AddedFile} to {ProjectRoot}", directoryRelativePath, _rootDirectory.AbsolutePath);
-            throw new Exception($"Couldn't match root of {directoryRelativePath} to {_rootDirectory.AbsolutePath}");
+            logger.LogError("Couldn't match root of {AddedFile} to {ProjectRoot}", directoryRelativePath, rootDirectory.AbsolutePath);
+            throw new Exception($"Couldn't match root of {directoryRelativePath} to {rootDirectory.AbsolutePath}");
         }
         return current;
     }
@@ -162,7 +162,7 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
     
     private void OnDeleted(FileSystemEventArgs e)
     {
-        var target = FindMatchingDirectory(Path.GetDirectoryName(e.Name).ValueOrThrow());
+        var target = FindMatchingDirectory(_rootDirectory, Path.GetDirectoryName(e.Name).ValueOrThrow(), _logger);
 
         var fileName = Path.GetFileName(e.Name);
         var item = target.Items.SingleOrDefault(i => string.Equals(i.Name, fileName, OsDependent.FileStringComparison)); 
@@ -183,7 +183,7 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
     private void OnRenamed(RenamedEventArgs e)
     {
         _logger.LogDebug("Renamed file {OldName} to {NewName}", e.OldName, e.Name);
-        var target = FindMatchingDirectory(Path.GetDirectoryName(e.OldName).ValueOrThrow());
+        var target = FindMatchingDirectory(_rootDirectory, Path.GetDirectoryName(e.OldName).ValueOrThrow(), _logger);
 
         var oldFileName = Path.GetFileName(e.OldName);
         var item = target.Items.SingleOrDefault(i => string.Equals(i.Name, oldFileName, OsDependent.FileStringComparison)); 
