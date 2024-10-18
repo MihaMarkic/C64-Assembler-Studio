@@ -6,7 +6,7 @@ using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Projects;
 
-public interface IProjectViewModel: IDisposable
+public interface IProjectViewModel: IDisposable, IAsyncDisposable
 {
     RelayCommandAsync CloseCommand { get; }
     string? Path { get; set; }

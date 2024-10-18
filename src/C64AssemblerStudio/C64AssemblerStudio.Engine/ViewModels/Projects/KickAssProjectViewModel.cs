@@ -45,29 +45,19 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject, KickAsse
             throw new Exception("Configuration should be loaded at this point");
         }
         var newDirectory =
-            await SystemDialogs.OpenDirectoryAsync(new OpenDirectory(Configuration.LibDir, "Select LibDir"));
+            await SystemDialogs.OpenDirectoryAsync(new OpenDirectory(Configuration.LibDirs, "Select LibDir"));
         var path = newDirectory.SingleOrDefault();
         if (path is not null)
         {
-            if (!string.IsNullOrWhiteSpace(Configuration.LibDir))
+            if (!string.IsNullOrWhiteSpace(Configuration.LibDirs))
             {
-                Configuration.LibDir += $";{path}";
+                Configuration.LibDirs += $";{path}";
             }
             else
             {
-                Configuration.LibDir = path;
+                Configuration.LibDirs = path;
             }
         }
-    }
-
-    protected override async Task ClosingAsync(CancellationToken ct = default)
-    {
-        if (string.IsNullOrWhiteSpace(Configuration.ValueOrThrow().LibDir))
-        {
-            // when empty string, store rather null to clear save file of that property
-            Configuration!.LibDir = string.Empty;
-        }
-        await base.ClosingAsync(ct);
     }
 
     public override async Task LoadDebugDataAsync(CancellationToken ct = default)

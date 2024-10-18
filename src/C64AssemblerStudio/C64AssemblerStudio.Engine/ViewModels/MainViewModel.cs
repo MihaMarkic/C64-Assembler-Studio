@@ -323,7 +323,7 @@ public class MainViewModel : ViewModel
             string kickAssPath =
                 Path.Combine(_hostEnvironment.ContentRootPath!, "KickAssembler", "KickAss.jar");
 #endif
-            var settings = new KickAssemblerCompilerSettings(null, project.Configuration.ValueOrThrow().LibDir.AsSplitStringArray());
+            var settings = new KickAssemblerCompilerSettings(null, project.Configuration.ValueOrThrow().LibDirs.AsSplitStringArray());
             string directory = Project.Directory.ValueOrThrow();
             string file = "main.asm";
             await saveAllTask;
@@ -627,7 +627,7 @@ public class MainViewModel : ViewModel
 
     private bool _shouldDisposeOverlay;
 
-    internal void SwitchOverlayContent<T>(T overlayContent)
+    private void SwitchOverlayContent<T>(T overlayContent)
         where T : ViewModel
     {
         DisposeOverlay();
@@ -635,7 +635,7 @@ public class MainViewModel : ViewModel
         _shouldDisposeOverlay = false;
     }
 
-    internal void SwitchOverlayContent<T>()
+    private void SwitchOverlayContent<T>()
         where T : ScopedViewModel
     {
         DisposeOverlay();
