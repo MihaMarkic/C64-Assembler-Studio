@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,6 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
     protected readonly ILogger<ProjectViewModel<TConfiguration, TParsedFileType>> Logger;
     private readonly ISettingsManager _settingsManager;
     protected readonly ISystemDialogs SystemDialogs;
-    public event EventHandler? ProjectChanged;
     public TConfiguration? Configuration { get; private set; }
     Project? IProjectViewModel.Configuration => Configuration;
     public AssemblerAppInfo? AppInfo { get; protected set; }
@@ -46,7 +46,8 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
         LibDirs = configuration.LibDirs;
         Caption = configuration.Caption;
     }
-    private void OnProjectChanged(EventArgs e) => ProjectChanged?.Invoke(this, e);
+
+    private void OnProjectChanged() => Dispatcher.Dispatch(new ProjectChangedMessage());
     public abstract Task LoadDebugDataAsync(CancellationToken ct = default);
 
     protected override async Task ClosingAsync(CancellationToken ct = default)
@@ -76,7 +77,7 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
         if (hasChanges)
         {
             await _settingsManager.SaveAsync<Project>(Configuration.ValueOrThrow(), Path.ValueOrThrow(), false, ct);
-            OnProjectChanged(EventArgs.Empty);
+            OnProjectChanged();
         }
 
         await base.ClosingAsync(ct).ConfigureAwait(false);

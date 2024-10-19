@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
+using Righthand.MessageBus;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -21,13 +23,15 @@ public class ProjectFilesWatcherViewModel: ViewModel
     public ProjectLibraries? Libraries { get; private set; }
     public ProjectRoot? Root { get; private set; }
 
+    ISubscription _projectChangedSubscription;
     public ProjectFilesWatcherViewModel(ILogger<ProjectFilesWatcherViewModel> logger, IServiceFactory serviceFactory,
-        Globals globals)
+        Globals globals, IDispatcher dispatcher)
     {
         _logger = logger;
         _serviceFactory = serviceFactory;
         _globals = globals;
         _globals.PropertyChanged += GlobalsOnPropertyChanged;
+        _projectChangedSubscription = dispatcher.Subscribe<ProjectChangedMessage>(ProjectChanged);
         _ = RefreshAsync();
     }
     private async void GlobalsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -38,6 +42,11 @@ public class ProjectFilesWatcherViewModel: ViewModel
                 _ = ProjectChanged(_globals.Project);
                 break;
         }
+    }
+
+    private async Task ProjectChanged(ProjectChangedMessage message, CancellationToken ct)
+    {
+        
     }
 
     private CancellationTokenSource? _projectChangingCts;

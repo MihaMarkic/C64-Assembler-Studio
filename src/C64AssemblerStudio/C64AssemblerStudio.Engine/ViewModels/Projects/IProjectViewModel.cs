@@ -10,12 +10,12 @@ public interface IProjectViewModel: IDisposable, IAsyncDisposable
 {
     RelayCommandAsync CloseCommand { get; }
     string? Path { get; set; }
+    string Caption { get; set; }
     string? Directory { get; }
     Project? Configuration { get; }
     string? FullPrgPath { get; }
     public string? BreakpointsSettingsPath { get; }
     ImmutableArray<string> Libraries { get; }
-    event PropertyChangedEventHandler? PropertyChanged;
     Task LoadDebugDataAsync(CancellationToken ct = default);
 }
 
