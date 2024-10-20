@@ -2,5 +2,4 @@
 
 public interface IProjectFileWatcher : IDisposable, IAsyncDisposable
 {
-    
 }
