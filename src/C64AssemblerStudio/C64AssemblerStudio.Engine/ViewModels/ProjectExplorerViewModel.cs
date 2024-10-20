@@ -86,7 +86,7 @@ public class ProjectExplorerViewModel : ViewModel
 
     private void OpenInExplorer(ProjectItem item)
     {
-        string path = item.AbsolutePath;
+        string path = item is ProjectDirectory ? item.AbsolutePath: item.AbsoluteDirectory;
 
         Process.Start(OsDependent.FileAppOpenName, path.ConvertsDirectorySeparators());
     }

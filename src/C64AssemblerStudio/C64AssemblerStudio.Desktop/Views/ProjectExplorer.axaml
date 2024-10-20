@@ -38,7 +38,7 @@
                     </TextBlock>
                 </TreeDataTemplate>
                 <TreeDataTemplate DataType="mp:ProjectLibrary" ItemsSource="{Binding Items}">
-                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Stretch" Background="Transparent">
+                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Stretch" Background="Transparent" ToolTip.Tip="{Binding AbsolutePath}">
                         <TextBlock.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Add">
