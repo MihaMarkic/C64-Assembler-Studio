@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Frozen;
+using System.ComponentModel;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Common;
@@ -7,6 +8,7 @@ using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Files;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
+using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -27,7 +30,7 @@ public class MainViewModel : ViewModel
     private readonly CommandsManager _commandsManager;
     private readonly TaskFactory _uiFactory;
     private readonly IHostEnvironment _hostEnvironment;
-
+    private readonly IParserManager _parserManager;
     public IVice Vice { get; }
 
     // subscriptions
@@ -95,7 +98,7 @@ public class MainViewModel : ViewModel
         CompilerErrorsOutputViewModel compilerErrors, BreakpointsViewModel breakpoints,
         MemoryViewerViewModel memoryViewer,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment,
-        CallStackViewModel callStack)
+        CallStackViewModel callStack, IParserManager parserManager)
     {
         _logger = logger;
         _globals = globals;
@@ -104,6 +107,7 @@ public class MainViewModel : ViewModel
         Vice = vice;
         _hostEnvironment = hostEnvironment;
         _settingsManager = settingsManager;
+        _parserManager = parserManager;
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _closeOverlaySubscription = dispatcher.Subscribe<CloseOverlayMessage>(CloseOverlay);
         _showModalDialogMessageSubscription = dispatcher.Subscribe<ShowModalDialogMessageCore>(OnShowModalDialog);
@@ -208,7 +212,12 @@ public class MainViewModel : ViewModel
         if (IsDebuggingStarting)
         {
             DebugOutput.AddLine("Stopping");
-            await _debuggingCts.CancelNullableAsync();
+            if (_debuggingCts is not null)
+            {
+                await _debuggingCts.CancelAsync();
+                _debuggingCts.Dispose();
+                _debuggingCts = null;
+            }
         }
 
         DebugOutput.AddLine("Stopping");
@@ -320,7 +329,7 @@ public class MainViewModel : ViewModel
             string kickAssPath =
                 Path.Combine(_hostEnvironment.ContentRootPath!, "KickAssembler", "KickAss.jar");
 #endif
-            var settings = new KickAssemblerCompilerSettings(null, project.Configuration.ValueOrThrow().LibDir.AsSplitStringArray());
+            var settings = new KickAssemblerCompilerSettings(null, [.._globals.Settings.Libraries.Values.Select(l => l.Path)]);
             string directory = Project.Directory.ValueOrThrow();
             string file = "main.asm";
             await saveAllTask;
@@ -330,7 +339,7 @@ public class MainViewModel : ViewModel
             {
                 StatusInfo.BuildingStatus = BuildStatus.Failure;
                 var fileErrors = errors.Select(e =>
-                        new FileCompilerError(ProjectExplorer.GetProjectFileFromFullPath(e.Path), e))
+                        new FileCompilerError(ProjectExplorer.GetProjectFileFromFullPath(e.Path), e.Error))
                     .ToImmutableArray();
                 if (!fileErrors.IsEmpty)
                 {
@@ -367,7 +376,7 @@ public class MainViewModel : ViewModel
             string? projectPath = await ShowCreateProjectFileDialogAsync(model, CancellationToken.None);
             if (!string.IsNullOrWhiteSpace(projectPath))
             {
-                bool success = await CreateProject(projectPath);
+                bool success = await CreateProject(projectPath, CancellationToken.None);
                 if (success)
                 {
                     _globals.Settings.AddRecentProject(projectPath);
@@ -376,7 +385,7 @@ public class MainViewModel : ViewModel
         }
     }
 
-    internal async Task<bool> CreateProject(string projectPath)
+    internal async Task<bool> CreateProject(string projectPath, CancellationToken ct)
     {
         try
         {
@@ -397,27 +406,28 @@ public class MainViewModel : ViewModel
             if (!File.Exists(mainAsmFile))
             {
                 var assembly = this.GetType().Assembly;
-                using (Stream s = assembly.GetManifestResourceStream(
-                           "C64AssemblerStudio.Engine.Resources.main.template")!)
-                using (var output = File.OpenWrite(mainAsmFile))
+                await using (var s = assembly.GetManifestResourceStream(
+                                 "C64AssemblerStudio.Engine.Resources.main.template")!)
+                await using (var output = File.OpenWrite(mainAsmFile))
                 {
-                    await s.CopyToAsync(output);
+                    await s.CopyToAsync(output, ct);
                 }
             }
 
-            _globals.SetProject(project);
+            await _globals.SetProjectAsync(project, ct);
+            _ = _parserManager.RunInitialParseAsync(CancellationToken.None);
             ShowProjectSettings();
             return true;
         }
         catch (Exception ex)
         {
-            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, "Failed creating project", ex.Message));
+            await _dispatcher.DispatchAsync(new ErrorMessage(ErrorMessageLevel.Error, "Failed creating project", ex.Message), ct: ct);
         }
 
         return false;
     }
 
-    internal void ShowProjectSettings()
+    private void ShowProjectSettings()
     {
         if (!IsShowingProject)
         {
@@ -425,7 +435,7 @@ public class MainViewModel : ViewModel
         }
     }
 
-    public async void OpenProject()
+    private async void OpenProject()
     {
         if (ShowOpenProjectFileDialogAsync is not null)
         {
@@ -441,7 +451,7 @@ public class MainViewModel : ViewModel
         }
     }
 
-    internal async void OpenProjectFromPath(string? path)
+    private async void OpenProjectFromPath(string? path)
     {
         // runs async because it manipulates most recent list
         await Task.Delay(1);
@@ -451,7 +461,7 @@ public class MainViewModel : ViewModel
         }
     }
 
-    internal async Task<bool> OpenProjectFromPathInternalAsync(string? path, CancellationToken ct = default)
+    private async Task<bool> OpenProjectFromPathInternalAsync(string? path, CancellationToken ct = default)
     {
         const string errorTitle = "Failed opening project";
         if (path is null)
@@ -480,7 +490,8 @@ public class MainViewModel : ViewModel
             {
                 var projectViewModel = _scope.ServiceProvider.CreateScopedContent<KickAssProjectViewModel>();
                 projectViewModel.Init(kickAssConfiguration, path);
-                _globals.SetProject(projectViewModel);
+                await _globals.SetProjectAsync(projectViewModel, ct);
+                _ = _parserManager.RunInitialParseAsync(CancellationToken.None);
             }
             else
             {
@@ -501,7 +512,7 @@ public class MainViewModel : ViewModel
         return false;
     }
 
-    internal async Task<bool> CloseProjectAsync()
+    private async Task<bool> CloseProjectAsync()
     {
         if (await CanCloseProject())
         {
@@ -620,7 +631,7 @@ public class MainViewModel : ViewModel
 
     private bool _shouldDisposeOverlay;
 
-    internal void SwitchOverlayContent<T>(T overlayContent)
+    private void SwitchOverlayContent<T>(T overlayContent)
         where T : ViewModel
     {
         DisposeOverlay();
@@ -628,7 +639,7 @@ public class MainViewModel : ViewModel
         _shouldDisposeOverlay = false;
     }
 
-    internal void SwitchOverlayContent<T>()
+    private void SwitchOverlayContent<T>()
         where T : ScopedViewModel
     {
         DisposeOverlay();

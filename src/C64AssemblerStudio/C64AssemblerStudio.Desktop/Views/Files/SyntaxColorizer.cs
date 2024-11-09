@@ -1,7 +1,11 @@
 ﻿using Avalonia.Media;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
+using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.ViewModels.Files;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Righthand.RetroDbgDataProvider.Models.Parsing;
 
 namespace C64AssemblerStudio.Desktop.Views.Files;
 
@@ -11,12 +15,15 @@ public class SyntaxColorizer : DocumentColorizingTransformer
     private readonly AssemblerFileViewModel _file;
     private ImmutableHashSet<int> _callStackLineNumbers;
     private static readonly TextDecorationCollection Squiggle;
+    private static readonly ILogger<SyntaxColorizer> _logger;
 
     static SyntaxColorizer()
     {
         Squiggle = TextDecorations.Underline;
-        Squiggle.Add(new TextDecoration { StrokeThickness = 4, Stroke = Brushes.Red});
+        Squiggle.Add(new TextDecoration { StrokeThickness = 4, Stroke = Brushes.Red });
+        _logger = IoC.Host.Services.GetRequiredService<ILogger<SyntaxColorizer>>();
     }
+
     public SyntaxColorizer(AssemblerFileViewModel file)
     {
         _file = file;
@@ -31,69 +38,36 @@ public class SyntaxColorizer : DocumentColorizingTransformer
 
     protected override void ColorizeLine(DocumentLine line)
     {
-        if (!line.IsDeleted && !_file.Lines.IsEmpty &&  line.LineNumber <= _file.Lines.Length)
+        if (!line.IsDeleted)
         {
-            var lineSyntax = _file.Lines[line.LineNumber-1];
-            if (lineSyntax?.Items.IsEmpty == false)
+            try
             {
-                foreach (var syntax in lineSyntax.Items)
+                ColorizeIgnoredContent(line);
+                ColorizeSyntax(line);
+                //ColorizeErrors(line);
+
+                bool isBackgroundAssigned = false;
+
+                // execution line
+                if (ExecutionLine.HasValue && ExecutionLine.Value.Start <= line.LineNumber - 1 &&
+                    ExecutionLine.Value.End >= line.LineNumber - 1)
                 {
-                    Action<VisualLineElement>? apply = syntax.TokenType switch
-                    {
-                        AssemblerFileViewModel.TokenType.String => ApplyStringChanges,
-                        AssemblerFileViewModel.TokenType.Instruction => ApplyInstructionChanges,
-                        AssemblerFileViewModel.TokenType.InstructionExtension => ApplyInstructionExtensionChanges,
-                        AssemblerFileViewModel.TokenType.Comment => ApplyCommentChanges,
-                        AssemblerFileViewModel.TokenType.Number => ApplyNumberChanges,
-                        AssemblerFileViewModel.TokenType.Directive => ApplyDirectiveChanges,
-                        // SyntaxElementType.Comment => ApplyCommentChanges,
-                        _ => null,
-                    };
-                    if (apply is not null)
-                    {
-                        int startOffset = Math.Min(line.EndOffset, Math.Max(line.Offset, syntax.Start));
-                        int endOffset = Math.Min(syntax.End + 1, line.EndOffset);
-                        ChangeLinePart(startOffset, endOffset, apply);
-                    }
+                    ChangeLinePart(line.Offset, line.EndOffset, ApplyExecutionLineChanges);
+                    isBackgroundAssigned = true;
                 }
-            }
-
-            if (_file.Errors.TryGetValue(line.LineNumber, out var errors))
-            {
-                foreach (var e in errors)
+                // call stack 
+                else if (_callStackLineNumbers.Contains(line.LineNumber))
                 {
-                    int start = line.Offset + e.Start;
-                    int end = line.Offset + e.End;
-                    // in case of errors, user can alter file (delete a char where error pointed) and error is still pointing to original length
-                    if (end <= line.EndOffset)
-                    {
-                        ChangeLinePart(start, end, ApplySyntaxErrorChanges);
-                    }
+                    ChangeLinePart(line.Offset, line.EndOffset, ApplyCallStackChanges);
+                    isBackgroundAssigned = true;
                 }
-            }
 
-            bool isBackgroundAssigned = false;
-
-            // execution line
-            if (ExecutionLine.HasValue && ExecutionLine.Value.Start <= line.LineNumber - 1 &&
-                ExecutionLine.Value.End >= line.LineNumber - 1)
-            {
-                ChangeLinePart(line.Offset, line.EndOffset, ApplyExecutionLineChanges);
-                isBackgroundAssigned = true;
-            }
-            // call stack 
-            else if (_callStackLineNumbers.Contains(line.LineNumber))
-            {
-                ChangeLinePart(line.Offset, line.EndOffset, ApplyCallStackChanges);
-                isBackgroundAssigned = true;
-            }
-
-            if (!isBackgroundAssigned)
-            {
-                // switch (sourceLine)
-                // {
-                // case LineViewModel lineViewModel:
-                //     if (lineViewModel.HasBreakpoint)
+                if (!isBackgroundAssigned)
+                {
+                    // switch (sourceLine)
+                    // {
+                    // case LineViewModel lineViewModel:
+                    //     if (lineViewModel.HasBreakpoint)
                     //     {
                     //         ChangeLinePart(line.Offset, line.EndOffset, ApplyBreakpointLineChanges);
                     //     }
@@ -106,11 +80,76 @@ public class SyntaxColorizer : DocumentColorizingTransformer
                     //         }
                     //     }
                     //
-                        // break;
-                //     default:
-                //         ChangeLinePart(line.Offset, line.EndOffset, ApplyAssemblyChanges);
-                //         break;
-                // }
+                    // break;
+                    //     default:
+                    //         ChangeLinePart(line.Offset, line.EndOffset, ApplyAssemblyChanges);
+                    //         break;
+                    // }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed colorizing syntax line {LineNumber}", line.LineNumber);
+            }
+        }
+    }
+
+    private void ColorizeErrors(DocumentLine line)
+    {
+        // if (_file.Errors.TryGetValue(line.LineNumber, out var errors))
+        // {
+        //     foreach (var e in errors)
+        //     {
+        //         int start = line.Offset + e.Range.Start!.Value;
+        //         int end = line.Offset + e.Range.End!.Value;
+        //         // in case of errors, user can alter file (delete a char where error pointed) and error is still pointing to original length
+        //         if (end <= line.EndOffset)
+        //         {
+        //             ChangeLinePart(start, end, ApplySyntaxErrorChanges);
+        //         }
+        //     }
+        // }
+    }
+
+    private void ColorizeSyntax(DocumentLine line)
+    {
+        if (_file.Lines.TryGetValue(line.LineNumber - 1, out var lineSyntax) &&
+            !lineSyntax.Items.IsEmpty)
+        {
+            foreach (var syntax in lineSyntax.Items)
+            {
+                Action<VisualLineElement>? apply = syntax.TokenType switch
+                {
+                    TokenType.String => ApplyStringChanges,
+                    TokenType.Instruction => ApplyInstructionChanges,
+                    TokenType.InstructionExtension => ApplyInstructionExtensionChanges,
+                    TokenType.Comment => ApplyCommentChanges,
+                    TokenType.Number => ApplyNumberChanges,
+                    TokenType.Directive => ApplyDirectiveChanges,
+                    // SyntaxElementType.Comment => ApplyCommentChanges,
+                    _ => null,
+                };
+                if (apply is not null)
+                {
+                    int startOffset = Math.Min(line.EndOffset, Math.Max(line.Offset, syntax.Start));
+                    int endOffset = Math.Min(syntax.End + 1, line.EndOffset);
+                    ChangeLinePart(startOffset, endOffset, apply);
+                }
+            }
+        }
+    }
+
+    private void ColorizeIgnoredContent(DocumentLine line)
+    {
+        if (_file.IgnoredContent.TryGetValue(line.LineNumber, out var ignoredRange))
+        {
+            foreach (var ignored in ignoredRange)
+            {
+                int startOffset = line.Offset + (ignored.Start ?? 0);
+                startOffset = Math.Min(line.EndOffset, Math.Max(line.Offset, startOffset));
+                int endOffset =  ignored.End is null ? line.EndOffset: line.Offset + ignored.End.Value;
+                endOffset = Math.Min(endOffset + 1, line.EndOffset);
+                ChangeLinePart(startOffset, endOffset, ApplyIgnoredChanges);
             }
         }
     }
@@ -139,6 +178,9 @@ public class SyntaxColorizer : DocumentColorizingTransformer
     void ApplyCallStackChanges(VisualLineElement element) =>
         element.TextRunProperties.SetBackgroundBrush(ElementColor.CallStackCall);
 
+    void ApplyIgnoredChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetForegroundBrush(ElementColor.Ignored);
+    
     void ApplySyntaxErrorChanges(VisualLineElement element)
     {
         element.TextRunProperties.SetTextDecorations(Squiggle);
@@ -151,6 +193,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
         element.TextRunProperties.SetForegroundBrush(Brushes.Black);
         element.TextRunProperties.SetBackgroundBrush(Brushes.Yellow);
     }
+
     void ApplyBreakpointLineChanges(VisualLineElement element)
     {
         // This is where you do anything with the line
@@ -170,5 +213,6 @@ public class SyntaxColorizer : DocumentColorizingTransformer
         public static readonly IBrush Directive = Brushes.PaleVioletRed;
         public static readonly IBrush BreakpointBackground = new SolidColorBrush(new Color(0xFF, 0x96, 0x3A, 0x46));
         public static readonly IBrush CallStackCall = new SolidColorBrush(new Color(0x50, 0xB4, 0xE4, 0xB4));
+        public static readonly IBrush Ignored = Brushes.LightGray;
     }
 }

@@ -9,8 +9,13 @@ using Avalonia.LogicalTree;
 using Avalonia.Media;
 using AvaloniaEdit;
 using AvaloniaEdit.Utils;
+using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Desktop.Controls.SyntaxEditor;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.ViewModels.Files;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Righthand.RetroDbgDataProvider;
 using TextMateSharp.Grammars;
 
 namespace C64AssemblerStudio.Desktop.Views.Files;
@@ -22,9 +27,15 @@ public partial class AssemblerFile : UserControl
     // private ISolidColorBrush? _lineNumberForeground;
     private AssemblerFileViewModel? _oldViewModel;
     private BreakpointsMargin? _breakpointsMargin;
+    private readonly MarkerRenderer _markerRenderer;
+    private readonly ILogger<AssemblerFile> _logger;
 
-    public AssemblerFile()
+    public AssemblerFile(): this(IoC.Host.Services.GetRequiredService<ILogger<AssemblerFile>>())
     {
+    }
+    public AssemblerFile(ILogger<AssemblerFile> logger)
+    {
+        _logger = logger;
         InitializeComponent();
         var leftMargins = Editor.TextArea.LeftMargins;
         // _lineNumbers = new LineNumbers(Editor.FontFamily, Editor.FontSize)
@@ -35,6 +46,8 @@ public partial class AssemblerFile : UserControl
         // leftMargins.Add(_lineNumbers);
         Editor.TextChanged += EditorOnTextChanged;
         Editor.TextArea.Caret.PositionChanged += CaretOnPositionChanged;
+        _markerRenderer = new();
+        Editor.TextArea.TextView.BackgroundRenderers.Add(_markerRenderer);
     }
 
     private void CaretOnPositionChanged(object? sender, EventArgs e)
@@ -44,10 +57,10 @@ public partial class AssemblerFile : UserControl
 
     private void UpdateCurrentLine()
     {
-        var currentLine = Editor.Document.GetLineByOffset(Editor.CaretOffset).LineNumber;
         if (ViewModel is not null)
         {
-            ViewModel.CaretRow = currentLine - 1;
+            ViewModel.CaretLine = Editor.TextArea.Caret.Line;
+            ViewModel.CaretColumn = Editor.TextArea.Caret.Column;
         }
     }
 
@@ -57,6 +70,7 @@ public partial class AssemblerFile : UserControl
         {
             _oldViewModel.PropertyChanged -= FileViewModelOnPropertyChanged;
             _oldViewModel.MoveCaretRequest -= FileViewModelOnMoveCaretRequest;
+            _oldViewModel.SyntaxColoringUpdated += FileViewModelOnSyntaxColoringUpdated;
         }
     }
 
@@ -72,6 +86,7 @@ public partial class AssemblerFile : UserControl
             Editor.TextArea.TextView.LineTransformers.Add(_syntaxColorizer);
             fileViewModel.PropertyChanged += FileViewModelOnPropertyChanged;
             fileViewModel.MoveCaretRequest += FileViewModelOnMoveCaretRequest;
+            fileViewModel.SyntaxColoringUpdated += FileViewModelOnSyntaxColoringUpdated;
             Editor.Text = fileViewModel.Content;
             _breakpointsMargin = new BreakpointsMargin(fileViewModel);
             Editor.TextArea.LeftMargins.Add(_breakpointsMargin);
@@ -95,6 +110,42 @@ public partial class AssemblerFile : UserControl
         }
 
         base.OnDataContextChanged(e);
+    }
+
+    private void FileViewModelOnSyntaxColoringUpdated(object? sender, EventArgs e)
+    {
+        Debug.WriteLine("Redrawing lines");
+        _markerRenderer.Markers.Clear();
+        var viewModel = ViewModel;
+        if (viewModel is null)
+        {
+            _logger.LogError($"{nameof(FileViewModelOnSyntaxColoringUpdated)} invoked without a ViewModel");
+        }
+        else
+        {
+            var flatErrors = viewModel.Errors.SelectMany(l => l.Value.Items);
+            _markerRenderer.Markers.AddRange(
+                flatErrors
+                    .Where(i => i.Range.IsClosed)
+                    .Select(e => new ZigzagMarker
+                    {
+                        StartOffset = e.Offset ?? FindOffset(e.Line, e.Range.Start), 
+                        Length = e.Range.IsClosed ? e.Range.Length: FindLength(e.Line),
+                    })
+                );
+        }
+        Editor.TextArea.TextView.Redraw();
+    }
+
+    int FindOffset(int line, int? column)
+    {
+        var documentLine = Editor.Document.Lines[line];
+        return documentLine.Offset + (column ?? 0);
+    }
+    int FindLength(int line)
+    {
+        var documentLine = Editor.Document.Lines[line];
+        return documentLine.Length;
     }
 
     private async void FileViewModelOnMoveCaretRequest(object? sender, MoveCaretEventArgs e)
@@ -121,9 +172,6 @@ public partial class AssemblerFile : UserControl
                     Editor.Text = ViewModel.ValueOrThrow().Content;
                 }
 
-                break;
-            case nameof(AssemblerFileViewModel.Lines):
-                Editor.TextArea.TextView.Redraw();
                 break;
             case nameof(AssemblerFileViewModel.Errors):
                 Editor.TextArea.TextView.Redraw();

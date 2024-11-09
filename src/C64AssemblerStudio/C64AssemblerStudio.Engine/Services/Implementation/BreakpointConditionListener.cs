@@ -4,6 +4,7 @@ using Antlr4.Runtime.Tree;
 using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
 using Righthand.RetroDbgDataProvider.Models.Program;
 using Righthand.ViceMonitor.Bridge.Responses;

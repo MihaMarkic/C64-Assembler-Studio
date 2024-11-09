@@ -1,19 +1,15 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.LogicalTree;
 using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Editing;
-using AvaloniaEdit.Utils;
 using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 
-namespace C64AssemblerStudio.Desktop.Controls;
+namespace C64AssemblerStudio.Desktop.Controls.SyntaxEditor;
 
 public partial class SyntaxEditor : UserControl
 {
@@ -42,6 +38,7 @@ public partial class SyntaxEditor : UserControl
     private ImmutableArray<SyntaxEditorError>? _errors;
     private readonly SyntaxEditorColorizer _colorizer;
     private CompletionWindow? _completionWindow;
+    private MarkerRenderer _markerRenderer;
 
     public SyntaxEditor()
     {
@@ -50,6 +47,8 @@ public partial class SyntaxEditor : UserControl
         Editor.TextArea.TextView.LineTransformers.Add(_colorizer);
         Editor.TextArea.TextEntered += TextAreaOnTextEntered;
         Editor.TextArea.TextEntering += TextAreaOnTextEntering;
+        _markerRenderer = new();
+        Editor.TextArea.TextView.BackgroundRenderers.Add(_markerRenderer);
     }
 
     private void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)

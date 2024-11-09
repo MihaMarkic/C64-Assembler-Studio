@@ -84,7 +84,7 @@ public partial class AssemblerLines : UserControl
                             new SourceFile(new SourceFilePath("relative/main.asm", true),
                                 FrozenDictionary<string, Label>.Empty,
                                 ImmutableArray<BlockItem>.Empty),
-                            new TextRange(new TextCursor(1, 5), new TextCursor(4, 5))),
+                            new MultiLineTextRange(new TextCursor(1, 5), new TextCursor(4, 5))),
                         belongsToFile: true))
                 .Add(new ByteDumpLineViewModel(
                     new ByteDumpLine(
@@ -93,7 +93,7 @@ public partial class AssemblerLines : UserControl
                         new SourceFile(new SourceFilePath("other.asm", true),
                             FrozenDictionary<string, Label>.Empty,
                             ImmutableArray<BlockItem>.Empty),
-                        new TextRange(new TextCursor(2, 1), new TextCursor(2, 8))),
+                        new MultiLineTextRange(new TextCursor(2, 1), new TextCursor(2, 8))),
                     belongsToFile: false))
                 .Add(new ByteDumpLineViewModel(
                     new ByteDumpLine(
@@ -102,7 +102,7 @@ public partial class AssemblerLines : UserControl
                         new SourceFile(new SourceFilePath("relative/main.asm", true),
                             FrozenDictionary<string, Label>.Empty,
                             ImmutableArray<BlockItem>.Empty),
-                        new TextRange(new TextCursor(2, 1), new TextCursor(2, 8))),
+                        new MultiLineTextRange(new TextCursor(2, 1), new TextCursor(2, 8))),
                     belongsToFile: true)
                 {
                     IsExecutive = true,
@@ -114,7 +114,7 @@ public partial class AssemblerLines : UserControl
                         new SourceFile(new SourceFilePath("relative/main.asm", true),
                             FrozenDictionary<string, Label>.Empty,
                             ImmutableArray<BlockItem>.Empty),
-                        new TextRange(new TextCursor(2, 1), new TextCursor(2, 8))),
+                        new MultiLineTextRange(new TextCursor(2, 1), new TextCursor(2, 8))),
                     belongsToFile: true)
                 {
                     IsHighlighted = true,

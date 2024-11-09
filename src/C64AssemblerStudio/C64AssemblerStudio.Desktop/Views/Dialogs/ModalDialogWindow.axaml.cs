@@ -10,7 +10,7 @@ public partial class ModalDialogWindow : Window
     public ModalDialogWindow()
     {
         InitializeComponent();
-#if DEBUG
+#if !RELEASE
         this.AttachDevTools();
 #endif
     }

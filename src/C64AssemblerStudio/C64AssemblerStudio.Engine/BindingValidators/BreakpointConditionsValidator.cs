@@ -17,7 +17,13 @@ public class BreakpointConditionsValidator: BindingValidator
     public override void Update(string? text)
     {
         base.Update(text);
-        _updateStatusCts?.Cancel();
+        if (_updateStatusCts is not null)
+        {
+            _updateStatusCts.Dispose();
+            _updateStatusCts.Cancel();
+            _updateStatusCts = null;
+        }
+
         _updateStatusCts = new();
         _ = UpdateStatusAsync(text, _updateStatusCts.Token);
     }

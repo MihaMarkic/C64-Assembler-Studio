@@ -14,7 +14,7 @@ public abstract class ProjectFileViewModel : FileViewModel
     public ProjectFile File { get; }
     protected Globals Globals { get; }
     public BusyIndicator BusyIndicator { get; } = new();
-    public string Content { get; set; }
+    public string Content { get; set; } = string.Empty;
     public bool IsReadOnly => string.IsNullOrEmpty(Content);
     /// <summary>
     /// When set defines execution line in paused state
@@ -22,7 +22,7 @@ public abstract class ProjectFileViewModel : FileViewModel
     public (int Start, int End)? ExecutionLineRange { get; set; }
     public ushort? ExecutionAddress { get; set; }
     public event EventHandler<MoveCaretEventArgs>? MoveCaretRequest;
-
+    protected bool IsContentLoaded { get; private set; }
     protected ProjectFileViewModel(ILogger<ProjectFileViewModel> logger, IFileService fileService,
         IDispatcher dispatcher, StatusInfoViewModel statusInfo, Globals globals, ProjectFile file) :
         base(logger, fileService, dispatcher, statusInfo)
@@ -30,7 +30,6 @@ public abstract class ProjectFileViewModel : FileViewModel
         File = file;
         Globals = globals;
         Caption = file.Name;
-        Content = "";
     }
     [SuppressPropertyChangedWarnings]
     void OnMoveCaret(MoveCaretEventArgs e) => MoveCaretRequest?.Invoke(this, e);
@@ -39,12 +38,13 @@ public abstract class ProjectFileViewModel : FileViewModel
     {
         using (BusyIndicator.Increase())
         {
-            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.GetRelativeDirectory(),
+            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.RelativeDirectory,
                 File.Name);
             try
             {
                 Content = await FileService.ReadAllTextAsync(path, ct);
                 HasChanges = false;
+                IsContentLoaded = true;
             }
             catch (Exception ex)
             {
@@ -63,6 +63,7 @@ public abstract class ProjectFileViewModel : FileViewModel
         switch (name)
         {
             case nameof(Content):
+                LastChangeTime = DateTimeOffset.Now;
                 HasChanges = true;
                 StatusInfo.BuildingStatus = BuildStatus.Idle;
                 break;
@@ -78,7 +79,7 @@ public abstract class ProjectFileViewModel : FileViewModel
     {
         using (BusyIndicator.Increase())
         {
-            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.GetRelativeDirectory(),
+            string path = Path.Combine(Globals.Project.Directory.ValueOrThrow(), File.RelativeDirectory,
                 File.Name);
             try
             {

@@ -8,18 +8,17 @@ public abstract class OverlayContentViewModel : ScopedViewModel
 {
     protected readonly IDispatcher Dispatcher;
     public bool IsMaximumSize { get; set; } = true;
-    public RelayCommand CloseCommand { get; }
+    public RelayCommandAsync CloseCommand { get; }
     protected OverlayContentViewModel(IDispatcher dispatcher)
     {
         Dispatcher = dispatcher;
-        CloseCommand = new(() =>
+        CloseCommand = new(async () =>
         {
-            Closing();
+            await ClosingAsync();
             dispatcher.Dispatch(new CloseOverlayMessage());
         }, 
         CanClose);
     }
     protected virtual bool CanClose() => true;
-    protected virtual void Closing()
-    { }
+    protected virtual Task ClosingAsync(CancellationToken ct = default) =>Task.CompletedTask;
 }

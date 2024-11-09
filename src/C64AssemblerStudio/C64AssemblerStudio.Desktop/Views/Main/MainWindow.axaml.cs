@@ -7,7 +7,6 @@ using Avalonia.Platform.Storage;
 using C64AssemblerStudio.Desktop.Views.Dialogs;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
-using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels;
 
 namespace C64AssemblerStudio.Desktop.Views.Main;
@@ -18,7 +17,7 @@ partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-#if DEBUG
+#if !RELEASE
         this.AttachDevTools();
 #endif
     }

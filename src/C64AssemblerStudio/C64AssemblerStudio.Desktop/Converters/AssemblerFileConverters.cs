@@ -12,7 +12,7 @@ public static class AssemblerFileConverters
         new FuncValueConverter<bool, int>(x => x ? 1 : 3);
 
     public static readonly IValueConverter FileLocationToString =
-        new FuncValueConverter<TextRange, string?>(tr => (tr?.Start.Row+1)?.ToString());
+        new FuncValueConverter<MultiLineTextRange, string?>(tr => (tr?.Start.Row+1)?.ToString());
 
     public static readonly IValueConverter LabelsToString =
         new FuncValueConverter<IList<string>, string?>(l => l is not null ? string.Join(",", l) : null);

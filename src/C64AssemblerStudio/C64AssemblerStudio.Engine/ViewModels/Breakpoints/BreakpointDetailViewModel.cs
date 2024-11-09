@@ -9,6 +9,7 @@ using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Dialogs;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;

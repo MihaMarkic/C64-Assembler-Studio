@@ -2,15 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
-             xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
              xmlns:s="clr-namespace:C64AssemblerStudio.Desktop.Views.Settings"
+             xmlns:project="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Projects;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:IProjectViewModel"
+             x:DataType="project:IProjectViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Settings.ProjectSettings">
     <DockPanel LastChildFill="True">
         <DockPanel.DataTemplates>
-            <DataTemplate DataType="vm:KickAssProjectViewModel">
+            <DataTemplate DataType="project:KickAssProjectViewModel">
                 <s:KickAssProjectSettings />
             </DataTemplate>
         </DockPanel.DataTemplates>
@@ -20,7 +19,11 @@
         <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,4,*" RowDefinitions="Auto, Auto">
             <TextBlock Grid.ColumnSpan="3" Classes="h1" Text="{Binding Path, StringFormat={} Project {0}}" />
             <TextBlock Classes="label" Grid.Column="0" Grid.Row="1">Caption</TextBlock>
-            <TextBox Grid.Column="2" Grid.Row="1" Text="{Binding Configuration.Caption}" />
+            <TextBox Grid.Column="2" Grid.Row="1" Text="{Binding Caption}" />
+        </Grid>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,4,*" RowDefinitions="Auto, Auto" Margin="0,8">
+            <TextBlock Classes="label" Grid.Column="0" Grid.Row="1">Conditional compilation symbols</TextBlock>
+            <TextBox Grid.Column="2" Grid.Row="1" Text="{Binding SymbolsDefine}" />
         </Grid>
         <ContentControl Content="{Binding}" />
     </DockPanel>

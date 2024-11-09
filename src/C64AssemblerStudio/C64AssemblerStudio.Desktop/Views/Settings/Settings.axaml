@@ -5,6 +5,7 @@
              xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
              xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
              xmlns:conf="clr-namespace:C64AssemblerStudio.Engine.Models.Configuration;assembly=C64AssemblerStudio.Engine"
+             xmlns:settings="clr-namespace:C64AssemblerStudio.Desktop.Views.Settings"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:SettingsViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Settings.Settings">
@@ -12,11 +13,11 @@
     <c:BoolToStringConverter x:Key="ViceDirectoryLocationConverter" OnTrue="Valid directory (in bin subdirectory)" OnFalse="Valid directory" />
   </UserControl.Resources>
   <DockPanel LastChildFill="True">
-    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
+    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="0,4">
       <Button Command="{Binding VerifyValuesCommand}">Verify values</Button>
       <Button Command="{Binding CloseCommand}">Close</Button>
     </StackPanel>
-    <StackPanel Orientation="Vertical">
+    <StackPanel Orientation="Vertical" DockPanel.Dock="Top">
       <TextBlock Classes="h1">Settings</TextBlock>
       <TextBlock Classes="verticalLabel">VICE directory</TextBlock>
       <DockPanel LastChildFill="True">
@@ -32,6 +33,8 @@
       <TextBlock Classes="verticalLabel">VICE IP address</TextBlock>
       <TextBox Text="{Binding ViceAddress}" Margin="0,0,4,0" Watermark="{x:Static conf:Settings.DefaultViceAddress}" />
       <TextBlock Classes="info">Supported format is IP:PORT (note: connecting to remote computer is not supported at this time and is IP is ignored)</TextBlock>
+      <TextBlock Classes="verticalLabel">Libraries</TextBlock>
     </StackPanel>
+    <settings:LibrariesEditor DataContext="{Binding LibrariesEditor}" />
   </DockPanel>
 </UserControl>

@@ -7,17 +7,17 @@ namespace C64AssemblerStudio.Desktop.Behaviors;
 
 public class PopulateEnumBehavior : ClassicBehavior<ComboBox>
 {
-    static readonly EnumDisplayTextMapper mapper;
+    static readonly EnumDisplayTextMapper _mapper;
     static PopulateEnumBehavior()
     {
-        mapper = IoC.Host.Services.GetRequiredService<EnumDisplayTextMapper>();
+        _mapper = IoC.Host.Services.GetRequiredService<EnumDisplayTextMapper>();
     }
     public Type? Type { get; set; }
     protected override void Attached()
     {
         if (Type is not null)
         {
-            var items = mapper.GetMapEnum(Type);
+            var items = _mapper.GetMapEnum(Type);
             AssociatedObject!.ItemsSource = items
                 .OrderBy(i => i.Key)
                 .Select(i => new ComboBoxKeyValueItem (i.Key, i.Value)).ToImmutableArray();

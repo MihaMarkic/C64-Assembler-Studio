@@ -6,11 +6,13 @@ using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
+using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -24,16 +26,24 @@ public class FilesViewModel : ViewModel
     private readonly IVice _vice;
     private readonly Globals _globals;
     private readonly ProjectExplorerViewModel _projectExplorer;
+    private readonly StatusInfoViewModel _statusInfo;
     public ObservableCollection<FileViewModel> Files { get; }
     public BusyIndicator BusyIndicator { get; } = new();
     public FileViewModel? Selected { get; set; }
     public RelayCommandWithParameterAsync<FileViewModel> CloseFileCommand { get; }
     public RelayCommandAsync SaveAllCommand { get; }
+    public int? FocusedFileCaretLine => Selected?.CaretLine; 
+    public int? FocusedFileCaretColumn => Selected?.CaretColumn;
+
     private DbgData? _debugData;
+    /// <summary>
+    /// Current selected. Used for tracking previous when <see cref="Selected"/> changes.
+    /// </summary>
+    private FileViewModel? _selected;
 
     public FilesViewModel(ILogger<FilesViewModel> logger, IDispatcher dispatcher, IServiceProvider serviceProvider,
         IServiceScopeFactory serviceScopeFactory,
-        IVice vice, Globals globals, ProjectExplorerViewModel projectExplorer)
+        IVice vice, Globals globals, ProjectExplorerViewModel projectExplorer, StatusInfoViewModel statusInfo)
     {
         _logger = logger;
         _dispatcher = dispatcher;
@@ -42,6 +52,7 @@ public class FilesViewModel : ViewModel
         _vice = vice;
         _globals = globals;
         _projectExplorer = projectExplorer;
+        _statusInfo = statusInfo;
         _openFileMessage = dispatcher.Subscribe<OpenFileMessage>(OpenFile);
         
         Files = new();
@@ -63,6 +74,45 @@ public class FilesViewModel : ViewModel
         else
         {
             _logger.LogDebug("Failed updating execution line based on null PC");
+        }
+    }
+
+    protected override void OnPropertyChanged(string name = default!)
+    {
+        switch (name)
+        {
+            case nameof(Selected):
+                if (_selected is not null)
+                {
+                    _selected.PropertyChanged -= SelectedOnPropertyChanged;
+                }
+                if (Selected is not null)
+                {
+                    Selected.PropertyChanged += SelectedOnPropertyChanged;
+                }
+
+                _selected = Selected;
+                break;
+            case nameof(FocusedFileCaretLine):
+                _statusInfo.EditorCaretLine = FocusedFileCaretLine;
+                break;
+            case nameof(FocusedFileCaretColumn):
+                _statusInfo.EditorCaretColumn = FocusedFileCaretColumn;
+                break;
+        }
+        base.OnPropertyChanged(name);
+    }
+
+    private void SelectedOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(FileViewModel.CaretLine):
+                OnPropertyChanged(nameof(FocusedFileCaretLine));
+                break;
+            case nameof(FileViewModel.CaretColumn):
+                OnPropertyChanged(nameof(FocusedFileCaretColumn));
+                break;
         }
     }
 
@@ -205,6 +255,14 @@ public class FilesViewModel : ViewModel
             var result = await dialog.Result;
             return result.Code;
         }
+    }
+
+    internal FrozenDictionary<string, InMemoryFileContent> CollectAllOpenContent()
+    {
+        var files = Files.OfType<AssemblerFileViewModel>().Where(f => f.HasChanges)
+            .ToFrozenDictionary(f => f.File.AbsolutePath,
+                f => new InMemoryFileContent(f.File.AbsolutePath, f.Content, f.LastChangeTime));
+        return files;
     }
 
     ProjectFileViewModel? FindOpenFile(ProjectFile file)

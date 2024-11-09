@@ -9,4 +9,4 @@ namespace C64AssemblerStudio.Engine.Models.Projects;
 /// <param name="AssemblyLine"></param>
 /// <param name="SourceFile"></param>
 /// <param name="FileLocation"></param>
-public record ByteDumpLine(AssemblyLine AssemblyLine, SourceFile SourceFile, TextRange FileLocation);
+public record ByteDumpLine(AssemblyLine AssemblyLine, SourceFile SourceFile, MultiLineTextRange FileLocation);

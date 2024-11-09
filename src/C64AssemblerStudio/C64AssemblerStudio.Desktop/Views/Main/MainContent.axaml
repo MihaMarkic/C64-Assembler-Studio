@@ -13,6 +13,7 @@
              xmlns:tools="clr-namespace:C64AssemblerStudio.Desktop.Views.Tools"
              xmlns:tvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
              xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
+             xmlns:project="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Projects;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
              x:Class="C64AssemblerStudio.Desktop.Views.Main.MainContent"
              x:DataType="vm:MainViewModel">
@@ -27,7 +28,7 @@
         <DataTemplate DataType="vm:AboutViewModel">
             <v:About />
         </DataTemplate>
-        <DataTemplate DataType="vm:IProjectViewModel">
+        <DataTemplate DataType="project:IProjectViewModel">
             <vs:ProjectSettings />
         </DataTemplate>
         <!--<DataTemplate DataType="vm:DebuggerViewModel">
@@ -120,7 +121,6 @@
                     <v:ProjectExplorer DataContext="{Binding ProjectExplorer}" />
                 </ctl:DockTool>
                 <ctl:DockSizer Width="5" Margin="2,0" DockPanel.Dock="Left" Orientation="Vertical" />
-                <!-- <v:SourceFilesViewer DataContext="{Binding #Source.DataContext.DebuggerViewModel.SourceFileViewerViewModel}"/> -->
                 <Grid>
                     <fv:FilesViewer DataContext="{Binding Files}" IsVisible="{Binding #Source.((vm:MainViewModel)DataContext).IsProjectOpen}" />
                     <mv:StartPage DataContext="{Binding StartPage}" IsVisible="{Binding !#Source.((vm:MainViewModel)DataContext).IsProjectOpen}"  />

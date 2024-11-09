@@ -26,7 +26,7 @@ public class ViceMemoryViewModel: ViewModel, IViceMemory
         this._logger = logger;
         this._dispatcher = dispatcher;
     }
-    void OnMemoryContentChanged(EventArgs e) => MemoryContentChanged?.Invoke(this, e);
+    void RaiseMemoryContentChanged(EventArgs e) => MemoryContentChanged?.Invoke(this, e);
     public void GetSnapshot(MemoryGetResponse response)
     {
         using (var buffer = response?.Memory ?? throw new Exception("Failed to retrieve base VICE memory"))
@@ -35,7 +35,7 @@ public class ViceMemoryViewModel: ViewModel, IViceMemory
             Buffer.BlockCopy(buffer.Data, 0, _currentSnapshot, 0, _currentSnapshot.Length);
             OnPropertyChanged(nameof(Current));
             OnPropertyChanged(nameof(Previous));
-            OnMemoryContentChanged(EventArgs.Empty);
+            RaiseMemoryContentChanged(EventArgs.Empty);
         }
     }
 
@@ -44,7 +44,7 @@ public class ViceMemoryViewModel: ViewModel, IViceMemory
         var target = _currentSnapshot.AsSpan().Slice(start, memory.Length);
         memory.CopyTo(target);
         OnPropertyChanged(nameof(Current));
-        OnMemoryContentChanged(EventArgs.Empty);
+        RaiseMemoryContentChanged(EventArgs.Empty);
     }
 
     public ushort GetShortAt(ushort address)

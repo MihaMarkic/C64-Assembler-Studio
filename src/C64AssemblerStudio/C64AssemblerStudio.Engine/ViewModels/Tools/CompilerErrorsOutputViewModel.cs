@@ -2,7 +2,9 @@
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider;
 using Righthand.RetroDbgDataProvider.Models;
+using Righthand.RetroDbgDataProvider.Models.Parsing;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Tools;
 
@@ -26,10 +28,30 @@ public class CompilerErrorsOutputViewModel : OutputViewModel<FileCompilerError>
         //var file = _projectExplorer.GetProjectFileFromFullPath(line.Path);
         if (line.File is not null)
         {
-            var message = new OpenFileMessage(line.File, line.Error.Column, line.Error.Line, MoveCaret: true);
+            var message = new OpenFileMessage(line.File, line.Error.Range.Start ?? 0, line.Error.Line, MoveCaret: true);
             _dispatcher.Dispatch(message);
+        }
+    }
+
+    public void AddParserErrorsForFile(string path, IEnumerable<FileCompilerError> errors)
+    {
+           ClearErrorsForFile(path);
+           AddLines(errors);
+    }
+
+    private void ClearErrorsForFile(string path)
+    {
+        for (int i = Lines.Count - 1; i >= 0; i--)
+        {
+            if (path.Equals(Lines[i].Path, OsDependent.FileStringComparison))
+            {
+                Lines.RemoveAt(i);
+            }
         }
     }
 }
 
-public record FileCompilerError(ProjectFile? File, CompilerError Error);
+public record FileCompilerError(ProjectFile? File, SyntaxError Error)
+{
+    public string? Path => File?.AbsolutePath;
+}

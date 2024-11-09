@@ -4,7 +4,7 @@ using AvaloniaEdit.Rendering;
 using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 using CommunityToolkit.Diagnostics;
 
-namespace C64AssemblerStudio.Desktop.Controls;
+namespace C64AssemblerStudio.Desktop.Controls.SyntaxEditor;
 
 public class SyntaxEditorColorizer: DocumentColorizingTransformer
 {

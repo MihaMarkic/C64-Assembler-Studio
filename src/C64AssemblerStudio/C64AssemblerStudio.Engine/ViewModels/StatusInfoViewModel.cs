@@ -10,9 +10,18 @@ public class StatusInfoViewModel : ViewModel
     private readonly IVice _vice;
     public BuildStatus BuildingStatus { get; set; } = BuildStatus.Idle;
     public DebuggingStatus DebuggingStatus { get; set; } = DebuggingStatus.Idle;
+    public int? EditorCaretLine { get; set; }
+    public int? EditorCaretColumn { get; set; }
     public bool IsViceConnected => _vice.IsConnected;
     public string RunCommandTitle => _vice.IsDebugging ? "Continue" : "Run";
 
+    /// <summary>
+    /// Only for design time support.
+    /// </summary>
+    protected StatusInfoViewModel()
+    {
+        _vice = default!;
+    }
     public StatusInfoViewModel(IVice vice)
     {
         _vice = vice;
@@ -53,24 +62,27 @@ public class StatusInfoViewModel : ViewModel
 
 public enum BuildStatus
 {
-    [Display(Description = "Building")] Building,
-    [Display(Description = "Idle")] Idle,
-
-    [Display(Description = "Build Success")]
+    Building,
+    Idle,
     Success,
-
-    [Display(Description = "Build Failure")]
     Failure
 }
 
 public enum DebuggingStatus
 {
-    [Display(Description = "Idle")]
     Idle,
-    [Display(Description = "Waiting For Connection")]
     WaitingForConnection,
-    [Display(Description = "Debugging")]
     Debugging,
-    [Display(Description = "Paused")]
     Paused
+}
+
+public class DesignStatusInfoViewModel : StatusInfoViewModel
+{
+    public DesignStatusInfoViewModel()
+    {
+        DebuggingStatus = DebuggingStatus.Debugging;
+        BuildingStatus = BuildStatus.Building;
+        EditorCaretLine = 3;
+        EditorCaretColumn = 15;
+    }
 }

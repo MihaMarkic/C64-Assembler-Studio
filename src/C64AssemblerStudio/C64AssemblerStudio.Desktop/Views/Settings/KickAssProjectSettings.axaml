@@ -2,18 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
-             xmlns:c="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:project="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Projects;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:KickAssProjectViewModel"
+             x:DataType="project:KickAssProjectViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Settings.KickAssProjectSettings">
     <StackPanel Orientation="Vertical">
         <TextBlock>KickAss specific settings</TextBlock>
-        <TextBlock Classes="verticalLabel">VICE directory</TextBlock>
-        <DockPanel LastChildFill="True">
-            <Button x:Name="Open" DockPanel.Dock="Right" Command="{Binding OpenLibDirCommand}">Add</Button>
-            <TextBox Text="{Binding Configuration.LibDir, FallbackValue=null}" Margin="0,0,4,0" />
-        </DockPanel>
-        <TextBlock Classes="info">None or more directories separated by ';' char</TextBlock>
     </StackPanel>
 </UserControl>

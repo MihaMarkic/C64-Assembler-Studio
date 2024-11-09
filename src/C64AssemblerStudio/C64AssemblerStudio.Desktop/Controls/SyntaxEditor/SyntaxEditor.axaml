@@ -5,7 +5,7 @@
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
              xmlns:behaviors="clr-namespace:C64AssemblerStudio.Desktop.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="C64AssemblerStudio.Desktop.Controls.SyntaxEditor">
+             x:Class="C64AssemblerStudio.Desktop.Controls.SyntaxEditor.SyntaxEditor">
     <avaloniaEdit:TextEditor x:Name="Editor" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Stretch"
       Foreground="Gray" FontFamily="{StaticResource CodeFont}" MinHeight="20" ShowLineNumbers="False" Margin="0,5"
       FontSize="14">

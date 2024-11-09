@@ -6,17 +6,27 @@
              xmlns:aee="clr-namespace:AvaloniaEdit.Editing;assembly=AvaloniaEdit"
              xmlns:vmf="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
              xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
-             xmlns:controls="clr-namespace:C64AssemblerStudio.Desktop.Controls"
              xmlns:files="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vmf:AssemblerFileViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Files.AssemblerFile">
     <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
         <Grid.KeyBindings>
-            <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}"></KeyBinding>
+            <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
         </Grid.KeyBindings>
-        <StackPanel Grid.ColumnSpan="3" Orientation="Horizontal" IsVisible="{Binding IsByteDumpToggleVisible}">
-            <CheckBox IsChecked="{Binding IsByteDumpVisible}">Assembly</CheckBox>
+        <StackPanel Grid.ColumnSpan="3" Orientation="Horizontal" IsVisible="{Binding IsHeaderVisible}">
+            <TextBlock Text="Symbols" VerticalAlignment="Center" Margin="4,0,0,0" />
+            <ComboBox Width="300" Margin="8,2"
+                      SelectedItem="{Binding SelectedDefineSymbols}"
+                      IsVisible="{Binding IsDefineSymbolsVisible}"
+                      ItemsSource="{Binding DefineSymbols}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Converter={x:Static converters:StudioConverters.DefineSymbolsToString}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <CheckBox IsChecked="{Binding IsByteDumpVisible}" IsVisible="{Binding IsByteDumpToggleVisible}">Show Assembly</CheckBox>
         </StackPanel>
         <ae:TextEditor Name="Editor"
                        Grid.Row="1" Grid.Column="0"

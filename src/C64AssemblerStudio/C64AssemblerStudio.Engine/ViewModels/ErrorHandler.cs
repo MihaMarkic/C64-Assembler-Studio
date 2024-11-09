@@ -32,7 +32,7 @@ public class ErrorHandler
         Validators = validators.ToFrozenDictionary();
         BindValidatorsErrors();
     }
-    public static ErrorHandler.Builder CreateBuilder() => new Builder();
+    public static ErrorHandler.Builder CreateBuilder() => new();
     private void BindValidatorsErrors()
     {
         // bind all validators

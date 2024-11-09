@@ -5,6 +5,7 @@ using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Dialogs;
 using C64AssemblerStudio.Engine.ViewModels.Files;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Righthand.MessageBus;
@@ -13,7 +14,6 @@ using Righthand.RetroDbgDataProvider.Models;
 using Righthand.ViceMonitor.Bridge;
 
 namespace C64AssemblerStudio.Engine;
-
 public static class IoCRegistrar
 {
     public static IServiceCollection AddEngine(this IServiceCollection services, bool messagesHistoryEnabled)
@@ -27,6 +27,8 @@ public static class IoCRegistrar
             .AddSingleton<IAddressEntryGrammarService, AddressEntryGrammarService>()
             .AddSingleton<IBreakpointConditionGrammarService, BreakpointConditionGrammarService>()
             .AddTransient<BreakpointConditionsListener>()
+            .AddSingleton<IServiceFactory, ServiceFactory>()
+            .AddSingleton<IParserManager, ParserManager>()
             // ViewModels
             .AddSingleton<MainViewModel>()
             .AddSingleton<StartPageViewModel>()
@@ -42,6 +44,7 @@ public static class IoCRegistrar
             .AddSingleton<CallStackViewModel>()
             .AddScoped<MemoryViewerViewModel>()
             .AddTransient<AboutViewModel>()
+            .AddTransient<LibrariesEditorViewModel>()
             // Tools
             .AddScoped<ErrorMessagesViewModel>()
             .AddScoped<BuildOutputViewModel>()

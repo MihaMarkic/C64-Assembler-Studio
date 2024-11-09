@@ -4,24 +4,31 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
              xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="18"
              x:DataType="viewModels:StatusInfoViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.StatusInfo">
+    <Design.DataContext>
+        <viewModels:DesignStatusInfoViewModel />
+    </Design.DataContext>
     <StackPanel Name="Content" Orientation="Horizontal">
         <TextBlock Classes="pc_value"
+                   TextAlignment="Center"
+                   MinWidth="40"
+                   ToolTip.Tip="Caret position in active document">
+            <TextBlock.Text>
+                <MultiBinding Converter="{x:Static converters:StudioConverters.LineAndColumnToString}">
+                    <Binding Path="EditorCaretLine" />
+                    <Binding Path="EditorCaretColumn" />
+                </MultiBinding>
+            </TextBlock.Text>
+        </TextBlock>
+        <TextBlock Classes="pc_value"
                    Text="{Binding BuildingStatus, Converter={x:Static converters:StudioConverters.BuildStatusToString}}"
-                   IsVisible="{Binding BuildingStatus, Converter={x:Static converters:StudioConverters.IsBuildStatusVisible}}" />
+                   IsVisible="{Binding BuildingStatus, Converter={x:Static converters:StudioConverters.IsBuildStatusVisible}}"
+                   Margin="4,0"/>
         <TextBlock Classes="pc_value"
                    Text="{Binding DebuggingStatus, Converter={x:Static converters:StudioConverters.DebuggingStatusToString}}"
-                   IsVisible="{Binding DebuggingStatus, Converter={x:Static converters:StudioConverters.IsDebuggingStatusVisible}}" />
-        <!-- <TextBlock Classes="pc_value" Text="{Binding StepMode, Converter={StaticResource StepModeToStringConverter}}" -->
-        <!--            MinWidth="34" TextAlignment="Center" ToolTip.Tip="Step Mode. Hold Shift to activate ASM mode."/> -->
-        <!-- <TextBlock Classes="pc_value">|</TextBlock> -->
-        <!-- ~1~<TextBlock Classes="pc_label" Text="PC:" Margin="0,0,2,0" />@1@ -->
-        <!-- <Grid MinWidth="50" ToolTip.Tip="Current execution address (PC)"> -->
-        <!--     <TextBlock Classes="pc_value" -->
-        <!--                Text="{Binding ExecutionAddress, Converter={StaticResource HexAddressConverter}}"  -->
-        <!--                IsVisible="{Binding EffectiveVisibility}" /> -->
-        <!-- </Grid> -->
+                   IsVisible="{Binding DebuggingStatus, Converter={x:Static converters:StudioConverters.IsDebuggingStatusVisible}}"
+                   Margin="4,0"/>
     </StackPanel>
 </UserControl>

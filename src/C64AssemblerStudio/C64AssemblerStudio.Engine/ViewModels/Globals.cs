@@ -1,40 +1,47 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Frozen;
+using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
+using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
+using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
-public class Globals: NotifiableObject
+public sealed class Globals: NotifiableObject
 {
     public const string AppName = "C64 Assembler Studio";
-    readonly ILogger<Globals> _logger;
-    readonly EmptyProjectViewModel _emptyProject;
-    readonly ISettingsManager _settingsManager;
+    private readonly ILogger<Globals> _logger;
+    private readonly EmptyProjectViewModel _emptyProject;
+    private readonly ISettingsManager _settingsManager;
+    public event EventHandler? ProjectChanged;
     /// <summary>
     /// Holds active project, when no project is defined it contains <see cref="EmptyProjectViewModel"/>.
     /// </summary>
     public IProjectViewModel Project { get; private set; }
-    public Settings Settings { get; set; } = new ();
+    public Settings Settings { get; private set; } = new ();
     public bool IsProjectOpen => Project is not EmptyProjectViewModel;
     public Globals(ILogger<Globals> logger, EmptyProjectViewModel emptyProject, ISettingsManager settingsManager)
     {
         _logger = logger;
-        this._emptyProject = emptyProject;
-        this._settingsManager = settingsManager;
+        _emptyProject = emptyProject;
+        _settingsManager = settingsManager;
         Project = emptyProject;
     }
 
-    public void SetProject(IProjectViewModel project)
+    private void RaiseProjectChanged(EventArgs e) => ProjectChanged?.Invoke(this, e);
+    public async Task SetProjectAsync(IProjectViewModel project, CancellationToken ct)
     {
         if (Project is not EmptyProjectViewModel)
         {
-            Project.Dispose();
+            await Project.DisposeAsync();
         }
+
         Project = project;
     }
+
     public async Task LoadAsync(CancellationToken ct)
     {
         Stopwatch sw = Stopwatch.StartNew();

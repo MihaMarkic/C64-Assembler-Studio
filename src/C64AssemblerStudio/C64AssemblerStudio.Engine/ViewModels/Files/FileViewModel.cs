@@ -14,7 +14,16 @@ public abstract class FileViewModel : ScopedViewModel
     protected IDispatcher Dispatcher { get; }
     public string? Caption { get; protected set; }
     public bool HasChanges { get; protected set; }
+    /// <summary>
+    /// Tracks last change time. If <see cref="HasChanges"/> is false, then this value doesn't have a meaning.
+    /// </summary>
+    public DateTimeOffset LastChangeTime { get; protected set; }
     public RelayCommandAsync SaveCommand { get; }
+    /// <summary>
+    /// 1 based Caret line position
+    /// </summary>
+    public int CaretLine { get; set; }
+    public int CaretColumn { get; set; }
     protected FileViewModel(ILogger<FileViewModel> logger, IFileService fileService, IDispatcher dispatcher,
         StatusInfoViewModel statusInfo)
     {
@@ -27,6 +36,21 @@ public abstract class FileViewModel : ScopedViewModel
     public async Task SaveContentAsync()
     {
         await SaveContentAsync(default);
+        HasChanges = false;
+    }
+
+    protected override void OnPropertyChanged(string name = default!)
+    {
+        switch (name)
+        {
+            case nameof(HasChanges):
+                if (HasChanges)
+                {
+                    LastChangeTime = DateTimeOffset.UtcNow;
+                }
+                break;
+        }
+        base.OnPropertyChanged(name);
     }
 
     protected virtual Task SaveContentAsync(CancellationToken ct)

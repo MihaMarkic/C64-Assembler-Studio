@@ -1,0 +1,33 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
+             xmlns:settings="clr-namespace:C64AssemblerStudio.Desktop.Views.Settings"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:ILibrariesEditorViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Settings.LibrariesEditor">
+    <Design.DataContext>
+        <settings:DesignLibrariesEditor />
+    </Design.DataContext>
+    <DockPanel LastChildFill="True">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
+            <TextBox Text="{Binding Name}" Watermark="Name" Width="200" />
+            <DockPanel LastChildFill="True">
+                <Button x:Name="Open" DockPanel.Dock="Right" Command="{Binding SelectDirectoryCommand}">...</Button>
+                <TextBox Text="{Binding Path}" Watermark="Path" Width="380" Margin="4,0" />
+            </DockPanel>
+            <Button Command="{Binding AddCommand}" Margin="4,0,0,0">Add</Button>
+            <Button Command="{Binding UpdateCommand}">Update</Button>
+            <Button Command="{Binding DeleteCommand}">Delete</Button>
+        </StackPanel>
+        <DataGrid Name="Grid" ItemsSource="{Binding Libraries}" AutoGenerateColumns="False"
+                  CanUserReorderColumns="False" CanUserSortColumns="True" CanUserResizeColumns="True"
+                  SelectedItem="{Binding Selected}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" />
+                <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="550" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

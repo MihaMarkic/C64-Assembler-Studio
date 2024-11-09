@@ -9,6 +9,7 @@
              xmlns:controls="clr-namespace:C64AssemblerStudio.Desktop.Controls"
              xmlns:sem="clr-namespace:C64AssemblerStudio.Engine.Models.SyntaxEditor;assembly=C64AssemblerStudio.Engine"
              xmlns:common="clr-namespace:C64AssemblerStudio.Desktop.Views.Common"
+             xmlns:syntaxEditor="clr-namespace:C64AssemblerStudio.Desktop.Controls.SyntaxEditor"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
              x:DataType="bvm:BreakpointDetailViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints.BreakpointDetails">
@@ -78,7 +79,7 @@
       </ContentControl.Resources>
       <ContentControl.DataTemplates>
         <DataTemplate DataType="models:BreakpointLineBind">
-          <bdlg:BreakpoinLineBind />
+          <bdlg:BreakpointLineBind />
         </DataTemplate>
         <DataTemplate DataType="models:BreakpointNoBind" />
       </ContentControl.DataTemplates>
@@ -88,29 +89,29 @@
   <Label Grid.Column="0" Grid.Row="6" VerticalAlignment="Top">Condition</Label>
   <common:Entry Grid.Column="1" Grid.Row="6" HorizontalAlignment="Stretch"
                 HasErrors="{Binding ConditionsErrors.Length}">
-    <controls:SyntaxEditor Name="ConditionsEditor"
+    <syntaxEditor:SyntaxEditor Name="ConditionsEditor"
                            Foreground="Gray" FontFamily="{StaticResource CodeFont}" MinHeight="20"
                            FontSize="14" Text="{Binding BreakpointConditions}"
                            Tokens="{Binding Tokens}"
                            Errors="{Binding ConditionsErrors}"
                            TextEntered="SyntaxEditor_OnTextEntered" KeyDown="ConditionsEditor_OnKeyDown">
-      <controls:SyntaxEditor.Formatters>
-        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Label}"
+      <syntaxEditor:SyntaxEditor.Formatters>
+        <syntaxEditor:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Label}"
                                         ForegroundColor="Blue" />
-        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Register}"
+        <syntaxEditor:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Register}"
                                         ForegroundColor="DarkRed" />
-        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Memspace}"
+        <syntaxEditor:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Memspace}"
                                         ForegroundColor="Green" />
-        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Bank}"
+        <syntaxEditor:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Bank}"
                                         ForegroundColor="LightSeaGreen" />
-        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Number}"
+        <syntaxEditor:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Number}"
                                         ForegroundColor="Black" />
-        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Parens}"
+        <syntaxEditor:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Parens}"
                                         ForegroundColor="DarkBlue" />
-        <controls:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Operator}"
+        <syntaxEditor:SyntaxEditorFormating Key="{x:Static sem:BreakpointDetailConditionTokenType.Operator}"
                                         ForegroundColor="DarkGoldenrod" />
-      </controls:SyntaxEditor.Formatters>
-    </controls:SyntaxEditor>
+      </syntaxEditor:SyntaxEditor.Formatters>
+    </syntaxEditor:SyntaxEditor>
   </common:Entry>
 
   <Label Grid.Column="0" Grid.Row="7">Config error</Label>

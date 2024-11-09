@@ -15,7 +15,7 @@ public class SaveFileDialogViewModel: ScopedViewModel, IDialogViewModel<SaveFile
     public ImmutableArray<ProjectFile> UnsavedFiles { get; set; } = ImmutableArray<ProjectFile>.Empty;
 
     public IEnumerable<UnsavedFile> UnsavedFileItems =>
-        UnsavedFiles.Select(f => new UnsavedFile(f.GetRelativeDirectory(), f.Name));
+        UnsavedFiles.Select(f => new UnsavedFile(f.RelativeDirectory, f.Name));
     public SaveFileDialogViewModel()
     {
         SaveCommand = new RelayCommand(() => Close?.Invoke(new SaveFilesDialogResult(SaveFilesDialogResultCode.Save)));

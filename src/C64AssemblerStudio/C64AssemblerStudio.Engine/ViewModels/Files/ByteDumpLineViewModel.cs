@@ -40,7 +40,7 @@ public class ByteDumpLineViewModel : NotifiableObject
         }
     }
     public SourceFile SourceFile => _byteDumpLine.SourceFile;
-    public TextRange FileLocation => _byteDumpLine.FileLocation;
+    public MultiLineTextRange FileLocation => _byteDumpLine.FileLocation;
     public ushort Address => _byteDumpLine.AssemblyLine.Address;
     public ImmutableArray<byte> Bytes => _byteDumpLine.AssemblyLine.Data;
     public ImmutableArray<string> Labels => _byteDumpLine.AssemblyLine.Labels;

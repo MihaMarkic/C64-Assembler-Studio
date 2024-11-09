@@ -48,7 +48,7 @@ public class AddressEntryGrammarServiceTest: BaseTest<AddressEntryGrammarService
         public void GivenSingleKnownLabel_ReturnsItsAddress()
         {
             var labelsMap = new Dictionary<string, Label>
-                { { "label", new Label(TextRange.Empty, "label", 1122) } };
+                { { "label", new Label(MultiLineTextRange.Empty, "label", 1122) } };
 
             var actual = Target.CalculateAddress(labelsMap, "label");
             

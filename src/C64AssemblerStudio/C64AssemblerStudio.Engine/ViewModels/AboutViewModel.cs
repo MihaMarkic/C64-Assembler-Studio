@@ -27,7 +27,8 @@ public class AboutViewModel: OverlayContentViewModel
         new ("NSubstitute", "https://nsubstitute.github.io/"),
         new ("NSubstitute.Analyzers", "https://github.com/nsubstitute/NSubstitute.Analyzers"),
         new ("NUnit", "https://nunit.org/"),
-        new ("NUnit/Visual Studio Test Adapter", "https://docs.nunit.org/articles/vs-test-adapter/Index.html")
+        new ("NUnit/Visual Studio Test Adapter", "https://docs.nunit.org/articles/vs-test-adapter/Index.html"),
+        new ("Humanizer", "https://github.com/Humanizer/Humanizer"),
     ];
 
     // ReSharper disable once MemberCanBeProtected.Global

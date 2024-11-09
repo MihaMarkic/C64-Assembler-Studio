@@ -1,9 +1,6 @@
-﻿using System.ComponentModel;
-using System.Data.Common;
-using System.Globalization;
+﻿using System.Collections.Frozen;
 using System.Text.Json.Serialization;
 using C64AssemblerStudio.Core;
-using CommunityToolkit.Diagnostics;
 
 namespace C64AssemblerStudio.Engine.Models.Configuration;
 
@@ -33,8 +30,14 @@ public class Settings : NotifiableObject
     public ObservableCollection<string> RecentProjects { get; set; } = new();
     [JsonIgnore]
     public string? LastAccessedDirectory => RecentProjects.Count > 0 ? RecentProjects[0] : null;
+
     /// <summary>
-    /// Depending on VICE type, exe can be in either root directory or bin sub directory.
+    /// Libraries projects use.
+    /// </summary>
+    [JsonConverter(typeof(LibraryJsonConverter))]
+    public FrozenDictionary<string, Library> Libraries { get; set; } = FrozenDictionary<string, Library>.Empty;
+    /// <summary>
+    /// Depending on VICE type, exe can be in either root directory or bin subdirectory.
     /// This property returns the correct path.
     /// </summary>
     public string? RealVicePath

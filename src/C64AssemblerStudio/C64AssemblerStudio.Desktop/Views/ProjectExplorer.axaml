@@ -28,8 +28,52 @@
                 </ContextMenu>
             </TreeView.ContextMenu>
             <TreeView.DataTemplates>
+                <TreeDataTemplate DataType="mp:ProjectLibraries" ItemsSource="{Binding Items}">
+                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Stretch" Background="Transparent">
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Library.." />
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
+                </TreeDataTemplate>
+                <TreeDataTemplate DataType="mp:ProjectLibrary" ItemsSource="{Binding Items}">
+                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Stretch" Background="Transparent"
+                               Classes.not_exists="{Binding !Exists}"
+                               ToolTip.Tip="{Binding AbsolutePath}">
+                        <TextBlock.Styles>
+                            <Style Selector="TextBlock.not_exists">
+                                <Setter Property="Foreground" Value="DarkRed" />
+                            </Style>
+                        </TextBlock.Styles>
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add">
+                                    <MenuItem Header="File"
+                                              Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddRootLibraryFileCommand}"
+                                              CommandParameter="{Binding}" />
+                                    <MenuItem Header="Directory"
+                                              Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).AddDirectoryCommand}"
+                                              CommandParameter="{Binding}" />
+                                </MenuItem>
+                                <MenuItem Header="Remove"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).RemoveLibraryCommand}"
+                                          CommandParameter="{Binding}" />
+                                <Separator />
+                                <MenuItem Header="Open In Explorer"
+                                          Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).OpenInExplorerCommand}"
+                                          CommandParameter="{Binding}" />
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
+                </TreeDataTemplate>
                 <TreeDataTemplate DataType="mp:ProjectDirectory" ItemsSource="{Binding Items}">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Background="Transparent">
+                        <StackPanel.Styles>
+                            <Style Selector="TextBlock.not_exists">
+                                <Setter Property="Foreground" Value="DarkRed" />
+                            </Style>
+                        </StackPanel.Styles>
                         <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Add">
@@ -46,14 +90,15 @@
                                 <MenuItem Header="Delete"
                                           Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).DeleteItemCommand}"
                                           CommandParameter="{Binding}" />
-                                <Separator/>
+                                <Separator />
                                 <MenuItem Header="Open In Explorer"
                                           Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).OpenInExplorerCommand}"
                                           CommandParameter="{Binding}" />
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <TextBlock Text="D" Foreground="LightGray" Margin="2,0" />
-                        <TextBlock Text="{Binding Name}" HorizontalAlignment="Stretch" />
+                        <TextBlock Text="{Binding Name}" Classes.not_exists="{Binding !Exists}"
+                                   HorizontalAlignment="Stretch" />
                     </StackPanel>
                 </TreeDataTemplate>
                 <TreeDataTemplate DataType="mp:ProjectFile">
@@ -65,6 +110,9 @@
                             <Style Selector="TextBlock.can_open">
                                 <Setter Property="Foreground" Value="Black" />
                             </Style>
+                            <Style Selector="TextBlock.not_exists">
+                                <Setter Property="Foreground" Value="DarkRed" />
+                            </Style>
                         </StackPanel.Styles>
                         <StackPanel.ContextMenu>
                             <ContextMenu>
@@ -74,7 +122,7 @@
                                 <MenuItem Header="Delete"
                                           Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).DeleteItemCommand}"
                                           CommandParameter="{Binding}" />
-                                <Separator/>
+                                <Separator />
                                 <MenuItem Header="Open"
                                           Command="{Binding #Tree.((vm:ProjectExplorerViewModel)DataContext).OpenFileCommand}"
                                           CommandParameter="{Binding}" />
@@ -84,7 +132,8 @@
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <TextBlock Text="F" Foreground="LightBlue" Margin="2,0" />
-                        <TextBlock Classes="file_name" Classes.can_open="{Binding CanOpen}" Text="{Binding Name}" />
+                        <TextBlock Classes="file_name" Classes.can_open="{Binding CanOpen}"
+                                   Classes.not_exists="{Binding !Exists}" Text="{Binding Name}" />
                     </StackPanel>
                 </TreeDataTemplate>
             </TreeView.DataTemplates>

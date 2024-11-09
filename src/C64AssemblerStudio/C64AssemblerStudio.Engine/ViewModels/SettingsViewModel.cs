@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Frozen;
 using System.ComponentModel;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
@@ -21,6 +22,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     public Settings Settings => _globals.Settings;
     private readonly ErrorHandler _errorHandler;
     public bool IsVicePathGood { get; private set; }
+    public bool AreLibrariesGood { get; private set; }
 
     public string? ViceAddress
     {
@@ -36,8 +38,11 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         add => _errorHandler.ErrorsChanged += value;
         remove => _errorHandler.ErrorsChanged -= value;
     }
+    public LibrariesEditorViewModel LibrariesEditor { get; private set; }
     IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName) => _errorHandler.GetErrors(propertyName);
-    public SettingsViewModel(ILogger<SettingsViewModel> logger, Globals globals, IDispatcher dispatcher,
+
+    public SettingsViewModel(ILogger<SettingsViewModel> logger, Globals globals,
+        LibrariesEditorViewModel librariesEditor, IDispatcher dispatcher,
         ISettingsManager settingsManager, ISystemDialogs systemDialogs, IServiceScope serviceScope) : base(dispatcher)
     {
         _logger = logger;
@@ -45,6 +50,9 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         _settingsManager = settingsManager;
         _systemDialogs = systemDialogs;
         globals.Settings.PropertyChanged += Settings_PropertyChanged;
+        LibrariesEditor = librariesEditor;
+        LibrariesEditor.Init(Settings.Libraries.Values);
+
         VerifyValues();
         VerifyValuesCommand = new RelayCommand(VerifyValues);
         _ipAddressValidator = serviceScope.CreateIpAddressValidator(nameof(ViceAddress));
@@ -89,6 +97,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     private void VerifyValues()
     {
         VerifyVicePath();
+        AreLibrariesGood = LibrariesEditor.VerifyLibraries();
     }
 
     private void VerifyVicePath()
@@ -117,11 +126,17 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         return !_errorHandler.HasErrors;
     }
 
-    protected override void Closing()
+    protected override async Task ClosingAsync(CancellationToken ct = default)
     {
         Settings.ViceAddress = _ipAddressValidator.Text;
+        // first update libraries order
+        for (int i = 0; i < LibrariesEditor.Libraries.Count; i++)
+        {
+            LibrariesEditor.Libraries[i].Order = i;
+        }
+        Settings.Libraries = LibrariesEditor.Libraries.ToFrozenDictionary(l => l.Name, l => l);
         _settingsManager.Save(Settings);
-        base.Closing();
+        await base.ClosingAsync(ct);
     }
     protected override void Dispose(bool disposing)
     {
