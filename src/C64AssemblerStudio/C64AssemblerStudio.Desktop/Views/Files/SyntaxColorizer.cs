@@ -14,14 +14,14 @@ public class SyntaxColorizer : DocumentColorizingTransformer
     public (int Start, int End)? ExecutionLine { get; set; }
     private readonly AssemblerFileViewModel _file;
     private ImmutableHashSet<int> _callStackLineNumbers;
-    private static readonly TextDecorationCollection Squiggle;
-    private static readonly ILogger<SyntaxColorizer> _logger;
+    private static readonly TextDecorationCollection HyperlinkDecorations;
+    private static readonly ILogger<SyntaxColorizer> Logger;
 
     static SyntaxColorizer()
     {
-        Squiggle = TextDecorations.Underline;
-        Squiggle.Add(new TextDecoration { StrokeThickness = 4, Stroke = Brushes.Red });
-        _logger = IoC.Host.Services.GetRequiredService<ILogger<SyntaxColorizer>>();
+        HyperlinkDecorations = TextDecorations.Underline;
+        HyperlinkDecorations.Add(new TextDecoration { StrokeThickness = 4, Stroke = ElementColor.Hyperlink });
+        Logger = IoC.Host.Services.GetRequiredService<ILogger<SyntaxColorizer>>();
     }
 
     public SyntaxColorizer(AssemblerFileViewModel file)
@@ -89,7 +89,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed colorizing syntax line {LineNumber}", line.LineNumber);
+                Logger.LogError(ex, "Failed colorizing syntax line {LineNumber}", line.LineNumber);
             }
         }
     }
@@ -126,13 +126,14 @@ public class SyntaxColorizer : DocumentColorizingTransformer
                     TokenType.Comment => ApplyCommentChanges,
                     TokenType.Number => ApplyNumberChanges,
                     TokenType.Directive => ApplyDirectiveChanges,
+                    TokenType.FileReference => ApplyFileReferenceChanges,
                     // SyntaxElementType.Comment => ApplyCommentChanges,
                     _ => null,
                 };
                 if (apply is not null)
                 {
-                    int startOffset = Math.Min(line.EndOffset, Math.Max(line.Offset, syntax.Start));
-                    int endOffset = Math.Min(syntax.End + 1, line.EndOffset);
+                    int startOffset = Math.Min(line.EndOffset, Math.Max(line.Offset, syntax.Start + syntax.LeftMargin));
+                    int endOffset = Math.Min(syntax.End + 1 - syntax.RightMargin, line.EndOffset);
                     ChangeLinePart(startOffset, endOffset, apply);
                 }
             }
@@ -180,11 +181,6 @@ public class SyntaxColorizer : DocumentColorizingTransformer
 
     void ApplyIgnoredChanges(VisualLineElement element) =>
         element.TextRunProperties.SetForegroundBrush(ElementColor.Ignored);
-    
-    void ApplySyntaxErrorChanges(VisualLineElement element)
-    {
-        element.TextRunProperties.SetTextDecorations(Squiggle);
-    }
 
     void ApplyExecutionLineChanges(VisualLineElement element)
     {
@@ -202,6 +198,12 @@ public class SyntaxColorizer : DocumentColorizingTransformer
         element.TextRunProperties.SetBackgroundBrush(ElementColor.BreakpointBackground);
     }
 
+    void ApplyFileReferenceChanges(VisualLineElement element)
+    {
+        element.TextRunProperties.SetForegroundBrush(ElementColor.Hyperlink);
+        element.TextRunProperties.SetTextDecorations(HyperlinkDecorations);
+    }
+
     static class ElementColor
     {
         public static readonly IBrush String = Brushes.DarkRed;
@@ -213,6 +215,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
         public static readonly IBrush Directive = Brushes.PaleVioletRed;
         public static readonly IBrush BreakpointBackground = new SolidColorBrush(new Color(0xFF, 0x96, 0x3A, 0x46));
         public static readonly IBrush CallStackCall = new SolidColorBrush(new Color(0x50, 0xB4, 0xE4, 0xB4));
-        public static readonly IBrush Ignored = Brushes.LightGray;
+        public static readonly IBrush Ignored = Brushes.LightGray; 
+        public static readonly IBrush Hyperlink = Brushes.DodgerBlue;
     }
 }
