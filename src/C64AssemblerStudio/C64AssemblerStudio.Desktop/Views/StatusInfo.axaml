@@ -10,7 +10,7 @@
     <Design.DataContext>
         <viewModels:DesignStatusInfoViewModel />
     </Design.DataContext>
-    <StackPanel Name="Content" Orientation="Horizontal">
+    <StackPanel Orientation="Horizontal">
         <TextBlock Classes="pc_value"
                    TextAlignment="Center"
                    MinWidth="40"

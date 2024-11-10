@@ -343,7 +343,7 @@ public class MainViewModel : ViewModel
                     .ToImmutableArray();
                 if (!fileErrors.IsEmpty)
                 {
-                    Errors.AddLines(fileErrors);
+                    Errors.AddCompilerErrors(fileErrors);
                     SelectedBottomTool = Errors;
                 }
             }

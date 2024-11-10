@@ -5,9 +5,9 @@ using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Desktop.Views.Tools;
 
-public partial class CompilerErrors : UserControl
+public partial class ErrorsOutput : UserControl
 {
-    public CompilerErrors()
+    public ErrorsOutput()
     {
         InitializeComponent();
         Grid.DoubleTapped += GridOnDoubleTapped;

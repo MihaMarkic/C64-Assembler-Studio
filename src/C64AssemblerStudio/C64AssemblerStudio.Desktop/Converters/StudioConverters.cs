@@ -4,6 +4,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using C64AssemblerStudio.Desktop.Views;
 using C64AssemblerStudio.Engine.ViewModels;
+using Righthand.RetroDbgDataProvider.Models.Parsing;
 
 namespace C64AssemblerStudio.Desktop.Converters;
 
@@ -51,4 +52,17 @@ public static class StudioConverters
             var lineAndColumn = p.ToImmutableArray();
             return lineAndColumn.Length == 2 ? $"{lineAndColumn[0]}:{lineAndColumn[1]}" : ":";
         });
+
+    public static readonly IValueConverter SyntaxErrorSourceToString =
+        new FuncValueConverter<SyntaxErrorSource, string>(s => s switch
+        {
+            SyntaxErrorLexerSource => "Lexer",
+            SyntaxErrorParserSource => "Parser",
+            SyntaxErrorFileSource => "File",
+            SyntaxErrorCompiledFileSource => "Compiler",
+            _ => "?"
+        });
+
+    public static readonly IValueConverter Add =
+        new FuncValueConverter<int, int, int>((v, p) => v + p);
 }

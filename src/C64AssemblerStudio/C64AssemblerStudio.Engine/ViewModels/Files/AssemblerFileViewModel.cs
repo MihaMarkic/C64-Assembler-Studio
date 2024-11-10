@@ -1,9 +1,4 @@
-﻿using System.Collections.Frozen;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
-using Antlr4.Runtime;
-using C64AssemblerStudio.Core;
+﻿using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -18,6 +13,10 @@ using Righthand.RetroDbgDataProvider.Models;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 using Righthand.RetroDbgDataProvider.Models.Program;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
+using System.Collections.Frozen;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Diagnostics;
 using IFileService = C64AssemblerStudio.Core.Services.Abstract.IFileService;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
@@ -324,12 +323,14 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             .Where(f => f.File?.IsSame(File) == true)
             .Select(e =>
             {
-                var range = e.Error.Range;
-                return new SyntaxError(e.Error.Text ?? "?", e.Error.Offset, e.Error.Line, range, SyntaxErrorCompiledFileSource.Default);
+                // var range = e.Error.Range;
+                //return new SyntaxError(e.Error.Text ?? "?", e.Error.Offset, e.Error.Line, range, SyntaxErrorCompiledFileSource.Default);
+                return e.Error;
             });
         Errors = errors
             .GroupBy(e => e.Line)
             .ToFrozenDictionary(g => g.Key, g => new SyntaxErrorLine([..g]));
+        RaiseSyntaxColoringUpdated(EventArgs.Empty);
     }
 
     private SingleLineTextRange? FindTokenAtLocation(int line, int column)

@@ -1,9 +1,11 @@
 ﻿using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
+using Righthand.RetroDbgDataProvider.Models.Program;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Tools;
 
@@ -13,8 +15,17 @@ public class ErrorsOutputViewModel : OutputViewModel<FileCompilerError>
     private readonly ProjectExplorerViewModel _projectExplorer;
     public event EventHandler? CompilerErrorsAdded;
     public RelayCommandWithParameter<FileCompilerError> JumpToCommand { get; }
-    public override string Header { get; } = "Error List";
+    public override string Header => "Error List";
 
+    /// <summary>
+    /// Design time use only.
+    /// </summary>
+    protected ErrorsOutputViewModel()
+    {
+        _dispatcher = default!;
+        _projectExplorer = default!;
+        JumpToCommand = default!;
+    }
     public ErrorsOutputViewModel(IDispatcher dispatcher,
         ProjectExplorerViewModel projectExplorer)
     {
@@ -62,4 +73,19 @@ public class ErrorsOutputViewModel : OutputViewModel<FileCompilerError>
 public record FileCompilerError(ProjectFile? File, SyntaxError Error)
 {
     public string? Path => File?.AbsolutePath;
+}
+
+public class DesignErrorsOutputViewModel : ErrorsOutputViewModel
+{
+    public DesignErrorsOutputViewModel() : base()
+    {
+        AddLines([
+            new(new ProjectFile { FileType = FileType.Assembler, Name = "Test.asm", Parent = null },
+                new SyntaxError("Test error from parser", null, 1, new SingleLineTextRange(10, 25),
+                    SyntaxErrorParserSource.Default)),
+            new(new ProjectFile { FileType = FileType.Assembler, Name = "Other.asm", Parent = null },
+                new SyntaxError("Test error from compiler", null, 8, new SingleLineTextRange(3, 6),
+                    SyntaxErrorCompiledFileSource.Default))
+        ]);
+    }
 }

@@ -1,0 +1,38 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:tools="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="tools:ErrorsOutputViewModel"
+             x:Class="C64AssemblerStudio.Desktop.Views.Tools.ErrorsOutput">
+    <Design.DataContext>
+        <tools:DesignErrorsOutputViewModel />
+    </Design.DataContext>
+    <DataGrid Name="Grid" ItemsSource="{Binding Lines}" AutoGenerateColumns="False" IsReadOnly="True"
+              SelectionMode="Single" CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True">
+        <DataGrid.Styles>
+            <Style Selector="DataGridCell">
+                <Setter Property="FontSize" Value="14" />
+            </Style>
+        </DataGrid.Styles>
+        <DataGrid.Resources>
+            <system:Int32 x:Key="One">1</system:Int32>
+        </DataGrid.Resources>
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Line"
+                                Binding="{Binding Error.Line, Converter={x:Static converters:StudioConverters.Add}, ConverterParameter={StaticResource One}}"
+                                Width="60">
+            </DataGridTextColumn>
+            <DataGridTextColumn Header="Col"
+                                Binding="{Binding Error.Range.Start, Converter={x:Static converters:StudioConverters.Add}, ConverterParameter={StaticResource One}}"
+                                Width="60" />
+            <DataGridTextColumn Header="Error" Binding="{Binding Error.Text}" Width="400" />
+            <DataGridTextColumn Header="Path" Binding="{Binding Path}" />
+            <DataGridTextColumn Header="Source" Width="100"
+                                Binding="{Binding Error.Source, Converter={x:Static converters:StudioConverters.SyntaxErrorSourceToString}}" />
+        </DataGrid.Columns>
+    </DataGrid>
+</UserControl>

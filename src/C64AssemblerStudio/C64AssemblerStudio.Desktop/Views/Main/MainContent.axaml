@@ -81,7 +81,7 @@
                                                 <tools:DebugOutput />
                                             </DataTemplate>
                                             <DataTemplate DataType="tvm:ErrorsOutputViewModel">
-                                                <tools:CompilerErrors />
+                                                <tools:ErrorsOutput />
                                             </DataTemplate>
                                             <DataTemplate DataType="tvm:RegistersViewModel">
                                                 <tools:Registers />
