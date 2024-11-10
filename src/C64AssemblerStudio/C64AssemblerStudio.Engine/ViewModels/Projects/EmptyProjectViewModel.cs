@@ -13,21 +13,25 @@ public class EmptyProjectViewModel : ProjectViewModel<EmptyProject, ParsedSource
 {
     private class EmptySourceCodeParser : DisposableObject, ISourceCodeParser<ParsedSourceFile>
     {
+        /// <inheritdoc />
+#pragma warning disable 0067
         public event EventHandler<FilesChangedEventArgs>? FilesChanged;
+#pragma  warning restore 0067
+        /// <inheritdoc />
         public IParsedFilesIndex<ParsedSourceFile> AllFiles => ImmutableParsedFilesIndex<ParsedSourceFile>.Empty;
-
+        /// <inheritdoc />
         public Task InitialParseAsync(string projectDirectory, FrozenDictionary<string, InMemoryFileContent> inMemoryFilesContent, FrozenSet<string> inDefines,
             ImmutableArray<string> libraryDirectories, CancellationToken ct = default)
         {
             return Task.CompletedTask;
         }
-
+        /// <inheritdoc />
         public Task ParseAsync(FrozenDictionary<string, InMemoryFileContent> inMemoryFilesContent, FrozenSet<string> inDefines, ImmutableArray<string> libraryDirectories,
             CancellationToken ct = default)
         {
             return Task.CompletedTask;
         }
-
+        /// <inheritdoc />
         public Task StopAsync()
         {
             return Task.CompletedTask;

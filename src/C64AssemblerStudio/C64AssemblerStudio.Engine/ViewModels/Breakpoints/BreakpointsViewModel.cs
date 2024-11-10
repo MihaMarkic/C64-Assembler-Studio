@@ -422,7 +422,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
             return result;
         }
-        catch (TimeoutException e)
+        catch (TimeoutException)
         {
             _debugOutput.AddLine("Failed arming a breakpoint due to timeout");  
             _logger.LogError("Failed arming a breakpoint due to timeout");
@@ -474,7 +474,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         }
         catch (Exception e)
         {
-            _debugOutput.AddLine($"Failed parsing breakpoints start {bind.StartAddress} or end {bind.EndAddress} address");
+            _debugOutput.AddLine($"Failed parsing breakpoints start {bind.StartAddress} or end {bind.EndAddress} address: {e.Message}");
             return null;
         }
     }
@@ -791,13 +791,15 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         };
     }
 
-    public async Task AddBreakpointsFromCodeAsync(CancellationToken ct = default)
+    public Task AddBreakpointsFromCodeAsync(CancellationToken ct = default)
     {
         var project = (KickAssProjectViewModel)_globals.Project.ValueOrThrow();
         foreach (var b in project.DbgData.ValueOrThrow().Breakpoints)
         {
             // TODO add kickass breakpoints and watchpoints
         }
+
+        return Task.CompletedTask;
     }
 
     public async Task LoadBreakpointsFromSettings(BreakpointsSettings settings, CancellationToken ct = default)

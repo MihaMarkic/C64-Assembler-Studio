@@ -12,7 +12,7 @@ using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider;
 using Righthand.RetroDbgDataProvider.Models;
 using Righthand.ViceMonitor.Bridge;
-
+[assembly: CLSCompliant(false)]
 namespace C64AssemblerStudio.Engine;
 public static class IoCRegistrar
 {

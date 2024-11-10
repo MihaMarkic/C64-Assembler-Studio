@@ -204,7 +204,6 @@ public class FilesViewModel : ViewModel
                     _logger.LogError(ex, "Failed to save all files");
                     throw;
                 }
-                break;
             case SaveFilesDialogResultCode.DoNotSave:
                 return true;
             default:

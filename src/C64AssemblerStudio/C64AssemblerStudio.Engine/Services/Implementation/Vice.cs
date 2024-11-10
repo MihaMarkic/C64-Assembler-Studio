@@ -297,7 +297,7 @@ public class Vice : NotifiableObject, IVice
         await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
     }
 
-    private async void ProcessOnExited(object? sender, EventArgs e)
+    private void ProcessOnExited(object? sender, EventArgs e)
     {
         _process.ValueOrThrow().Exited -= ProcessOnExited;
         _process = null;

@@ -48,7 +48,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
         _ = SyncLibrariesWithProjectAsync(_settings.Libraries, CancellationToken.None);
     }
 
-    private async void GlobalsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void GlobalsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
@@ -211,8 +211,9 @@ public class ProjectFilesWatcherViewModel: ViewModel
         await RefreshProjectStructureAsync(library, ct);
     }
 
-    public async Task RemoveLibraryAsync(ProjectLibrary library, CancellationToken ct)
+    public Task RemoveLibraryAsync(ProjectLibrary library, CancellationToken ct)
     {
+        return Task.CompletedTask;
         // if (Libraries is not null)
         // {
         //     if (Libraries.Items.Remove(library))
