@@ -55,7 +55,7 @@
                                 <DataTemplate DataType="tvm:DebugOutputViewModel">
                                     <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
                                 </DataTemplate>
-                                <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
+                                <DataTemplate DataType="tvm:ErrorsOutputViewModel">
                                     <Button Classes="docktool clear" Command="{Binding ClearCommand}" />
                                 </DataTemplate>
                                 <DataTemplate DataType="tvm:RegistersViewModel" />
@@ -80,7 +80,7 @@
                                             <DataTemplate DataType="tvm:DebugOutputViewModel">
                                                 <tools:DebugOutput />
                                             </DataTemplate>
-                                            <DataTemplate DataType="tvm:CompilerErrorsOutputViewModel">
+                                            <DataTemplate DataType="tvm:ErrorsOutputViewModel">
                                                 <tools:CompilerErrors />
                                             </DataTemplate>
                                             <DataTemplate DataType="tvm:RegistersViewModel">

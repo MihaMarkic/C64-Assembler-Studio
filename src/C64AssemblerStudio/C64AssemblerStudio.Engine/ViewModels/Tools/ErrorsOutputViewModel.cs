@@ -3,24 +3,32 @@ using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider;
-using Righthand.RetroDbgDataProvider.Models;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Tools;
 
-public class CompilerErrorsOutputViewModel : OutputViewModel<FileCompilerError>
+public class ErrorsOutputViewModel : OutputViewModel<FileCompilerError>
 {
     private readonly IDispatcher _dispatcher;
     private readonly ProjectExplorerViewModel _projectExplorer;
+    public event EventHandler? CompilerErrorsAdded;
     public RelayCommandWithParameter<FileCompilerError> JumpToCommand { get; }
     public override string Header { get; } = "Error List";
 
-    public CompilerErrorsOutputViewModel(IDispatcher dispatcher,
+    public ErrorsOutputViewModel(IDispatcher dispatcher,
         ProjectExplorerViewModel projectExplorer)
     {
         _dispatcher = dispatcher;
         _projectExplorer = projectExplorer;
         JumpToCommand = new RelayCommandWithParameter<FileCompilerError>(JumpTo);
+    }
+
+    private void RaiseCompilerErrorsAdded(EventArgs e) => CompilerErrorsAdded?.Invoke(this, e);
+
+    public void AddCompilerErrors(IEnumerable<FileCompilerError> lines)
+    {
+        AddLines(lines);
+        RaiseCompilerErrorsAdded(EventArgs.Empty);
     }
 
     void JumpTo(FileCompilerError line)

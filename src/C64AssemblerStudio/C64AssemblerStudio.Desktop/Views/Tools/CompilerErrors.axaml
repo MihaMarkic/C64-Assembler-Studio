@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:tools="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="tools:CompilerErrorsOutputViewModel"
+             x:DataType="tools:ErrorsOutputViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Tools.CompilerErrors">
         <DataGrid Name="Grid" ItemsSource="{Binding Lines}" AutoGenerateColumns="False" IsReadOnly="True"
                   SelectionMode="Single">

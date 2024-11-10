@@ -22,14 +22,10 @@ using IFileService = C64AssemblerStudio.Core.Services.Abstract.IFileService;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
-public record SyntaxError(string Text, int Line, SingleLineTextRange Range);
-
-
-
 public class AssemblerFileViewModel : ProjectFileViewModel
 {
     
-    private readonly CompilerErrorsOutputViewModel _compilerErrors;
+    private readonly ErrorsOutputViewModel _errorsOutput;
     private readonly IVice _vice;
     private readonly CallStackViewModel _callStack;
     private readonly IParserManager _parserManager;
@@ -83,12 +79,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public AssemblerFileViewModel(ILogger<AssemblerFileViewModel> logger, IFileService fileService,
         IDispatcher dispatcher, StatusInfoViewModel statusInfo, BreakpointsViewModel breakpoints,
         IVice vice, CallStackViewModel callStack,
-        Globals globals, CompilerErrorsOutputViewModel compilerErrors, ProjectFile file,
+        Globals globals, ErrorsOutputViewModel errorsOutput, ProjectFile file,
         IParserManager parserManager) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {
         Breakpoints = breakpoints;
-        _compilerErrors = compilerErrors;
+        _errorsOutput = errorsOutput;
         _vice = vice;
         _callStack = callStack;
         _parserManager = parserManager;
@@ -97,8 +93,8 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
         AddOrRemoveBreakpointCommand = new RelayCommandWithParameterAsync<int>(AddOrRemoveBreakpoint, CanSetOrRemoveBreakpointAtLine);
         Breakpoints.Breakpoints.CollectionChanged += BreakpointsOnCollectionChanged;
-        UpdateErrors();
-        _compilerErrors.Lines.CollectionChanged += CompilerErrors_LinesOnCollectionChanged;
+        _errorsOutput.PropertyChanged += ErrorsOutputOnPropertyChanged;
+        _errorsOutput.CompilerErrorsAdded += ErrorsOutputOnCompilerErrorsAdded;
         _vice.PropertyChanged += ViceOnPropertyChanged;
         UpdateCallStackItems();
         _callStack.PropertyChanged += CallStackOnPropertyChanged;
@@ -110,6 +106,27 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         _ = UpdateSyntaxInfoAsync();
         _initialized = true;
     }
+
+    private void ErrorsOutputOnCompilerErrorsAdded(object? sender, EventArgs e)
+    {
+        Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
+        UpdateCompilerErrors();
+    }
+
+    private void ErrorsOutputOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(ErrorsOutputViewModel.IsEmpty):
+                // when build starts, all errors are removed 
+                if (_errorsOutput.IsEmpty)
+                {
+                    Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
+                }
+                break;
+        }
+    }
+
     private void RaiseSyntaxColoringUpdated(EventArgs e) => SyntaxColoringUpdated?.Invoke(this, e);
     private CancellationTokenSource? _syntaxInfoUpdatesCts;
     private void ParserOnFilesChanged(object? sender, FilesChangedEventArgs e)
@@ -172,7 +189,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                     var allErrors = Errors
                         .SelectMany(e => e.Value.Items)
                         .Select(se => new FileCompilerError(File, se));
-                    _compilerErrors.AddParserErrorsForFile(File.AbsolutePath, allErrors);
+                    _errorsOutput.AddParserErrorsForFile(File.AbsolutePath, allErrors);
                     ct.ThrowIfCancellationRequested();
                     IgnoredContent = ConvertIgnoredMultiLineStructureToSingleLine(ignoredContent);
                     RaiseSyntaxColoringUpdated(EventArgs.Empty);
@@ -296,38 +313,28 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
     }
 
-    private void CompilerErrors_LinesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        UpdateErrors();
-    }
-
     public BreakpointViewModel? GetBreakPointAtLine(int lineNumber)
     {
         return Breakpoints.GetLineBreakpointForLine(File.GetRelativeFilePath(), lineNumber);
     }
 
-    private void UpdateErrors()
+    private void UpdateCompilerErrors()
     {
-        // var errors = _compilerErrors.Lines
-        //     .Where(f => f.File?.IsSame(File) == true)
-        //     .Select(e =>
-        //     {
-        //         var range = FindTokenAtLocation(e.Error.Line, e.Error.Column) ?? new SingleLineTextRange(e.Error.Column-1, e.Error.Column);
-        //         return new SyntaxError(e.Error.Text ?? "?", e.Error.Line, range);
-        //     });
-        // Errors = errors
-        //     .GroupBy(e => e.Line)
-        //     .ToFrozenDictionary(g => g.Key, g => g.ToImmutableArray());
+        var errors = _errorsOutput.Lines
+            .Where(f => f.File?.IsSame(File) == true)
+            .Select(e =>
+            {
+                var range = e.Error.Range;
+                return new SyntaxError(e.Error.Text ?? "?", e.Error.Offset, e.Error.Line, range, SyntaxErrorCompiledFileSource.Default);
+            });
+        Errors = errors
+            .GroupBy(e => e.Line)
+            .ToFrozenDictionary(g => g.Key, g => new SyntaxErrorLine([..g]));
     }
 
     private SingleLineTextRange? FindTokenAtLocation(int line, int column)
     {
-        if (_sourceFile is not null)
-        {
-            return _sourceFile.GetTokenRangeAt(line, column);
-        }
-
-        return null;
+        return _sourceFile?.GetTokenRangeAt(line, column);
     }
 
     public SyntaxError? GetSyntaxErrorAt(int line, int column)
@@ -436,115 +443,13 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         UpdateByteDumpHighlight();
     }
 
-    // internal async Task ParseTextAsync(CancellationToken ct = default)
-    // {
-    //     await _ctsParser.CancelNullableAsync(ct: ct); 
-    //     _ctsParser = new();
-    //     try
-    //     {
-    //         await Task.Delay(50, ct);
-    //         (Lines, var tokens) = await Task.Run(() => ParseText(Logger, Content, _ctsParser.Token), _ctsParser.Token);
-    //         var tokensBuilder = new List<IToken>?[Lines.Length];
-    //         foreach (var t in tokens)
-    //         {
-    //             tokensBuilder[t.Line-1] ??= new();
-    //             tokensBuilder[t.Line-1]!.Add(t);
-    //         }
-    //         _tokens = [..tokensBuilder.Select(a => a?.ToImmutableArray() ?? ImmutableArray<IToken>.Empty)];
-    //         UpdateErrors();
-    //     }
-    //     catch (OperationCanceledException)
-    //     {
-    //     }
-    // }
-
-    // internal static (ImmutableArray<Line?> Lines, ImmutableArray<IToken> Tokens) ParseText(ILogger logger,
-    //     string content, CancellationToken ct = default)
-    // {
-    //     if (string.IsNullOrWhiteSpace(content))
-    //     {
-    //         return (ImmutableArray<Line?>.Empty, ImmutableArray<IToken>.Empty);
-    //     }
-    //
-    //     var input = new AntlrInputStream(content);
-    //     var lexer = new KickAssemblerLexer(input);
-    //     var tokenStream = new CommonTokenStream(lexer);
-    //     var parser = new KickAssemblerParser(tokenStream)
-    //     {
-    //         BuildParseTree = true
-    //     };
-    //     var tree = parser.program();
-    //     var listener = new KickAssemblerParserBaseListener();
-    //     ParseTreeWalker.Default.Walk(listener, tree);
-    //
-    //     var tokens = tokenStream.GetTokens();
-    //     int linesCount = content.Count(c => c == '\n') + 1;
-    //     var builder = IterateTokens(linesCount, tokens, ct);
-    //
-    //     var lines = builder.Select(l => l is not null ? new Line([..l]) : null);
-    //     return ([..lines], [..tokens]);
-    // }
-    //
-    // internal static List<LineItem>?[] IterateTokens(int linesCount, IList<IToken> tokens, CancellationToken ct)
-    // {
-    //     List<LineItem>?[] builder = new List<LineItem>?[linesCount];
-    //
-    //     for (var i = 0; i < tokens.Count; i++)
-    //     {
-    //         var token = tokens[i];
-    //         ct.ThrowIfCancellationRequested();
-    //         bool ignore = false;
-    //         if (Map.TryGetValue(token.Type, out var tokenType))
-    //         {
-    //             var line = builder[token.Line - 1];
-    //             if (line is null)
-    //             {
-    //                 line = new();
-    //                 builder[token.Line - 1] = line;
-    //             }
-    //
-    //             int startIndex = token.StartIndex;
-    //             switch (tokenType)
-    //             {
-    //                 case TokenType.Directive:
-    //                     if (i > 0)
-    //                     {
-    //                         var previous = tokens[i - 1];
-    //                         if (previous.Type == KickAssemblerLexer.DOT && previous.Line == token.Line)
-    //                         {
-    //                             startIndex = token.StartIndex - 1;
-    //                         }
-    //                     }
-    //                     break;
-    //                 case TokenType.InstructionExtension:
-    //                     if (i > 1 && tokens[i-1].Type == KickAssemblerLexer.DOT 
-    //                         && Map.TryGetValue(tokens[i-2].Type, out var instructionTokenType) && instructionTokenType == TokenType.Instruction)
-    //                     {
-    //                         startIndex = token.StartIndex - 1;
-    //                     }
-    //                     else
-    //                     {
-    //                         ignore = true;
-    //                     }
-    //                     break;
-    //             }
-    //
-    //             if (!ignore)
-    //             {
-    //                 line.Add(new LineItem(startIndex, token.StopIndex, tokenType));
-    //             }
-    //         }
-    //     }
-    //     return builder;
-    // }
-
-
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
             Breakpoints.Breakpoints.CollectionChanged -= BreakpointsOnCollectionChanged;
-            _compilerErrors.Lines.CollectionChanged -= CompilerErrors_LinesOnCollectionChanged;
+            _errorsOutput.PropertyChanged -= ErrorsOutputOnPropertyChanged;
+            _errorsOutput.CompilerErrorsAdded -= ErrorsOutputOnCompilerErrorsAdded;
             _vice.PropertyChanged -= ViceOnPropertyChanged;
             _callStack.PropertyChanged -= CallStackOnPropertyChanged;
         }

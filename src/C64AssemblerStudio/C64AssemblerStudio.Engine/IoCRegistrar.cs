@@ -49,7 +49,7 @@ public static class IoCRegistrar
             .AddScoped<ErrorMessagesViewModel>()
             .AddScoped<BuildOutputViewModel>()
             .AddScoped<DebugOutputViewModel>()
-            .AddSingleton<CompilerErrorsOutputViewModel>()
+            .AddSingleton<ErrorsOutputViewModel>()
             // Misc
             .AddTransient<AddressEntryValidator>()
             // Dialogs

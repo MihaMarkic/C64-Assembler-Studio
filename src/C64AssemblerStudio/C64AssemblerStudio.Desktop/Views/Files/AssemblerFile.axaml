@@ -7,6 +7,7 @@
              xmlns:vmf="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
              xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
              xmlns:files="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
+             xmlns:parsing="clr-namespace:Righthand.RetroDbgDataProvider.Models.Parsing;assembly=Righthand.RetroDbgDataProvider"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vmf:AssemblerFileViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Files.AssemblerFile">
@@ -54,7 +55,7 @@
             </ae:TextEditor.Options>
             <FlyoutBase.AttachedFlyout>
                 <Flyout ShowMode="TransientWithDismissOnPointerMoveAway">
-                    <StackPanel Name="FlyoutContent" Orientation="Horizontal" x:DataType="vmf:SyntaxError">
+                    <StackPanel Name="FlyoutContent" Orientation="Horizontal" x:DataType="parsing:SyntaxError">
                         <TextBlock Text="{Binding Text}" />
                     </StackPanel>
                 </Flyout>

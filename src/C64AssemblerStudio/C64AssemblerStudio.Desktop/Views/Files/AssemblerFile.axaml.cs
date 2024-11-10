@@ -16,6 +16,7 @@ using C64AssemblerStudio.Engine.ViewModels.Files;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.RetroDbgDataProvider;
+using Righthand.RetroDbgDataProvider.Models.Parsing;
 using TextMateSharp.Grammars;
 
 namespace C64AssemblerStudio.Desktop.Views.Files;

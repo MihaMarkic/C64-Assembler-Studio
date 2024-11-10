@@ -60,7 +60,7 @@ public class MainViewModel : ViewModel
     public ErrorMessagesViewModel ErrorMessages { get; }
     public BuildOutputViewModel BuildOutput { get; }
     public DebugOutputViewModel DebugOutput { get; }
-    public CompilerErrorsOutputViewModel CompilerErrors { get; }
+    public ErrorsOutputViewModel Errors { get; }
     public ImmutableArray<IToolView> BottomTools { get; }
     public IToolView? SelectedBottomTool { get; set; }
     public StatusInfoViewModel StatusInfo { get; }
@@ -95,7 +95,7 @@ public class MainViewModel : ViewModel
     public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
         ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput, DebugOutputViewModel debugOutput,
-        CompilerErrorsOutputViewModel compilerErrors, BreakpointsViewModel breakpoints,
+        ErrorsOutputViewModel errors, BreakpointsViewModel breakpoints,
         MemoryViewerViewModel memoryViewer,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment,
         CallStackViewModel callStack, IParserManager parserManager)
@@ -116,14 +116,14 @@ public class MainViewModel : ViewModel
         ErrorMessages = errorMessages;
         BuildOutput = buildOutput;
         DebugOutput = debugOutput;
-        CompilerErrors = compilerErrors;
+        Errors = errors;
         StatusInfo = statusInfo;
         Registers = registers;
         Breakpoints = breakpoints;
         MemoryViewer = memoryViewer;
         CallStack = callStack;
         BottomTools =
-            [ErrorMessages, CompilerErrors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer, CallStack];
+            [ErrorMessages, Errors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer, CallStack];
         CreateStartPage();
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
@@ -318,7 +318,7 @@ public class MainViewModel : ViewModel
         {
             var saveAllTask = Files.SaveAllAsync();
             BuildOutput.Clear();
-            CompilerErrors.Clear();
+            Errors.Clear();
             SelectedBottomTool = BuildOutput;
             var project = (KickAssProjectViewModel)Project;
 #if DEBUG
@@ -343,8 +343,8 @@ public class MainViewModel : ViewModel
                     .ToImmutableArray();
                 if (!fileErrors.IsEmpty)
                 {
-                    CompilerErrors.AddLines(fileErrors);
-                    SelectedBottomTool = CompilerErrors;
+                    Errors.AddLines(fileErrors);
+                    SelectedBottomTool = Errors;
                 }
             }
             else

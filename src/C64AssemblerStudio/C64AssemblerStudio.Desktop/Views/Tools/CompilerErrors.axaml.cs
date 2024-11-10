@@ -12,7 +12,7 @@ public partial class CompilerErrors : UserControl
         InitializeComponent();
         Grid.DoubleTapped += GridOnDoubleTapped;
     }
-    private CompilerErrorsOutputViewModel? ViewModel => (CompilerErrorsOutputViewModel?)DataContext!;
+    private ErrorsOutputViewModel? ViewModel => (ErrorsOutputViewModel?)DataContext!;
     private void GridOnDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (ViewModel is not null)
