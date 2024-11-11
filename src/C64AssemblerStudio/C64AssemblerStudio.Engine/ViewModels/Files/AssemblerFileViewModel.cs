@@ -340,16 +340,16 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
     public SyntaxError? GetSyntaxErrorAt(int line, int column)
     {
-        // if (Errors.TryGetValue(line, out var errors))
-        // {
-        //     foreach (var e in errors)
-        //     {
-        //         if (e.Range.Start <= column && e.Range.End > column)
-        //         {
-        //             return e;
-        //         }
-        //     }
-        // }
+        if (Errors.TryGetValue(line, out var errors))
+        {
+            foreach (var e in errors.Items)
+            {
+                if (e.Range.Start <= column && e.Range.End > column)
+                {
+                    return e;
+                }
+            }
+        }
 
         return null;
     }

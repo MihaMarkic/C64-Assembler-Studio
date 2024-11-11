@@ -1,12 +1,9 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.LogicalTree;
-using Avalonia.Media;
 using AvaloniaEdit;
 using AvaloniaEdit.Utils;
 using C64AssemblerStudio.Core;
@@ -15,9 +12,7 @@ using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Righthand.RetroDbgDataProvider;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
-using TextMateSharp.Grammars;
 
 namespace C64AssemblerStudio.Desktop.Views.Files;
 
@@ -93,6 +88,7 @@ public partial class AssemblerFile : UserControl
             Editor.TextArea.LeftMargins.Add(_breakpointsMargin);
             UpdateCurrentLine();
             _oldViewModel = fileViewModel;
+            Editor.PointerHover += Editor_PointerHover;
         }
         else
         {
@@ -108,6 +104,7 @@ public partial class AssemblerFile : UserControl
             _breakpointsMargin = null;
             _syntaxColorizer = null;
             _oldViewModel = null;
+            Editor.PointerHover -= Editor_PointerHover;
         }
 
         base.OnDataContextChanged(e);
@@ -232,19 +229,19 @@ public partial class AssemblerFile : UserControl
     {
         if (ViewModel is not null)
         {
-            var flyout = (Flyout?)FlyoutBase.GetAttachedFlyout(Editor);
-            if (flyout is not null)
+            object? symbolReference = GetErrorReferenceAtPosition(e);
+            if (symbolReference is not null)
             {
-                object? symbolReference = GetSymbolReferenceAtPosition(e);
-                if (symbolReference is not null)
+                var flyout = (Flyout?)FlyoutBase.GetAttachedFlyout(Editor);
+                if (flyout is not null)
                 {
-                        FlyoutContent.DataContext = symbolReference;
-                        flyout.ShowAt(Editor, true);
+                    FlyoutContent.DataContext = symbolReference;
+                    flyout.ShowAt(Editor, true);
                 }
             }
         }
     }
-    SyntaxError? GetSymbolReferenceAtPosition(PointerEventArgs e)
+    SyntaxError? GetErrorReferenceAtPosition(PointerEventArgs e)
     {
         if (ViewModel is not null)
         {
@@ -254,8 +251,8 @@ public partial class AssemblerFile : UserControl
             var vp = textView.GetPosition(pos);
             if (vp is not null)
             {
-                Debug.WriteLine($"Pos {vp.Value.Line} {vp.Value.Column}");
-                return ViewModel.GetSyntaxErrorAt(vp.Value.Line, vp.Value.Column-1);
+                Debug.WriteLine($"Pos {vp.Value.Line-1} {vp.Value.Column}");
+                return ViewModel.GetSyntaxErrorAt(vp.Value.Line-1, vp.Value.Column-1);
             }
         }
         return null;
