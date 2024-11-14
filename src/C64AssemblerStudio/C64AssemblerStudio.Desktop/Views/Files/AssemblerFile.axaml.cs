@@ -25,6 +25,7 @@ public partial class AssemblerFile : UserControl
     private BreakpointsMargin? _breakpointsMargin;
     private readonly MarkerRenderer _markerRenderer;
     private readonly ILogger<AssemblerFile> _logger;
+    private ReferencedFileElementGenerator? _referencedFileElementGenerator;
 
     public AssemblerFile(): this(IoC.Host.Services.GetRequiredService<ILogger<AssemblerFile>>())
     {
@@ -89,6 +90,7 @@ public partial class AssemblerFile : UserControl
             UpdateCurrentLine();
             _oldViewModel = fileViewModel;
             Editor.PointerHover += Editor_PointerHover;
+            UpdateReferencedFileElementGenerator();
         }
         else
         {
@@ -108,6 +110,38 @@ public partial class AssemblerFile : UserControl
         }
 
         base.OnDataContextChanged(e);
+    }
+
+    /// <summary>
+    /// Updates referenced files to generator.
+    /// </summary>
+    private void UpdateReferencedFileElementGenerator()
+    {
+        if (_referencedFileElementGenerator is not null)
+        {
+            Editor.TextArea.TextView.ElementGenerators.Remove(_referencedFileElementGenerator);
+        }
+
+        var lines = ViewModel?.Lines;
+        if (lines is not null)
+        {
+            var referencedFiles = lines.SelectMany(l =>
+                l.Value.Items
+                    .OfType<FileReferenceSyntaxItem>()
+                    .Where(rf => rf.ReferencedFile.FullFilePath is not null));
+            _referencedFileElementGenerator = new([..referencedFiles], ReferencedFileClicked);
+            Editor.TextArea.TextView.ElementGenerators.Add(_referencedFileElementGenerator);
+        }
+        else
+        {
+            _referencedFileElementGenerator = null;
+        }
+        Editor.TextArea.TextView.Redraw();
+    }
+
+    private void ReferencedFileClicked(FileReferenceSyntaxItem item)
+    {
+        ViewModel?.ReferencedFileClicked(item);
     }
 
     private void FileViewModelOnSyntaxColoringUpdated(object? sender, EventArgs e)
@@ -132,6 +166,7 @@ public partial class AssemblerFile : UserControl
                     })
                 );
         }
+        UpdateReferencedFileElementGenerator();
         Editor.TextArea.TextView.Redraw();
     }
 

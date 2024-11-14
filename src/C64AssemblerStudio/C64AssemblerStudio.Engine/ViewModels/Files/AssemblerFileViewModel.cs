@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Core;
+﻿using Antlr4.Runtime;
+using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -17,6 +18,7 @@ using System.Collections.Frozen;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using C64AssemblerStudio.Engine.Messages;
 using IFileService = C64AssemblerStudio.Core.Services.Abstract.IFileService;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
@@ -28,15 +30,16 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private readonly IVice _vice;
     private readonly CallStackViewModel _callStack;
     private readonly IParserManager _parserManager;
+    private readonly ProjectExplorerViewModel _projectExplorer;
     public BreakpointsViewModel Breakpoints { get; }
     public event EventHandler? BreakpointsChanged;
     public FrozenDictionary<int, SyntaxLine> Lines { get; private set; } = FrozenDictionary<int, SyntaxLine>.Empty;
-
     public FrozenDictionary<int, ImmutableArray<SingleLineTextRange>> IgnoredContent { get; private set; } =
         FrozenDictionary<int, ImmutableArray<SingleLineTextRange>>.Empty;
 
     public ImmutableArray<FrozenSet<string>> DefineSymbols { get; private set; } =
         ImmutableArray<FrozenSet<string>>.Empty;
+
     public FrozenSet<string>? SelectedDefineSymbols { get; set; }
     public FrozenDictionary<int, SyntaxErrorLine> Errors { get; private set; }
     public RelayCommandWithParameterAsync<int> AddOrRemoveBreakpointCommand { get; }
@@ -79,7 +82,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         IDispatcher dispatcher, StatusInfoViewModel statusInfo, BreakpointsViewModel breakpoints,
         IVice vice, CallStackViewModel callStack,
         Globals globals, ErrorsOutputViewModel errorsOutput, ProjectFile file,
-        IParserManager parserManager) : base(
+        IParserManager parserManager, ProjectExplorerViewModel projectExplorer) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {
         Breakpoints = breakpoints;
@@ -87,6 +90,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         _vice = vice;
         _callStack = callStack;
         _parserManager = parserManager;
+        _projectExplorer = projectExplorer;
         ByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         MatchingByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
@@ -436,10 +440,16 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             if (project.AppInfo.SourceFiles.TryGetValue(
                     new SourceFilePath(File.GetRelativeFilePath(), IsRelative: true), out var sourceFile))
             {
-                ByteDumpLines = [..project.ByteDumpLines.ValueOrThrow().Select(l => new ByteDumpLineViewModel(l, l.SourceFile == sourceFile))];
+                ByteDumpLines =
+                [
+                    ..project.ByteDumpLines.ValueOrThrow()
+                        .Select(l => new ByteDumpLineViewModel(l, l.SourceFile == sourceFile))
+                ];
             }
+
             MatchingByteDumpLines = [..ByteDumpLines.Where(l => l.BelongsToFile)];
         }
+
         UpdateByteDumpExecutionLine();
         UpdateByteDumpHighlight();
     }
@@ -455,5 +465,26 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             _callStack.PropertyChanged -= CallStackOnPropertyChanged;
         }
         base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// Opens referenced file clicked on by user.
+    /// </summary>
+    /// <param name="item"></param>
+    public void ReferencedFileClicked(FileReferenceSyntaxItem item)
+    {
+        if (item.ReferencedFile.FullFilePath is null)
+        {
+            Logger.LogError("Clicked file {RelativePath} is missing FullFilePath", item.ReferencedFile.RelativeFilePath);
+            return;
+        }
+        var file = _projectExplorer.GetProjectFileFromFullPath(item.ReferencedFile.FullFilePath!);
+        if (file is null)
+        {
+            Logger.LogError("Failed to find file {RelativePath} among project files", item.ReferencedFile.RelativeFilePath);
+            return;
+        }
+        var message = new OpenFileMessage(file);
+        Dispatcher.Dispatch(message);
     }
 }

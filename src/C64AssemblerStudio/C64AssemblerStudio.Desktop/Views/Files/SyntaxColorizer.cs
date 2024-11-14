@@ -14,13 +14,10 @@ public class SyntaxColorizer : DocumentColorizingTransformer
     public (int Start, int End)? ExecutionLine { get; set; }
     private readonly AssemblerFileViewModel _file;
     private ImmutableHashSet<int> _callStackLineNumbers;
-    private static readonly TextDecorationCollection HyperlinkDecorations;
     private static readonly ILogger<SyntaxColorizer> Logger;
 
     static SyntaxColorizer()
     {
-        HyperlinkDecorations = TextDecorations.Underline;
-        HyperlinkDecorations.Add(new TextDecoration { StrokeThickness = 4, Stroke = ElementColor.Hyperlink });
         Logger = IoC.Host.Services.GetRequiredService<ILogger<SyntaxColorizer>>();
     }
 
@@ -126,7 +123,8 @@ public class SyntaxColorizer : DocumentColorizingTransformer
                     TokenType.Comment => ApplyCommentChanges,
                     TokenType.Number => ApplyNumberChanges,
                     TokenType.Directive => ApplyDirectiveChanges,
-                    TokenType.FileReference => ApplyFileReferenceChanges,
+                    // references are handled through ReferencedFileElementGenerator
+                    //TokenType.FileReference => ApplyFileReferenceChanges,
                     // SyntaxElementType.Comment => ApplyCommentChanges,
                     _ => null,
                 };
@@ -196,12 +194,6 @@ public class SyntaxColorizer : DocumentColorizingTransformer
 
         element.TextRunProperties.SetForegroundBrush(Brushes.White);
         element.TextRunProperties.SetBackgroundBrush(ElementColor.BreakpointBackground);
-    }
-
-    void ApplyFileReferenceChanges(VisualLineElement element)
-    {
-        element.TextRunProperties.SetForegroundBrush(ElementColor.Hyperlink);
-        element.TextRunProperties.SetTextDecorations(HyperlinkDecorations);
     }
 
     static class ElementColor
