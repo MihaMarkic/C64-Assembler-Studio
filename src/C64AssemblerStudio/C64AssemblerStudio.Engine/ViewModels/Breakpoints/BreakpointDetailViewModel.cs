@@ -30,7 +30,7 @@ public enum ConditionCompletionType
     Label,
 }
 
-public record ConditionCompletionSuggestionModel(ConditionCompletionType Type, string Value);
+public record BreakpointConditionCompletionSuggestionModel(ConditionCompletionType Type, string Value);
 
 public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialogResult>, INotifyDataErrorInfo
 {
@@ -171,7 +171,7 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
     }
 
     private bool CanSave() => !_errorHandler.HasErrors && Breakpoint.IsChangedFrom(_sourceBreakpoint);
-    private ImmutableArray<ConditionCompletionSuggestionModel> GetLabelsSuggestions()
+    private ImmutableArray<BreakpointConditionCompletionSuggestionModel> GetLabelsSuggestions()
     {
         var project = (KickAssProjectViewModel)_globals.Project;
         var keys = project.Labels?.Keys;
@@ -179,22 +179,22 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
         {
             return [
                 ..keys.Value.Select(x =>
-                    new ConditionCompletionSuggestionModel(ConditionCompletionType.Label, x))
+                    new BreakpointConditionCompletionSuggestionModel(ConditionCompletionType.Label, x))
             ];
         }
 
-        return ImmutableArray<ConditionCompletionSuggestionModel>.Empty;
+        return ImmutableArray<BreakpointConditionCompletionSuggestionModel>.Empty;
     }
 
-    private ImmutableArray<ConditionCompletionSuggestionModel> GetGenericSuggestions()
+    private ImmutableArray<BreakpointConditionCompletionSuggestionModel> GetGenericSuggestions()
     {
         return
         [
             ..C64Globals.Registers
-                .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Register, x))
+                .Select(x => new BreakpointConditionCompletionSuggestionModel(ConditionCompletionType.Register, x))
                 .Union(
                     C64Globals.MemspacePrefixes
-                        .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Memspace, x)))
+                        .Select(x => new BreakpointConditionCompletionSuggestionModel(ConditionCompletionType.Memspace, x)))
         ];
     }
     /// <summary>
@@ -203,23 +203,23 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
     /// </summary>
     /// <param name="text"></param>
     /// <returns></returns>
-    public ImmutableArray<ConditionCompletionSuggestionModel> GetCompletionSuggestions(string? text, bool showForSpace)
+    public ImmutableArray<BreakpointConditionCompletionSuggestionModel> GetCompletionSuggestions(string? text, bool showForSpace)
     {
         return text switch
         {
             ":" => [
                 ..C64Globals.Registers
-                    .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Register, x))
+                    .Select(x => new BreakpointConditionCompletionSuggestionModel(ConditionCompletionType.Register, x))
             ],
             "@" => [
                 .._vice.BankItemsByName.Keys
-                    .Select(x => new ConditionCompletionSuggestionModel(ConditionCompletionType.Bank, x))
+                    .Select(x => new BreakpointConditionCompletionSuggestionModel(ConditionCompletionType.Bank, x))
             ],
             "." => GetLabelsSuggestions(),
             // combines both registers and memspaces since both can be non-prefixed
             null => GetGenericSuggestions(),
             " " when showForSpace => GetGenericSuggestions(),
-            _ => ImmutableArray<ConditionCompletionSuggestionModel>.Empty,
+            _ => ImmutableArray<BreakpointConditionCompletionSuggestionModel>.Empty,
         };
     }
     void Breakpoint_PropertyChanged(object? sender, PropertyChangedEventArgs e)

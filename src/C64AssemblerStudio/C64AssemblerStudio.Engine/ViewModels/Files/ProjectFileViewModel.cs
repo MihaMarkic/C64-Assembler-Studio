@@ -31,8 +31,7 @@ public abstract class ProjectFileViewModel : FileViewModel
         Globals = globals;
         Caption = file.Name;
     }
-    [SuppressPropertyChangedWarnings]
-    void OnMoveCaret(MoveCaretEventArgs e) => MoveCaretRequest?.Invoke(this, e);
+    void RaiseMoveCaret(MoveCaretEventArgs e) => MoveCaretRequest?.Invoke(this, e);
 
     public async Task LoadContentAsync(CancellationToken ct = default)
     {
@@ -55,7 +54,7 @@ public abstract class ProjectFileViewModel : FileViewModel
 
     public void MoveCaret(int row, int col)
     {
-        OnMoveCaret(new MoveCaretEventArgs(row, col));
+        RaiseMoveCaret(new MoveCaretEventArgs(row, col));
     }
 
     protected override void OnPropertyChanged(string name = default!)
@@ -88,7 +87,7 @@ public abstract class ProjectFileViewModel : FileViewModel
             }
             catch (Exception ex)
             {
-                Dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Error, "Save content", ex.Message));
+                await Dispatcher.DispatchAsync(new ErrorMessage(ErrorMessageLevel.Error, "Save content", ex.Message), ct: ct);
                 ErrorText = ex.Message;
             }
         }

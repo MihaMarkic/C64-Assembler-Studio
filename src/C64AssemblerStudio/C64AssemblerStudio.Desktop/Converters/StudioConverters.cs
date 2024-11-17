@@ -2,7 +2,6 @@
 using System.Collections.Frozen;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using C64AssemblerStudio.Desktop.Views;
 using C64AssemblerStudio.Engine.ViewModels;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 
@@ -65,4 +64,23 @@ public static class StudioConverters
 
     public static readonly IValueConverter Add =
         new FuncValueConverter<int, int, int>((v, p) => v + p);
+
+    private static readonly IBrush ProjectFileReferenceSourceBrush = new SolidColorBrush(Colors.DarkGreen);
+    private static readonly IBrush LibraryFileReferenceSourceBrush = new SolidColorBrush(Colors.DarkOrange);
+
+    public static readonly IValueConverter FileReferenceSourceToBrushConverter =
+        new FuncValueConverter<string, IBrush?>(s =>
+        {
+            if (s is not null)
+            {
+                if (s.Equals("Project", StringComparison.Ordinal))
+                {
+                    return ProjectFileReferenceSourceBrush;
+                }
+
+                return LibraryFileReferenceSourceBrush;
+            }
+
+            return null;
+        });
 }

@@ -57,9 +57,9 @@ public partial class BreakpointDetails : UserControl<BreakpointDetailViewModel>
 
 public class ConditionCompletionSuggestion : ICompletionData
 {
-    public ConditionCompletionSuggestionModel Model { get; }
+    public BreakpointConditionCompletionSuggestionModel Model { get; }
 
-    public ConditionCompletionSuggestion(ConditionCompletionSuggestionModel model)
+    public ConditionCompletionSuggestion(BreakpointConditionCompletionSuggestionModel model)
     {
         Model = model;
     }

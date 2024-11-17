@@ -8,7 +8,7 @@ public class Settings : NotifiableObject
 {
     public const int MaxRecentProjects = 10;
     public const string DefaultViceAddress = "localhost:6802";
-    public const int DeafultViceAddressPort = 6802;
+    public const int DefaultViceAddressPort = 6802;
 
     /// <summary>
     /// User selected path to VICE files.
@@ -68,7 +68,7 @@ public class Settings : NotifiableObject
                     }
                 }
             }
-            return DeafultViceAddressPort;
+            return DefaultViceAddressPort;
         }
     }
     public void AddRecentProject(string path)

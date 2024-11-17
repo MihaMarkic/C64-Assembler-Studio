@@ -1,8 +1,14 @@
-﻿using Antlr4.Runtime;
+﻿using System.Collections.Frozen;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Diagnostics;
+using Antlr4.Runtime;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
+using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
@@ -14,11 +20,6 @@ using Righthand.RetroDbgDataProvider.Models;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 using Righthand.RetroDbgDataProvider.Models.Program;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
-using System.Collections.Frozen;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
-using C64AssemblerStudio.Engine.Messages;
 using IFileService = C64AssemblerStudio.Core.Services.Abstract.IFileService;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
@@ -70,6 +71,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     /// </summary>
     private IImmutableParsedFileSet<ParsedSourceFile>? _sourceFileWithSets;
     private readonly ISourceCodeParser<ParsedSourceFile> _parser;
+    private readonly ImmutableArray<IToken> _allTokens;
     private readonly bool _initialized;
     /// <summary>
     /// Prevent triggering collateral parsing on setting <see cref="SelectedDefineSymbols"/> from code.
@@ -106,7 +108,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         _parser.FilesChanged += ParserOnFilesChanged;
         _sourceFileWithSets = _parser.AllFiles.GetValueOrDefault(File.AbsolutePath);
         UpdateDefineSymbolsAndSelection();
-        _ = UpdateSyntaxInfoAsync();
+        UpdateSyntaxInfo();
         _initialized = true;
     }
 
@@ -126,19 +128,55 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 {
                     Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
                 }
+
                 break;
         }
     }
 
+    public async Task<(bool ShouldShow, ImmutableArray<EditorCompletionItem> Items)> ShouldShowCompletionAsync(
+        TextChangeTrigger trigger, CancellationToken ct = default)
+    {
+        _updateSyntaxCompletion = new TaskCompletionSource();
+        await _updateSyntaxCompletion.Task;
+        var completionOption = _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn - 1);
+        if (completionOption is not null)
+        {
+            var builder = ImmutableArray.CreateBuilder<EditorCompletionItem>();
+            switch (completionOption.Value.Type)
+            {
+                case CompletionOptionType.FileReference:
+                    var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "asm",
+                        excludedFile: File.AbsolutePath);
+                    foreach (var s in suggestions)
+                    {
+                        foreach (var p in s.Value)
+                        {
+                            builder.Add(new FileReferenceCompletionItem(p, s.Key));
+                        }
+                    }
+
+                    break;
+                default:
+                    throw new IndexOutOfRangeException(nameof(CompletionOption.Type));
+            }
+
+           var items = builder.ToImmutable();
+            return (items.Length > 0, items);
+        }
+
+        return (false, ImmutableArray<EditorCompletionItem>.Empty);
+    }
+
     private void RaiseSyntaxColoringUpdated(EventArgs e) => SyntaxColoringUpdated?.Invoke(this, e);
     private CancellationTokenSource? _syntaxInfoUpdatesCts;
+
     private void ParserOnFilesChanged(object? sender, FilesChangedEventArgs e)
     {
         if (e.Modified.TryGetValue(File.AbsolutePath, out var parsedSourceFile))
         {
             _sourceFileWithSets = _parser.AllFiles.GetValueOrDefault(File.AbsolutePath);
             UpdateDefineSymbolsAndSelection();
-            _ = UpdateSyntaxInfoAsync();
+            UpdateSyntaxInfo();
         }
     }
 
@@ -168,6 +206,11 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
     }
 
+    private TaskCompletionSource? _updateSyntaxCompletion;
+    private void UpdateSyntaxInfo()
+    {
+        _ = UpdateSyntaxInfoAsync();
+    }
     private async Task UpdateSyntaxInfoAsync()
     {
         if (_syntaxInfoUpdatesCts is not null)
@@ -188,7 +231,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 try
                 {
                     Debug.WriteLine("Refreshing syntax info");
-                    (Lines, var ignoredContent, Errors) = await _sourceFile.GetSyntaxInfoAsync(ct);
+                    (Lines, var ignoredContent, Errors, _, _) = await _sourceFile.GetSyntaxInfoAsync(ct);
                     var allErrors = Errors
                         .SelectMany(e => e.Value.Items)
                         .Select(se => new FileCompilerError(File, se));
@@ -199,10 +242,11 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 }
                 catch (OperationCanceledException)
                 {
-                    return;
+                    _updateSyntaxCompletion?.SetCanceled(ct);
                 }
                 catch (Exception ex)
                 {
+                    _updateSyntaxCompletion?.SetException(ex);
                     Logger.LogError(ex, "Failed updating syntax info");
                 }
             }
@@ -217,6 +261,8 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             DefineSymbols = ImmutableArray<FrozenSet<string>>.Empty;
             Logger.LogWarning("Opening {File} without parsed info", File.Name);
         }
+
+        _updateSyntaxCompletion?.TrySetResult();
     }
 
     /// <summary>
@@ -325,12 +371,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     {
         var errors = _errorsOutput.Lines
             .Where(f => f.File?.IsSame(File) == true)
-            .Select(e =>
-            {
-                // var range = e.Error.Range;
-                //return new SyntaxError(e.Error.Text ?? "?", e.Error.Offset, e.Error.Line, range, SyntaxErrorCompiledFileSource.Default);
-                return e.Error;
-            });
+            .Select(e => e.Error);
         Errors = errors
             .GroupBy(e => e.Line)
             .ToFrozenDictionary(g => g.Key, g => new SyntaxErrorLine([..g]));
@@ -397,7 +438,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 if (!_settingsSelectedDefineSymbols)
                 {
                     // trigger reparsing only on user input
-                    _ = UpdateSyntaxInfoAsync();
+                    UpdateSyntaxInfo();
                 }
                 break;
         }

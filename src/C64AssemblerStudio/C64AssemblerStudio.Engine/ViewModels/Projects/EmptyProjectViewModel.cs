@@ -37,7 +37,9 @@ public class EmptyProjectViewModel : ProjectViewModel<EmptyProject, ParsedSource
             return Task.CompletedTask;
         }
     }
-    public EmptyProjectViewModel(ILogger<ProjectViewModel<EmptyProject, ParsedSourceFile>> logger, ISettingsManager settingsManager,
+
+    public EmptyProjectViewModel(ILogger<ProjectViewModel<EmptyProject, ParsedSourceFile>> logger,
+        ISettingsManager settingsManager,
         ISystemDialogs systemDialogs, IDispatcher dispatcher)
         : base(logger, settingsManager, systemDialogs, dispatcher, new EmptySourceCodeParser())
     {

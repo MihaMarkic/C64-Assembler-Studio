@@ -29,6 +29,7 @@ namespace C64AssemblerStudio.Desktop.Controls.SyntaxEditor
 
         public override int GetFirstInterestedOffset(int startOffset)
         {
+            Debug.WriteLine($"{nameof(GetFirstInterestedOffset)} on {startOffset}");
             if (_maxOffset >= startOffset)
             {
                 foreach (var rf in _referencedFiles)
@@ -44,6 +45,7 @@ namespace C64AssemblerStudio.Desktop.Controls.SyntaxEditor
 
         public override VisualLineElement ConstructElement(int offset)
         {
+            Debug.WriteLine($"Generating visual element at {offset}");
             var rf = _referencedFilesMap[offset];
             return new ReferencedFileVisualLineLinkText(CurrentContext.VisualLine, rf.Length, rf, OnClicked);
         }

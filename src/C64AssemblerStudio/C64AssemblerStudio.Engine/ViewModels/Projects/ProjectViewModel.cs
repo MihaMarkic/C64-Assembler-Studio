@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Frozen;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
@@ -28,9 +28,12 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
     public string SymbolsDefine { get; set; } = string.Empty;
     public string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
     public string? FullPrgPath => Directory is not null ? System.IO.Path.Combine(Directory, "build", "main.prg") : null;
-    public string? BreakpointsSettingsPath => Directory is not null ? System.IO.Path.Combine(Directory, "breakpoints.json") : null;
 
-    protected ProjectViewModel(ILogger<ProjectViewModel<TConfiguration, TParsedFileType>> logger, ISettingsManager settingsManager,
+    public string? BreakpointsSettingsPath =>
+        Directory is not null ? System.IO.Path.Combine(Directory, "breakpoints.json") : null;
+
+    protected ProjectViewModel(ILogger<ProjectViewModel<TConfiguration, TParsedFileType>> logger,
+        ISettingsManager settingsManager,
         ISystemDialogs systemDialogs, IDispatcher dispatcher,
         ISourceCodeParser<TParsedFileType> sourceCodeParser) : base(dispatcher)
     {
@@ -39,6 +42,7 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
         SystemDialogs = systemDialogs;
         SourceCodeParser = sourceCodeParser;
     }
+
     public void Init(TConfiguration configuration, string? path)
     {
         Configuration = configuration;

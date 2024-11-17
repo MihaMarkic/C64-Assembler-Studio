@@ -1,5 +1,6 @@
 ﻿using System.Collections.Frozen;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Models.SystemDialogs;
 using C64AssemblerStudio.Engine.Services.Abstract;
@@ -23,8 +24,10 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject, KickAsse
     public ImmutableArray<ByteDumpLine>? ByteDumpLines { get; private set; }
     public FrozenDictionary<string, Label>? Labels { get; private set; }
 
-    public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject, KickAssemblerParsedSourceFile>> logger, ISettingsManager settingsManager,
-        ISystemDialogs systemDialogs, IDispatcher dispatcher, IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
+    public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject, KickAssemblerParsedSourceFile>> logger,
+        ISettingsManager settingsManager,
+        ISystemDialogs systemDialogs, IDispatcher dispatcher,
+        IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
         IKickAssemblerProgramInfoBuilder programInfoBuilder,
         IKickAssemblerByteDumpParser byteDumpParser,
         IKickAssemblerSourceCodeParser sourceCodeParser)

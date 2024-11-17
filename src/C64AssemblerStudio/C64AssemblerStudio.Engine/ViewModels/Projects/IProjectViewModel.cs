@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Frozen;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using Righthand.RetroDbgDataProvider.Models;

@@ -24,6 +24,10 @@ public abstract class FileViewModel : ScopedViewModel
     /// </summary>
     public int CaretLine { get; set; }
     public int CaretColumn { get; set; }
+    /// <summary>
+    /// Characters count from begging of content.
+    /// </summary>
+    public int CaretOffset { get; set; }
     protected FileViewModel(ILogger<FileViewModel> logger, IFileService fileService, IDispatcher dispatcher,
         StatusInfoViewModel statusInfo)
     {

@@ -5,10 +5,12 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using AvaloniaEdit;
+using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Utils;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Desktop.Controls.SyntaxEditor;
 using C64AssemblerStudio.Engine.Common;
+using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,6 +28,7 @@ public partial class AssemblerFile : UserControl
     private readonly MarkerRenderer _markerRenderer;
     private readonly ILogger<AssemblerFile> _logger;
     private ReferencedFileElementGenerator? _referencedFileElementGenerator;
+    private CompletionWindow? _completionWindow;
 
     public AssemblerFile(): this(IoC.Host.Services.GetRequiredService<ILogger<AssemblerFile>>())
     {
@@ -43,8 +46,54 @@ public partial class AssemblerFile : UserControl
         // leftMargins.Add(_lineNumbers);
         Editor.TextChanged += EditorOnTextChanged;
         Editor.TextArea.Caret.PositionChanged += CaretOnPositionChanged;
+        Editor.TextArea.TextEntering += TextAreaOnTextEntering;
         _markerRenderer = new();
         Editor.TextArea.TextView.BackgroundRenderers.Add(_markerRenderer);
+    }
+
+    private async void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
+    {
+        if (ViewModel is not null)
+        {
+            if (e.Text == "\"")
+            {
+                if (_completionWindow is null)
+                {
+                    var (shouldShow, items) =
+                        await ViewModel.ShouldShowCompletionAsync(TextChangeTrigger.CharacterTyped);
+                    if (shouldShow)
+                    {
+                        var completionItems = items
+                            .Cast<FileReferenceCompletionItem>()
+                            .Select(i => new FileReferenceSourceCompletionData(i))
+                            .ToImmutableArray();
+                        ShowCompletionSuggestions(completionItems);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Shows suggestions as completion list.
+    /// </summary>
+    /// <param name="suggestions"></param>
+    /// <typeparam name="T"></typeparam>
+    public void ShowCompletionSuggestions<T>(ImmutableArray<T> suggestions)
+        where T: ICompletionData
+    {
+        _completionWindow = new CompletionWindow(Editor.TextArea);
+        _completionWindow.Closed += CompletionWindowOnClosed;
+        var data = _completionWindow.CompletionList.CompletionData;
+        foreach (var s in suggestions)
+        {
+            data.Add(s);
+        }
+        _completionWindow.Show();
+    }
+    private void CompletionWindowOnClosed(object? sender, EventArgs e)
+    {
+        _completionWindow = null;
     }
 
     private void CaretOnPositionChanged(object? sender, EventArgs e)
@@ -58,6 +107,7 @@ public partial class AssemblerFile : UserControl
         {
             ViewModel.CaretLine = Editor.TextArea.Caret.Line;
             ViewModel.CaretColumn = Editor.TextArea.Caret.Column;
+            ViewModel.CaretOffset = Editor.TextArea.Caret.Offset;
         }
     }
 
@@ -249,16 +299,6 @@ public partial class AssemblerFile : UserControl
     }
 
     internal AssemblerFileViewModel? ViewModel => (AssemblerFileViewModel?)base.DataContext;
-
-    // protected override void OnAttachedToLogicalTree(LogicalTreeAttachmentEventArgs e)
-    // {
-    //     base.OnAttachedToLogicalTree(e);
-    //     if (this.TryFindResource("LineNumber", out object? res) && res is ISolidColorBrush brush)
-    //     {
-    //         _lineNumberForeground = brush;
-    //         _lineNumbers.Foreground = _lineNumberForeground;
-    //     }
-    // }
 
     private void Editor_PointerHover(object? sender, PointerEventArgs e)
     {

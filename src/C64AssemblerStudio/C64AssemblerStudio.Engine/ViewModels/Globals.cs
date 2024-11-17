@@ -1,6 +1,7 @@
 ﻿using System.Collections.Frozen;
 using System.Diagnostics;
 using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
@@ -16,22 +17,29 @@ public sealed class Globals: NotifiableObject
     private readonly ILogger<Globals> _logger;
     private readonly EmptyProjectViewModel _emptyProject;
     private readonly ISettingsManager _settingsManager;
+    private readonly IFileService _fileService;
     public event EventHandler? ProjectChanged;
+
     /// <summary>
     /// Holds active project, when no project is defined it contains <see cref="EmptyProjectViewModel"/>.
     /// </summary>
     public IProjectViewModel Project { get; private set; }
-    public Settings Settings { get; private set; } = new ();
+
+    public Settings Settings { get; private set; } = new();
     public bool IsProjectOpen => Project is not EmptyProjectViewModel;
-    public Globals(ILogger<Globals> logger, EmptyProjectViewModel emptyProject, ISettingsManager settingsManager)
+
+    public Globals(ILogger<Globals> logger, EmptyProjectViewModel emptyProject, ISettingsManager settingsManager,
+        IFileService fileService)
     {
         _logger = logger;
         _emptyProject = emptyProject;
         _settingsManager = settingsManager;
         Project = emptyProject;
+        _fileService = fileService;
     }
 
     private void RaiseProjectChanged(EventArgs e) => ProjectChanged?.Invoke(this, e);
+
     public async Task SetProjectAsync(IProjectViewModel project, CancellationToken ct)
     {
         if (Project is not EmptyProjectViewModel)
@@ -73,5 +81,31 @@ public sealed class Globals: NotifiableObject
             Project.Dispose();
         }
         Project = _emptyProject;    
+    }
+
+    /// <summary>
+    /// Searches for matching files in project and all libraries.
+    /// </summary>
+    /// <param name="filter">Relative file path without extension or *, just the directory and file name part</param>
+    /// <param name="extension">File extension to watch for.</param>
+    /// <param name="excludedFile">Full file name to exclude from results</param>
+    /// <returns>A dictionary with source as key and file names array as value.</returns>
+    public FrozenDictionary<string, ImmutableArray<string>> GetMatchingFiles(string filter, string extension, string? excludedFile = null)
+    {
+        string? projectDirectory = Project.Directory;
+        ArgumentNullException.ThrowIfNull(projectDirectory);
+        var searchDirectory = Path.GetDirectoryName(filter) ?? string.Empty;
+        var searchPattern = $"{Path.GetFileName(filter)}*.{extension}";
+        var builder = new Dictionary<string, ImmutableArray<string>>
+        {
+            { "Project", _fileService.GetFilteredFiles(Path.Combine(projectDirectory, searchDirectory), searchPattern, excludedFile) },
+        };
+        foreach (var library in Settings.Libraries)
+        {
+            builder.Add(library.Key,
+                _fileService.GetFilteredFiles(Path.Combine(library.Value.Path, searchDirectory), searchPattern));
+        }
+
+        return builder.ToFrozenDictionary();
     }
 }
