@@ -136,8 +136,14 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public async Task<(bool ShouldShow, ImmutableArray<EditorCompletionItem> Items)> ShouldShowCompletionAsync(
         TextChangeTrigger trigger, CancellationToken ct = default)
     {
-        _updateSyntaxCompletion = new TaskCompletionSource();
-        await _updateSyntaxCompletion.Task;
+        // when trigger is char typed, wait for parsing to be updated
+        // no need when trigger is CompletionRequested since it doesn't cause parsing as no text is chnaged
+        if (trigger == TextChangeTrigger.CharacterTyped)
+        {
+            _updateSyntaxCompletion = new TaskCompletionSource();
+            await _updateSyntaxCompletion.Task;
+        }
+
         var completionOption = _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn - 1);
         if (completionOption is not null)
         {

@@ -22,6 +22,7 @@ public partial class AssemblerFile : UserControl
 {
     // private readonly LineNumbers _lineNumbers;
     private SyntaxColorizer? _syntaxColorizer;
+
     // private ISolidColorBrush? _lineNumberForeground;
     private AssemblerFileViewModel? _oldViewModel;
     private BreakpointsMargin? _breakpointsMargin;
@@ -30,9 +31,10 @@ public partial class AssemblerFile : UserControl
     private ReferencedFileElementGenerator? _referencedFileElementGenerator;
     private CompletionWindow? _completionWindow;
 
-    public AssemblerFile(): this(IoC.Host.Services.GetRequiredService<ILogger<AssemblerFile>>())
+    public AssemblerFile() : this(IoC.Host.Services.GetRequiredService<ILogger<AssemblerFile>>())
     {
     }
+
     public AssemblerFile(ILogger<AssemblerFile> logger)
     {
         _logger = logger;
@@ -47,20 +49,39 @@ public partial class AssemblerFile : UserControl
         Editor.TextChanged += EditorOnTextChanged;
         Editor.TextArea.Caret.PositionChanged += CaretOnPositionChanged;
         Editor.TextArea.TextEntering += TextAreaOnTextEntering;
+        Editor.KeyDown += EditorOnKeyDown;
         _markerRenderer = new();
         Editor.TextArea.TextView.BackgroundRenderers.Add(_markerRenderer);
     }
 
-    private async void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
+    private void EditorOnKeyDown(object? sender, KeyEventArgs e)
+    {
+        // Debug.WriteLine($"{e.Key} {e.KeyModifiers}");
+        if (e is { Key: Key.Space, KeyModifiers: KeyModifiers.Control })
+        {
+            _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CompletionRequested);
+            e.Handled = true;
+        }
+    }
+
+    private void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
+    {
+        if (e.Text == "\"")
+        {
+            _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CharacterTyped);
+        }
+    }
+
+    private async Task TextAreaOnTextEnteringAsync(TextChangeTrigger trigger)
     {
         if (ViewModel is not null)
         {
-            if (e.Text == "\"")
+            if (_completionWindow is null)
             {
-                if (_completionWindow is null)
+                try
                 {
                     var (shouldShow, items) =
-                        await ViewModel.ShouldShowCompletionAsync(TextChangeTrigger.CharacterTyped);
+                        await ViewModel.ShouldShowCompletionAsync(trigger);
                     if (shouldShow)
                     {
                         var completionItems = items
@@ -69,6 +90,13 @@ public partial class AssemblerFile : UserControl
                             .ToImmutableArray();
                         ShowCompletionSuggestions(completionItems);
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed opening suggestions");
                 }
             }
         }
@@ -80,7 +108,7 @@ public partial class AssemblerFile : UserControl
     /// <param name="suggestions"></param>
     /// <typeparam name="T"></typeparam>
     public void ShowCompletionSuggestions<T>(ImmutableArray<T> suggestions)
-        where T: ICompletionData
+        where T : ICompletionData
     {
         _completionWindow = new CompletionWindow(Editor.TextArea);
         _completionWindow.Closed += CompletionWindowOnClosed;
@@ -89,8 +117,10 @@ public partial class AssemblerFile : UserControl
         {
             data.Add(s);
         }
+
         _completionWindow.Show();
     }
+
     private void CompletionWindowOnClosed(object? sender, EventArgs e)
     {
         _completionWindow = null;
@@ -153,6 +183,7 @@ public partial class AssemblerFile : UserControl
             {
                 Editor.TextArea.LeftMargins.Remove(_breakpointsMargin);
             }
+
             _breakpointsMargin = null;
             _syntaxColorizer = null;
             _oldViewModel = null;
@@ -186,6 +217,7 @@ public partial class AssemblerFile : UserControl
         {
             _referencedFileElementGenerator = null;
         }
+
         Editor.TextArea.TextView.Redraw();
     }
 
@@ -211,11 +243,12 @@ public partial class AssemblerFile : UserControl
                     .Where(i => i.Range.IsClosed)
                     .Select(e => new ZigzagMarker
                     {
-                        StartOffset = e.Offset ?? FindOffset(e.Line, e.Range.Start), 
-                        Length = e.Range.IsClosed ? e.Range.Length: FindLength(e.Line),
+                        StartOffset = e.Offset ?? FindOffset(e.Line, e.Range.Start),
+                        Length = e.Range.IsClosed ? e.Range.Length : FindLength(e.Line),
                     })
-                );
+            );
         }
+
         UpdateReferencedFileElementGenerator();
         Editor.TextArea.TextView.Redraw();
     }
@@ -225,6 +258,7 @@ public partial class AssemblerFile : UserControl
         var documentLine = Editor.Document.Lines[line];
         return documentLine.Offset + (column ?? 0);
     }
+
     int FindLength(int line)
     {
         var documentLine = Editor.Document.Lines[line];
@@ -240,6 +274,7 @@ public partial class AssemblerFile : UserControl
         {
             await Editor.WaitForLayoutUpdatedAsync();
         }
+
         Editor.ScrollTo(e.Line, e.Column);
     }
 
@@ -267,9 +302,10 @@ public partial class AssemblerFile : UserControl
                     Editor.TextArea.TextView.Redraw();
                     if (range is not null)
                     {
-                        Editor.ScrollTo(range.Value.Start-1, 1);
+                        Editor.ScrollTo(range.Value.Start - 1, 1);
                     }
                 }
+
                 break;
             case nameof(AssemblerFileViewModel.CallStackItems):
                 if (_syntaxColorizer is not null)
@@ -277,6 +313,7 @@ public partial class AssemblerFile : UserControl
                     _syntaxColorizer.CreateCallStackLineNumberMap();
                     Editor.TextArea.TextView.Redraw();
                 }
+
                 break;
         }
     }
@@ -316,6 +353,7 @@ public partial class AssemblerFile : UserControl
             }
         }
     }
+
     SyntaxError? GetErrorReferenceAtPosition(PointerEventArgs e)
     {
         if (ViewModel is not null)
@@ -326,10 +364,11 @@ public partial class AssemblerFile : UserControl
             var vp = textView.GetPosition(pos);
             if (vp is not null)
             {
-                Debug.WriteLine($"Pos {vp.Value.Line-1} {vp.Value.Column}");
-                return ViewModel.GetSyntaxErrorAt(vp.Value.Line-1, vp.Value.Column-1);
+                Debug.WriteLine($"Pos {vp.Value.Line - 1} {vp.Value.Column}");
+                return ViewModel.GetSyntaxErrorAt(vp.Value.Line - 1, vp.Value.Column - 1);
             }
         }
+
         return null;
     }
 
