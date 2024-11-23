@@ -23,7 +23,9 @@ public abstract class SourceCompletionData<T>: ICompletionData
 
     public void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
     {
-        textArea.Document.Replace(completionSegment, Text);
+        int start = completionSegment.Offset - Item.RootText.Length;
+        string replacementText = Item.PostfixDoubleQuote ? $"{Text}\"" : Text;
+        textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
     }
 }
 

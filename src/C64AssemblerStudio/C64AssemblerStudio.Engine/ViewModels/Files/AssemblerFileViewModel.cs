@@ -151,7 +151,10 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                     {
                         foreach (var p in s.Value)
                         {
-                            builder.Add(new FileReferenceCompletionItem(p, s.Key));
+                            builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root, completionOption.Value.ReplacementLength)
+                            {
+                                PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+                            });
                         }
                     }
 

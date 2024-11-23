@@ -1,18 +1,32 @@
 ﻿namespace C64AssemblerStudio.Engine.Models.SyntaxEditor;
 
-public abstract record EditorCompletionItem
+/// <summary>
+/// A editor completion item.
+/// </summary>
+/// <param name="Priority"></param>
+/// <param name="RootText">Text left of cursor for filtering the suggestions</param>
+/// <param name="ReplacementLength">Lenght of the replacement segment</param>
+public abstract record EditorCompletionItem(double Priority, string RootText, int ReplacementLength)
 {
-    public double Priority { get; }
+    /// <summary>
+    /// Text to be displayed in suggestions list.
+    /// </summary>
     public abstract string Text { get; }
     public abstract string Description { get; }
-
-    protected EditorCompletionItem(double priority)
-    {
-        Priority = priority;
-    }
+    /// <summary>
+    /// Whether text insertion should add double quotes at the end. Used for file references.
+    /// </summary>
+    public bool PostfixDoubleQuote { get; init; }
 }
-
-public record FileReferenceCompletionItem(string FileName, string Source) : EditorCompletionItem(0.0)
+/// <summary>
+/// A editor completion item for file references.
+/// </summary>
+/// <param name="FileName">Name of the file</param>
+/// <param name="Source">File source - Project or Library</param>
+/// <param name="RootText">Text left of cursor for filtering the suggestions</param>
+/// <param name="ReplacementLength">Lenght of the replacement segment</param>
+public record FileReferenceCompletionItem(string FileName, string Source, string RootText, int ReplacementLength)
+    : EditorCompletionItem(0.0, RootText, ReplacementLength)
 {
     public override string Text => Path.GetFileName(FileName);
     public override string Description => $"Inserts reference to file {FileName}";
