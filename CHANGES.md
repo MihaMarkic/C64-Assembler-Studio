@@ -8,7 +8,6 @@
 * File reference autocompletion
 * Jump to file reference
 * Assembler source files variation viewer (based on import define values)
-* Scoop installer support
 
 ### Updates
 * Updates to .NET 9.0
