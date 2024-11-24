@@ -95,7 +95,10 @@ public sealed class Globals: NotifiableObject
         string? projectDirectory = Project.Directory;
         ArgumentNullException.ThrowIfNull(projectDirectory);
         var searchDirectory = Path.GetDirectoryName(filter) ?? string.Empty;
-        var searchPattern = $"{Path.GetFileName(filter)}*.{extension}";
+        string directExtension = Path.GetExtension(filter);
+        string fileName = Path.GetFileNameWithoutExtension(filter);
+        extension = directExtension.Length > 1 ? $"{directExtension}*" : $".{extension}";
+        var searchPattern = $"{fileName}*{extension}";
         var builder = new Dictionary<string, ImmutableArray<string>>
         {
             { "Project", _fileService.GetFilteredFiles(Path.Combine(projectDirectory, searchDirectory), searchPattern, excludedFile) },

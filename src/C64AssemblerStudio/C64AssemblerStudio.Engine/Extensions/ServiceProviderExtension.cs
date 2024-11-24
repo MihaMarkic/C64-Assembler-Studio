@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Collections.Frozen;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Core.Common.Compiler;
 using C64AssemblerStudio.Engine.BindingValidators;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.ViewModels;
@@ -13,13 +15,26 @@ namespace System;
 public static class ServiceProviderExtension
 {
     public static T CreateScopedSourceFileViewModel<T>(this IServiceProvider serviceProvider, ProjectFile file)
-        where T: FileViewModel
+        where T : FileViewModel
     {
         var contentScope = serviceProvider.CreateScope();
         var viewModel = ActivatorUtilities.CreateInstance<T>(contentScope.ServiceProvider, file);
         viewModel.AssignScope(contentScope);
         return viewModel;
     }
+
+    public static AssemblerFileViewModel CreateScopedAssemblerSourceFileViewModel(this IServiceProvider serviceProvider,
+        ProjectFile file,
+        NullableArgument<FrozenSet<string>> defineSymbols = null)
+    {
+        var contentScope = serviceProvider.CreateScope();
+        var viewModel =
+            ActivatorUtilities.CreateInstance<AssemblerFileViewModel>(contentScope.ServiceProvider, file,
+                defineSymbols);
+        viewModel.AssignScope(contentScope);
+        return viewModel;
+    }
+
     //public static DisassemblyViewModel CreateScopedDisassemblyViewModel(this IServiceProvider serviceProvider, ushort address)
     //{
     //    var contentScope = serviceProvider.CreateScope();

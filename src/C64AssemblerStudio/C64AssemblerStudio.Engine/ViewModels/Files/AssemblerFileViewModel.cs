@@ -5,6 +5,8 @@ using System.Diagnostics;
 using Antlr4.Runtime;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Core.Common.Compiler;
+using C64AssemblerStudio.Core.Extensions;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -71,7 +73,6 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     /// </summary>
     private IImmutableParsedFileSet<ParsedSourceFile>? _sourceFileWithSets;
     private readonly ISourceCodeParser<ParsedSourceFile> _parser;
-    private readonly ImmutableArray<IToken> _allTokens;
     private readonly bool _initialized;
     /// <summary>
     /// Prevent triggering collateral parsing on setting <see cref="SelectedDefineSymbols"/> from code.
@@ -80,11 +81,34 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private bool _settingsSelectedDefineSymbols;
     private void RaiseBreakpointsChanged(EventArgs e) => BreakpointsChanged?.Invoke(this, e);
 
+    /// <summary>
+    /// Crateas an <see cref="AssemblerFileViewModel"/>.
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="fileService"></param>
+    /// <param name="dispatcher"></param>
+    /// <param name="statusInfo"></param>
+    /// <param name="breakpoints"></param>
+    /// <param name="vice"></param>
+    /// <param name="callStack"></param>
+    /// <param name="globals"></param>
+    /// <param name="errorsOutput"></param>
+    /// <param name="parserManager"></param>
+    /// <param name="projectExplorer"></param>
+    /// <param name="file"></param>
+    /// <param name="selectedDefineSymbols">Preselected define symbols</param>
+    /// <remarks>
+    /// Instance of <see cref="AssemblerFileViewModel"/> are created through
+    /// <see cref="Activator.CreateInstance{T}"/> and manually injected arguments can not be
+    /// null thus using <see cref="NullableArgument{T}"/> type.
+    /// </remarks>
     public AssemblerFileViewModel(ILogger<AssemblerFileViewModel> logger, IFileService fileService,
         IDispatcher dispatcher, StatusInfoViewModel statusInfo, BreakpointsViewModel breakpoints,
         IVice vice, CallStackViewModel callStack,
-        Globals globals, ErrorsOutputViewModel errorsOutput, ProjectFile file,
-        IParserManager parserManager, ProjectExplorerViewModel projectExplorer) : base(
+        Globals globals, ErrorsOutputViewModel errorsOutput,
+        IParserManager parserManager, ProjectExplorerViewModel projectExplorer, 
+        ProjectFile file,
+        NullableArgument<FrozenSet<string>> selectedDefineSymbols) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {
         Breakpoints = breakpoints;
@@ -107,11 +131,14 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         _parser = project.SourceCodeParser;
         _parser.FilesChanged += ParserOnFilesChanged;
         _sourceFileWithSets = _parser.AllFiles.GetValueOrDefault(File.AbsolutePath);
+        if (selectedDefineSymbols.Value is not null)
+        {
+            SelectedDefineSymbols = selectedDefineSymbols.Value;
+        }
         UpdateDefineSymbolsAndSelection();
         UpdateSyntaxInfo();
         _initialized = true;
     }
-
     private void ErrorsOutputOnCompilerErrorsAdded(object? sender, EventArgs e)
     {
         Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
@@ -132,13 +159,21 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 break;
         }
     }
+    
 
     public async Task<(bool ShouldShow, ImmutableArray<EditorCompletionItem> Items)> ShouldShowCompletionAsync(
         TextChangeTrigger trigger, CancellationToken ct = default)
     {
-        _updateSyntaxCompletion = new TaskCompletionSource();
-        await _updateSyntaxCompletion.Task;
-        var completionOption = _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn - 1);
+        // when trigger is char typed, wait for parsing to be updated
+        // no need when trigger is CompletionRequested since it doesn't cause parsing as no text is changed
+        if (trigger == TextChangeTrigger.CharacterTyped)
+        {
+            _updateSyntaxCompletion = new TaskCompletionSource();
+            await _updateSyntaxCompletion.Task;
+        }
+
+        ReadOnlySpan<char> lineText = Content.AsSpan().ExtractLine(CaretLine-1);
+        var completionOption = _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn-2, lineText);
         if (completionOption is not null)
         {
             var builder = ImmutableArray.CreateBuilder<EditorCompletionItem>();
@@ -525,10 +560,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         var file = _projectExplorer.GetProjectFileFromFullPath(item.ReferencedFile.FullFilePath!);
         if (file is null)
         {
-            Logger.LogError("Failed to find file {RelativePath} among project files", item.ReferencedFile.RelativeFilePath);
+            Logger.LogError("Failed to find file {RelativePath} among project files",
+                item.ReferencedFile.RelativeFilePath);
             return;
         }
-        var message = new OpenFileMessage(file);
+
+        var message = new OpenFileMessage(file, DefineSymbols: item.ReferencedFile.InDefines);
         Dispatcher.Dispatch(message);
     }
 }

@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using AvaloniaEdit;
 using AvaloniaEdit.CodeCompletion;
+using AvaloniaEdit.Document;
 using AvaloniaEdit.Utils;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Desktop.Controls.SyntaxEditor;
@@ -22,6 +23,7 @@ public partial class AssemblerFile : UserControl
 {
     // private readonly LineNumbers _lineNumbers;
     private SyntaxColorizer? _syntaxColorizer;
+
     // private ISolidColorBrush? _lineNumberForeground;
     private AssemblerFileViewModel? _oldViewModel;
     private BreakpointsMargin? _breakpointsMargin;
@@ -30,9 +32,10 @@ public partial class AssemblerFile : UserControl
     private ReferencedFileElementGenerator? _referencedFileElementGenerator;
     private CompletionWindow? _completionWindow;
 
-    public AssemblerFile(): this(IoC.Host.Services.GetRequiredService<ILogger<AssemblerFile>>())
+    public AssemblerFile() : this(IoC.Host.Services.GetRequiredService<ILogger<AssemblerFile>>())
     {
     }
+
     public AssemblerFile(ILogger<AssemblerFile> logger)
     {
         _logger = logger;
@@ -47,20 +50,39 @@ public partial class AssemblerFile : UserControl
         Editor.TextChanged += EditorOnTextChanged;
         Editor.TextArea.Caret.PositionChanged += CaretOnPositionChanged;
         Editor.TextArea.TextEntering += TextAreaOnTextEntering;
+        Editor.KeyDown += EditorOnKeyDown;
         _markerRenderer = new();
         Editor.TextArea.TextView.BackgroundRenderers.Add(_markerRenderer);
     }
 
-    private async void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
+    private void EditorOnKeyDown(object? sender, KeyEventArgs e)
+    {
+        // Debug.WriteLine($"{e.Key} {e.KeyModifiers}");
+        if (e is { Key: Key.Space, KeyModifiers: KeyModifiers.Control })
+        {
+            _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CompletionRequested);
+            e.Handled = true;
+        }
+    }
+
+    private void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
+    {
+        if (e.Text == "\"")
+        {
+            _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CharacterTyped);
+        }
+    }
+
+    private async Task TextAreaOnTextEnteringAsync(TextChangeTrigger trigger)
     {
         if (ViewModel is not null)
         {
-            if (e.Text == "\"")
+            if (_completionWindow is null)
             {
-                if (_completionWindow is null)
+                try
                 {
                     var (shouldShow, items) =
-                        await ViewModel.ShouldShowCompletionAsync(TextChangeTrigger.CharacterTyped);
+                        await ViewModel.ShouldShowCompletionAsync(trigger);
                     if (shouldShow)
                     {
                         var completionItems = items
@@ -70,7 +92,26 @@ public partial class AssemblerFile : UserControl
                         ShowCompletionSuggestions(completionItems);
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed opening suggestions");
+                }
             }
+        }
+    }
+    
+    class DirectSegment: ISegment
+    {
+        public int Offset { get; }
+        public int Length => 0;
+        public int EndOffset => Offset;
+
+        public DirectSegment(int offset)
+        {
+            Offset = offset;
         }
     }
 
@@ -80,17 +121,29 @@ public partial class AssemblerFile : UserControl
     /// <param name="suggestions"></param>
     /// <typeparam name="T"></typeparam>
     public void ShowCompletionSuggestions<T>(ImmutableArray<T> suggestions)
-        where T: ICompletionData
+        where T : ICompletionData
     {
-        _completionWindow = new CompletionWindow(Editor.TextArea);
-        _completionWindow.Closed += CompletionWindowOnClosed;
-        var data = _completionWindow.CompletionList.CompletionData;
-        foreach (var s in suggestions)
+        // fire suggestion selection when there is single option
+        if (suggestions.Length == 1)
         {
-            data.Add(s);
+            var suggestion = suggestions[0];
+            suggestion.Complete(Editor.TextArea, new DirectSegment(Editor.TextArea.Caret.Offset), EventArgs.Empty);
         }
-        _completionWindow.Show();
+        // show combo listing suggestions instead
+        else
+        {
+            _completionWindow = new CompletionWindow(Editor.TextArea);
+            _completionWindow.Closed += CompletionWindowOnClosed;
+            var data = _completionWindow.CompletionList.CompletionData;
+            foreach (var s in suggestions)
+            {
+                data.Add(s);
+            }
+
+            _completionWindow.Show();
+        }
     }
+
     private void CompletionWindowOnClosed(object? sender, EventArgs e)
     {
         _completionWindow = null;
@@ -153,6 +206,7 @@ public partial class AssemblerFile : UserControl
             {
                 Editor.TextArea.LeftMargins.Remove(_breakpointsMargin);
             }
+
             _breakpointsMargin = null;
             _syntaxColorizer = null;
             _oldViewModel = null;
@@ -186,6 +240,7 @@ public partial class AssemblerFile : UserControl
         {
             _referencedFileElementGenerator = null;
         }
+
         Editor.TextArea.TextView.Redraw();
     }
 
@@ -211,11 +266,12 @@ public partial class AssemblerFile : UserControl
                     .Where(i => i.Range.IsClosed)
                     .Select(e => new ZigzagMarker
                     {
-                        StartOffset = e.Offset ?? FindOffset(e.Line, e.Range.Start), 
-                        Length = e.Range.IsClosed ? e.Range.Length: FindLength(e.Line),
+                        StartOffset = e.Offset ?? FindOffset(e.Line, e.Range.Start),
+                        Length = e.Range.IsClosed ? e.Range.Length : FindLength(e.Line),
                     })
-                );
+            );
         }
+
         UpdateReferencedFileElementGenerator();
         Editor.TextArea.TextView.Redraw();
     }
@@ -225,6 +281,7 @@ public partial class AssemblerFile : UserControl
         var documentLine = Editor.Document.Lines[line];
         return documentLine.Offset + (column ?? 0);
     }
+
     int FindLength(int line)
     {
         var documentLine = Editor.Document.Lines[line];
@@ -240,6 +297,7 @@ public partial class AssemblerFile : UserControl
         {
             await Editor.WaitForLayoutUpdatedAsync();
         }
+
         Editor.ScrollTo(e.Line, e.Column);
     }
 
@@ -267,9 +325,10 @@ public partial class AssemblerFile : UserControl
                     Editor.TextArea.TextView.Redraw();
                     if (range is not null)
                     {
-                        Editor.ScrollTo(range.Value.Start-1, 1);
+                        Editor.ScrollTo(range.Value.Start - 1, 1);
                     }
                 }
+
                 break;
             case nameof(AssemblerFileViewModel.CallStackItems):
                 if (_syntaxColorizer is not null)
@@ -277,6 +336,7 @@ public partial class AssemblerFile : UserControl
                     _syntaxColorizer.CreateCallStackLineNumberMap();
                     Editor.TextArea.TextView.Redraw();
                 }
+
                 break;
         }
     }
@@ -316,6 +376,7 @@ public partial class AssemblerFile : UserControl
             }
         }
     }
+
     SyntaxError? GetErrorReferenceAtPosition(PointerEventArgs e)
     {
         if (ViewModel is not null)
@@ -326,10 +387,11 @@ public partial class AssemblerFile : UserControl
             var vp = textView.GetPosition(pos);
             if (vp is not null)
             {
-                Debug.WriteLine($"Pos {vp.Value.Line-1} {vp.Value.Column}");
-                return ViewModel.GetSyntaxErrorAt(vp.Value.Line-1, vp.Value.Column-1);
+                Debug.WriteLine($"Pos {vp.Value.Line - 1} {vp.Value.Column}");
+                return ViewModel.GetSyntaxErrorAt(vp.Value.Line - 1, vp.Value.Column - 1);
             }
         }
+
         return null;
     }
 
