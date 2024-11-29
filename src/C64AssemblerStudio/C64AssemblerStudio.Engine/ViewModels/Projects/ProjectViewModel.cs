@@ -43,6 +43,17 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
         SourceCodeParser = sourceCodeParser;
     }
 
+    /// <summary>
+    /// <see cref="SymbolsDefine"/> presented as set.
+    /// </summary>
+    internal FrozenSet<string> SymbolsDefineSet
+    {
+        get
+        {
+            return SymbolsDefine.Split(';').Select(d => d.Trim()).ToFrozenSet();
+        }
+    }
+
     public void Init(TConfiguration configuration, string? path)
     {
         Configuration = configuration;

@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using AvaloniaEdit;
 using AvaloniaEdit.CodeCompletion;
+using AvaloniaEdit.Document;
 using AvaloniaEdit.Utils;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Desktop.Controls.SyntaxEditor;
@@ -101,6 +102,18 @@ public partial class AssemblerFile : UserControl
             }
         }
     }
+    
+    class DirectSegment: ISegment
+    {
+        public int Offset { get; }
+        public int Length => 0;
+        public int EndOffset => Offset;
+
+        public DirectSegment(int offset)
+        {
+            Offset = offset;
+        }
+    }
 
     /// <summary>
     /// Shows suggestions as completion list.
@@ -110,15 +123,25 @@ public partial class AssemblerFile : UserControl
     public void ShowCompletionSuggestions<T>(ImmutableArray<T> suggestions)
         where T : ICompletionData
     {
-        _completionWindow = new CompletionWindow(Editor.TextArea);
-        _completionWindow.Closed += CompletionWindowOnClosed;
-        var data = _completionWindow.CompletionList.CompletionData;
-        foreach (var s in suggestions)
+        // fire suggestion selection when there is single option
+        if (suggestions.Length == 1)
         {
-            data.Add(s);
+            var suggestion = suggestions[0];
+            suggestion.Complete(Editor.TextArea, new DirectSegment(Editor.TextArea.Caret.Offset), EventArgs.Empty);
         }
+        // show combo listing suggestions instead
+        else
+        {
+            _completionWindow = new CompletionWindow(Editor.TextArea);
+            _completionWindow.Closed += CompletionWindowOnClosed;
+            var data = _completionWindow.CompletionList.CompletionData;
+            foreach (var s in suggestions)
+            {
+                data.Add(s);
+            }
 
-        _completionWindow.Show();
+            _completionWindow.Show();
+        }
     }
 
     private void CompletionWindowOnClosed(object? sender, EventArgs e)

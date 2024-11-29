@@ -1,4 +1,6 @@
-﻿namespace C64AssemblerStudio.Desktop.Converters;
+﻿using C64AssemblerStudio.Core.Extensions;
+
+namespace C64AssemblerStudio.Desktop.Converters;
 
 public class TabsToSpacesConverter : ParameterlessValueConverter<string, string>
 {

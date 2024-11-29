@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		..\..\README.md = ..\..\README.md
+		..\..\CHANGELOG.md = ..\..\CHANGELOG.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "C64AssemblerStudio.Core", "C64AssemblerStudio.Core\C64AssemblerStudio.Core.csproj", "{27E7099F-7B6E-4116-A3BE-30AA5D42EA17}"

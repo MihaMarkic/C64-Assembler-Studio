@@ -1,11 +1,15 @@
-﻿using C64AssemblerStudio.Engine.Models.Projects;
+﻿using System.Collections.Frozen;
+using C64AssemblerStudio.Engine.Models.Projects;
 
 namespace C64AssemblerStudio.Engine.Messages;
 
-public record OpenFileMessage(ProjectFile File, int? Column = default, int? Line = default, bool MoveCaret = false);
-//public record OpenSourceLineNumberFileMessage(PdbFile File, int Line, int? Column = default, bool MoveCaret = false)
-//    : OpenFileMessage(File, Column, MoveCaret);
-//public record OpenSourceLineFileMessage(PdbFile File, PdbLine Line, PdbAssemblyLine? AssemblyLine, bool IsExecution,
-//    int? Column = default, bool MoveCaret = false)
-//    : OpenFileMessage(File, Column, MoveCaret);
-//public record OpenAddressMessage(ushort Address);
+/// <summary>
+/// Opens file with additional hints.
+/// </summary>
+/// <param name="File"></param>
+/// <param name="Column"></param>
+/// <param name="Line"></param>
+/// <param name="MoveCaret">When true, client should position caret</param>
+/// <param name="DefineSymbols">File variation to open, where there are more define symbols sets</param>
+public record OpenFileMessage(ProjectFile File, int? Column = default, int? Line = default, bool MoveCaret = false,
+    FrozenSet<string>? DefineSymbols = null);

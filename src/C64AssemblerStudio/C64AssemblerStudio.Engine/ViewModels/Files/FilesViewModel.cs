@@ -284,6 +284,10 @@ public class FilesViewModel : ViewModel
         if (viewModel is not null)
         {
             Selected = viewModel;
+            if (viewModel is AssemblerFileViewModel assemblerFileViewModel)
+            {
+                assemblerFileViewModel.SelectedDefineSymbols = message.DefineSymbols;
+            }
             if (message is { MoveCaret: true, Line: not null, Column: not null })
             {
                 viewModel.MoveCaret(message.Line.Value, message.Column.Value);
@@ -293,9 +297,9 @@ public class FilesViewModel : ViewModel
         {
             viewModel = message.File.FileType switch
             {
-                FileType.Assembler =>
-                    _serviceProvider.CreateScopedSourceFileViewModel<AssemblerFileViewModel>(message.File),
-                _ => null,
+                FileType.Assembler => _serviceProvider.CreateScopedAssemblerSourceFileViewModel(message.File,
+                    new(message.DefineSymbols)),
+                _ => (ProjectFileViewModel?)null
             };
             if (viewModel is not null)
             {
