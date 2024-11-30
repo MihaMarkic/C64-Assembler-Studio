@@ -1,6 +1,9 @@
 # C64 Assembler Studio Changelog
 
-## [0.3.0] TBA
+## [0.3.0-alpha](https://github.com/MihaMarkic/C64-Assembler-Studio/releases/tag/0.3.0-alpha) (30.11.2024)
+
+### Breaking changes
+* Using .NET 9.0
 
 ### New features
 * Full project parsing
@@ -10,5 +13,5 @@
 * Assembler source files variation viewer (based on import define values)
 
 ### Updates
-* Updates to .NET 9.0
 * Syntax coloring
+* Many others

@@ -34,7 +34,7 @@
         <ProjectReference Include="..\..\..\..\..\retro-dbg-data-provider\src\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider\Righthand.RetroDbgDataProvider.csproj" />
     </ItemGroup>
     <ItemGroup Condition=" '$(Configuration)' != 'Local Debug' ">
-        <PackageReference Include="Retro.Debug.Data.Provider" Version="0.1.5-alpha" />
+        <PackageReference Include="Retro.Debug.Data.Provider" Version="0.2.0-alpha" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\C64AssemblerStudio.Core\C64AssemblerStudio.Core.csproj" />
