@@ -11,6 +11,7 @@
 * File reference autocompletion
 * Jump to file reference
 * Assembler source files variation viewer (based on import define values)
+* Libraries support
 
 ### Updates
 * Syntax coloring

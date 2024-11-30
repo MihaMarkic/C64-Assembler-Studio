@@ -135,3 +135,49 @@ To add a file or directory, right click anywhere in Project Explorer empty space
 </p>
 
 Only adding .asm files is supported currently.
+
+### <a name="libraries_support"></a>Libraries support
+
+KickAssembler support libraries which are directory with shared .asm files.
+Library directories are set at project level settings.
+<p align="center">
+ 	<img src="libraries_settings.png" >
+</p>
+There is no limit to libraries count.
+
+The libraries content is available through Project Explorer's `Libraries` node as any other .asm file.
+<p align="center">
+ 	<img src="libraries_explorer.png">
+</p>
+
+Files from library are imported using `#import` or `#importif` preprocessor directives. Note that not all imports to same file are equal as define constants before import can be different, take this code for an example:
+
+```csharp
+#import "target.asm"
+#define SOMETHING
+#import "target.asm"
+```
+
+Even though code is referencing the same file, the `target.asm` content could be different due to the define constant.
+
+
+There is also Code Completion support for referencing files when you try first double quote char or explicitly on CTRL+SPACE.
+<p align="center">
+ 	<img src="file_reference_completion.png">
+</p>
+
+Simple navigation to referenced file can be done using CTRL+LEFT_BUTTON click when cursor is over referenced file name. This way referenced file will be open in correct variation of define constants. See also [Code Completion](#code_completion)
+
+### <a name="imported_file_variations"></a>Imported file variations
+
+See [Libraries support](libraries_support).
+
+When file is imported using different define constants, a `Symbols` selector drop down is available for selecting variations.
+
+<p align="center">
+ 	<img src="imported_variations.png">
+</p>
+
+### <a name="code_completion"></a>Code completion
+
+Code completion is currently supporting only when importing files. Code completion is triggered either using first double quote after `#import` or `#importif` preprocessor directives or explicitly on CTRL+SPACE when inside referenced file name where text left of cursor is used as search filter.
