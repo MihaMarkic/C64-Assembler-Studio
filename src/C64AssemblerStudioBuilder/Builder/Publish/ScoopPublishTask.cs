@@ -56,7 +56,7 @@ public class SignWinX64Task : FrostingTask<BuildContext>
         {
             context.Sign(exeFile, settings);
         }
-        catch (Exception e)
+        catch (Exception)
         {
             context.Error($"Signtool should be in %PATH%. To get its location one can use '$(get-command signtool).path' powershell command.");
             throw;

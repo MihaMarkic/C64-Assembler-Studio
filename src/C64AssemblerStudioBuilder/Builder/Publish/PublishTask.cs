@@ -30,6 +30,7 @@ public class CompressPublishTask : FrostingTask<BuildContext>
         {
             BuildType.Archive => context.Architecture == TargetArchitecture.Dependent ? "" : "_selfcontained",
             BuildType.Scoop => "_scoop",
+            _ => throw new ArgumentOutOfRangeException(nameof(context.BuildType)),
         };
         string fileName = $"C64AssemblerStudio{archiveType}_{version}_{context.ArchitectureUnderscoreText}.zip";
         context.Information($"Compressed file is {fileName}");

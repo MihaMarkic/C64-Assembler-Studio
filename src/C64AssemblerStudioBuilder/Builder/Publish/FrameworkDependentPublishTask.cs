@@ -14,6 +14,7 @@ public class FrameworkDependentPublishTask : FrostingTask<BuildContext>
 
     public override void Run(BuildContext context)
     {
+        context.CreateDirectory(context.PublishDirectory);
         var settings = new DotNetPublishSettings
         {
             Configuration = "Release",
