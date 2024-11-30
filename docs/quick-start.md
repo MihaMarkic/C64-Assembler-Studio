@@ -170,7 +170,7 @@ Simple navigation to referenced file can be done using CTRL+LEFT_BUTTON click wh
 
 ### <a name="imported_file_variations"></a>Imported file variations
 
-See [Libraries support](libraries_support).
+See [Libraries support](#libraries_support).
 
 When file is imported using different define constants, a `Symbols` selector drop down is available for selecting variations.
 
