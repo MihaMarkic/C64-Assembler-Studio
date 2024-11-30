@@ -123,6 +123,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
                     TokenType.Comment => ApplyCommentChanges,
                     TokenType.Number => ApplyNumberChanges,
                     TokenType.Directive => ApplyDirectiveChanges,
+                    TokenType.PreprocessorDirective => ApplyPreprocessorDirectiveChanges,
                     // references are handled through ReferencedFileElementGenerator
                     //TokenType.FileReference => ApplyFileReferenceChanges,
                     // SyntaxElementType.Comment => ApplyCommentChanges,
@@ -170,13 +171,14 @@ public class SyntaxColorizer : DocumentColorizingTransformer
 
     void ApplyDirectiveChanges(VisualLineElement element) =>
         element.TextRunProperties.SetForegroundBrush(ElementColor.Directive);
+    void ApplyPreprocessorDirectiveChanges(VisualLineElement element) =>
+        element.TextRunProperties.SetForegroundBrush(ElementColor.PreprocessorDirective);
 
     void ApplyAssemblyChanges(VisualLineElement element) =>
         element.TextRunProperties.SetForegroundBrush(ElementColor.Assembly);
 
     void ApplyCallStackChanges(VisualLineElement element) =>
         element.TextRunProperties.SetBackgroundBrush(ElementColor.CallStackCall);
-
     void ApplyIgnoredChanges(VisualLineElement element) =>
         element.TextRunProperties.SetForegroundBrush(ElementColor.Ignored);
 
@@ -205,6 +207,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
         public static readonly IBrush InstructionExtension = Brushes.DarkBlue;
         public static readonly IBrush Number = Brushes.DarkCyan;
         public static readonly IBrush Directive = Brushes.PaleVioletRed;
+        public static readonly IBrush PreprocessorDirective = Brushes.DimGray;
         public static readonly IBrush BreakpointBackground = new SolidColorBrush(new Color(0xFF, 0x96, 0x3A, 0x46));
         public static readonly IBrush CallStackCall = new SolidColorBrush(new Color(0x50, 0xB4, 0xE4, 0xB4));
         public static readonly IBrush Ignored = Brushes.LightGray; 

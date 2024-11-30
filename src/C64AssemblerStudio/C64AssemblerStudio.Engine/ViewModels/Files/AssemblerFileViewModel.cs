@@ -49,7 +49,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public bool IsByteDumpVisible { get; set; }
     public bool IsByteDumpToggleVisible => _vice.IsDebugging;
     public bool IsDefineSymbolsVisible => DefineSymbols.Length > 1;
-    public bool IsHeaderVisible => IsByteDumpVisible || IsDefineSymbolsVisible;
+    public bool IsHeaderVisible => IsByteDumpToggleVisible || IsDefineSymbolsVisible;
     public ImmutableArray<ByteDumpLineViewModel> ByteDumpLines { get; private set; }
     /// <summary>
     /// Keeps call stack lines
@@ -333,9 +333,24 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         // addition is possible only on non-empty lines
         if (breakpoint is null)
         {
-            return Lines.TryGetValue(lineNumber, out var line) && !line.Items.IsEmpty;
+            return Lines.TryGetValue(lineNumber, out var line) 
+                   && !line.Items.IsEmpty
+                   && IsLineAvailableForBreakpoint(line.Items);
         }
         // always can remove
+        return true;
+    }
+
+    internal static bool IsLineAvailableForBreakpoint(ImmutableArray<SyntaxItem> items)
+    {
+        foreach (var i in items)
+        {
+            if (i.TokenType == TokenType.PreprocessorDirective)
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
