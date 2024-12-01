@@ -65,20 +65,23 @@ public static class StudioConverters
     public static readonly IValueConverter Add =
         new FuncValueConverter<int, int, int>((v, p) => v + p);
 
-    private static readonly IBrush ProjectFileReferenceSourceBrush = new SolidColorBrush(Colors.DarkGreen);
-    private static readonly IBrush LibraryFileReferenceSourceBrush = new SolidColorBrush(Colors.DarkOrange);
+    private static readonly IBrush ProjectFileReferenceCompletionOptionSourceBrush = new SolidColorBrush(Colors.DarkGreen);
+    private static readonly IBrush LibraryFileReferenceCompletionOptionSourceBrush = new SolidColorBrush(Colors.DarkOrange);
+    private static readonly IBrush PreprocessorDirectiveCompletionOptionSourceBrush = new SolidColorBrush(Colors.DarkGray);
+    private static readonly IBrush DefaultCompletionOptionSourceBrush = new SolidColorBrush(Colors.Black);
 
-    public static readonly IValueConverter FileReferenceSourceToBrushConverter =
+    public static readonly IValueConverter CompletionSourceToBrushConverter =
         new FuncValueConverter<string, IBrush?>(s =>
         {
             if (s is not null)
             {
-                if (s.Equals("Project", StringComparison.Ordinal))
+                return s switch
                 {
-                    return ProjectFileReferenceSourceBrush;
-                }
-
-                return LibraryFileReferenceSourceBrush;
+                    "Project" => ProjectFileReferenceCompletionOptionSourceBrush,
+                    "PPD" => PreprocessorDirectiveCompletionOptionSourceBrush,
+                    "Library" => LibraryFileReferenceCompletionOptionSourceBrush,
+                    _ => DefaultCompletionOptionSourceBrush,
+                };
             }
 
             return null;

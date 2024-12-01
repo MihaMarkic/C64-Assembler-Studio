@@ -6,7 +6,7 @@
 /// <param name="Priority"></param>
 /// <param name="RootText">Text left of cursor for filtering the suggestions</param>
 /// <param name="ReplacementLength">Lenght of the replacement segment</param>
-public abstract record EditorCompletionItem(double Priority, string RootText, int ReplacementLength)
+public abstract record EditorCompletionItem(double Priority, string RootText, int ReplacementLength, int ReplacementRelativeOffset)
 {
     /// <summary>
     /// Text to be displayed in suggestions list.
@@ -18,6 +18,20 @@ public abstract record EditorCompletionItem(double Priority, string RootText, in
     /// </summary>
     public bool PostfixDoubleQuote { get; init; }
 }
+
+public record StandardCompletionItem(
+    string ReplacementText,
+    string Source,
+    string RootText,
+    int ReplacementLength,
+    int ReplacementRelativeOffset)
+    : EditorCompletionItem(0.0, RootText, ReplacementLength, ReplacementRelativeOffset)
+{
+    public override string Text => ReplacementText;
+    public override string Description => $"Inserts {Source}";
+}
+    
+
 /// <summary>
 /// A editor completion item for file references.
 /// </summary>
@@ -26,7 +40,7 @@ public abstract record EditorCompletionItem(double Priority, string RootText, in
 /// <param name="RootText">Text left of cursor for filtering the suggestions</param>
 /// <param name="ReplacementLength">Lenght of the replacement segment</param>
 public record FileReferenceCompletionItem(string FileName, string Source, string RootText, int ReplacementLength)
-    : EditorCompletionItem(0.0, RootText, ReplacementLength)
+    : EditorCompletionItem(0.0, RootText, ReplacementLength, 0)
 {
     public override string Text => Path.GetFileName(FileName);
     public override string Description => $"Inserts reference to file {FileName}";

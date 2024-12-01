@@ -67,7 +67,7 @@ public partial class AssemblerFile : UserControl
 
     private void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
     {
-        if (e.Text == "\"")
+        if (e.Text is "\"" or "#")
         {
             _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CharacterTyped);
         }
@@ -85,11 +85,20 @@ public partial class AssemblerFile : UserControl
                         await ViewModel.ShouldShowCompletionAsync(trigger);
                     if (shouldShow)
                     {
-                        var completionItems = items
-                            .Cast<FileReferenceCompletionItem>()
-                            .Select(i => new FileReferenceSourceCompletionData(i))
-                            .ToImmutableArray();
-                        ShowCompletionSuggestions(completionItems);
+                        var builder = ImmutableArray.CreateBuilder<ICompletionData>();
+                        foreach (var i in items)
+                        {
+                            ICompletionData data = i switch
+                            {
+                                FileReferenceCompletionItem fileReference => new FileReferenceSourceCompletionData(
+                                    fileReference),
+                                StandardCompletionItem standard => new StandardCompletionData(standard),
+                                _ => throw new Exception($"Not handling {i.GetType().Name}"),
+                            };
+                            builder.Add(data);
+                        }
+
+                        ShowCompletionSuggestions(builder.ToImmutable());
                     }
                 }
                 catch (OperationCanceledException)
@@ -139,7 +148,7 @@ public partial class AssemblerFile : UserControl
             {
                 data.Add(s);
             }
-
+            // _completionWindow.ExpectInsertionBeforeStart = true;
             _completionWindow.Show();
         }
     }

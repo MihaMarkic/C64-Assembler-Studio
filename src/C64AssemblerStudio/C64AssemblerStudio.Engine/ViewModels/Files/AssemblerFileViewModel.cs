@@ -180,25 +180,38 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             switch (completionOption.Value.Type)
             {
                 case CompletionOptionType.FileReference:
+                {
                     var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "asm",
                         excludedFile: File.AbsolutePath);
                     foreach (var s in suggestions)
                     {
                         foreach (var p in s.Value)
                         {
-                            builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root, completionOption.Value.ReplacementLength)
+                            builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
+                                completionOption.Value.ReplacementLength)
                             {
                                 PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
                             });
                         }
                     }
+                }
 
+                    break;
+                case CompletionOptionType.PreprocessorDirective when _sourceFile is not null:
+                {
+                    var suggestions = _sourceFile.GetPreprocessorDirectiveSuggestions(completionOption.Value.Root);
+                    foreach (var s in suggestions)
+                    {
+                        builder.Add(new StandardCompletionItem(s, "PPD", completionOption.Value.Root,
+                            completionOption.Value.ReplacementLength, -1));
+                    }
+                }
                     break;
                 default:
                     throw new IndexOutOfRangeException(nameof(CompletionOption.Type));
             }
 
-           var items = builder.ToImmutable();
+            var items = builder.ToImmutable();
             return (items.Length > 0, items);
         }
 

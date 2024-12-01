@@ -21,7 +21,15 @@ public abstract class SourceCompletionData<T>: ICompletionData
         Item = item;
     }
 
-    public void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
+    public abstract void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs);
+}
+
+public class FileReferenceSourceCompletionData : SourceCompletionData<FileReferenceCompletionItem>
+{
+    public FileReferenceSourceCompletionData(FileReferenceCompletionItem item) : base(item)
+    {
+    }
+    public override void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
     {
         int start = completionSegment.Offset - Item.RootText.Length;
         string replacementText = Item.PostfixDoubleQuote ? $"{Text}\"" : Text;
@@ -29,9 +37,14 @@ public abstract class SourceCompletionData<T>: ICompletionData
     }
 }
 
-public class FileReferenceSourceCompletionData : SourceCompletionData<FileReferenceCompletionItem>
+public class StandardCompletionData: SourceCompletionData<StandardCompletionItem>
 {
-    public FileReferenceSourceCompletionData(FileReferenceCompletionItem item) : base(item)
+    public StandardCompletionData(StandardCompletionItem item) : base(item)
     {
+    }
+    public override void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
+    {
+        int start = completionSegment.Offset - Item.RootText.Length + Item.ReplacementRelativeOffset;
+        textArea.Document.Replace(start, Item.ReplacementLength, Text);
     }
 }

@@ -55,7 +55,19 @@
                 <TextBlock Text="{Binding Source}" VerticalAlignment="Center"
                            DockPanel.Dock="Right"
                            TextAlignment="Right"
-                           Foreground="{Binding Converter={x:Static converters:StudioConverters.FileReferenceSourceToBrushConverter}}"
+                           Foreground="{Binding Converter={x:Static converters:StudioConverters.CompletionSourceToBrushConverter}}"
+                           FontSize="9"
+                           Margin="4,0,0,0" />
+                <TextBlock Text="{Binding Text}" VerticalAlignment="Center" />
+            </DockPanel>
+        </DataTemplate>
+        <!-- template for generic completion suggestion -->
+        <DataTemplate x:DataType="syntaxEditor:StandardCompletionItem">
+            <DockPanel LastChildFill="True">
+                <TextBlock Text="{Binding Source}" VerticalAlignment="Center"
+                           DockPanel.Dock="Right"
+                           TextAlignment="Right"
+                           Foreground="{Binding Converter={x:Static converters:StudioConverters.CompletionSourceToBrushConverter}}"
                            FontSize="9"
                            Margin="4,0,0,0" />
                 <TextBlock Text="{Binding Text}" VerticalAlignment="Center" />
