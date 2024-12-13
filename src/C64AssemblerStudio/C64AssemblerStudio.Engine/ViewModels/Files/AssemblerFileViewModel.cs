@@ -173,7 +173,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
 
         ReadOnlySpan<char> lineText = Content.AsSpan().ExtractLine(CaretLine-1);
-        var completionOption = _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn-2, lineText);
+        var completionOption = _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn-2, Content, 0, 0);
         if (completionOption is not null)
         {
             var builder = ImmutableArray.CreateBuilder<EditorCompletionItem>();
@@ -207,16 +207,16 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                     }
                 }
                     break;
-                case CompletionOptionType.Directive when _sourceFile is not null:
-                {
-                    var suggestions = _sourceFile.GetDirectiveSuggestions(completionOption.Value.Root);
-                    foreach (var s in suggestions)
-                    {
-                        builder.Add(new StandardCompletionItem(s, "Directive", completionOption.Value.Root,
-                            completionOption.Value.ReplacementLength, -1));
-                    }
-                }
-                    break;
+                //case CompletionOptionType.Directive when _sourceFile is not null:
+                //{
+                //    var suggestions = _sourceFile.GetPreprocessorDirectiveSuggestions(completionOption.Value.Root);
+                //    foreach (var s in suggestions)
+                //    {
+                //        builder.Add(new StandardCompletionItem(s, "Directive", completionOption.Value.Root,
+                //            completionOption.Value.ReplacementLength, -1));
+                //    }
+                //}
+                //    break;
                 default:
                     throw new IndexOutOfRangeException(nameof(CompletionOption.Type));
             }
