@@ -1,13 +1,12 @@
 ﻿using System.Collections.Frozen;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Common.Compiler;
 using C64AssemblerStudio.Engine.BindingValidators;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Files;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
 namespace System;
@@ -25,7 +24,7 @@ public static class ServiceProviderExtension
 
     public static AssemblerFileViewModel CreateScopedAssemblerSourceFileViewModel(this IServiceProvider serviceProvider,
         ProjectFile file,
-        NullableArgument<FrozenSet<string>> defineSymbols = null)
+        NullableArgument<FrozenSet<string>> defineSymbols)
     {
         var contentScope = serviceProvider.CreateScope();
         var viewModel =
