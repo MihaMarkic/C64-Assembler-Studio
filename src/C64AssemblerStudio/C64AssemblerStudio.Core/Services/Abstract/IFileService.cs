@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 
 namespace C64AssemblerStudio.Core.Services.Abstract;
 public interface IFileService
@@ -11,10 +12,11 @@ public interface IFileService
     /// </summary>
     /// <param name="path"></param>
     /// <param name="searchPattern"></param>
-    /// <param name="excludedFile">Full file name to be omitted from results</param>
+    /// <param name="excludedFiles">Full file name to be omitted from results.</param>
     /// <returns>An <see cref="ImmutableArray&lt;String&gt;"/> with all matched file names.</returns>
     /// <remarks>
-    /// Excluded file <param name="excludedFile"/> is usually call originator and thus should be no elegible.
+    /// Excluded file <param name="excludedFiles"/> should be excluded from results. Make sure it uses a proper file comparer
+    /// from <see cref="OsDependent"/> support class.
     /// </remarks>
-    ImmutableArray<string> GetFilteredFiles(string path, string searchPattern, string? excludedFile = null);
+    ImmutableArray<string> GetFilteredFiles(string path, string searchPattern, FrozenSet<string> excludedFiles);
 }

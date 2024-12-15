@@ -76,5 +76,27 @@ public class StringExtensionTest
         {
             return input.AsSpan().ExtractLinePosition(lineNumber).Length;
         }
+
+        // ReSharper disable once StringLiteralTypo
+        [TestCase("""
+                  *=$0801
+                  .byte $0c,$08,$b5,$07,$9e,$20,$32,$30,$36,$32,$00,$00,$00
+                  jmp main
+
+                  hellotext:
+                      .encoding "screencode_mixed"
+                      .text "c64 assembler studio!"
+                      .byte $0
+                      .const ofs = 9
+                  .segment Base [prgFiles="test.prg, test2.prg"
+                  #import "
+
+                  .main
+                  """, 10, ExpectedResult = "#import \"")]
+        public string? GivenSample_ExtractsLineCorrectly(string input, int lineNumber)
+        {
+            var (start, length) = input.AsSpan().ExtractLinePosition(lineNumber);
+            return input.Substring(start, length);
+        }
     }
 }

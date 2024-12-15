@@ -1,4 +1,5 @@
 ﻿using AutoFixture;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Implementation;
 using Microsoft.Extensions.Logging;
@@ -15,64 +16,68 @@ public class ProjectFilesWatcherTest : BaseTest<ProjectFileWatcher>
         [Test]
         public void WhenRootDirectory_ReturnsRootDirectory()
         {
-            var rootDirectoy = new ProjectRoot
+            var rootDirectory = new ProjectRoot(StringComparison.Ordinal)
             {
                 AbsoluteRootPath = @"D:\root",
                 Name = "Root",
                 Parent = null,
             };
             var logger = Fixture.Freeze<ILogger>();
+            var osDependant = Fixture.Freeze<IOsDependent>();
 
-            var actual = ProjectFileWatcher.FindMatchingDirectory(rootDirectoy, "", logger);
+            var actual = ProjectFileWatcher.FindMatchingDirectory(rootDirectory, "", logger, osDependant);
 
-            Assert.That(actual, Is.SameAs(rootDirectoy));
+            Assert.That(actual, Is.SameAs(rootDirectory));
         }
 
         [Test]
         public void WhenDirectoryMatchesLibraries_AndThereIsNoRelativeLibrariesDirectory_ThrowsException()
         {
-            var rootDirectoy = new ProjectRoot
+            var rootDirectory = new ProjectRoot(StringComparison.Ordinal)
             {
                 AbsoluteRootPath = @"D:\root",
                 Name = "Root",
                 Parent = null,
             };
-            var library = new ProjectLibraries
+            var library = new ProjectLibraries(StringComparison.Ordinal)
             {
                 Name = "Libraries",
                 Parent = null,
             };
-            rootDirectoy.Items.Add(library);
+            rootDirectory.Items.Add(library);
             var logger = Fixture.Freeze<ILogger>();
+            var osDependant = Fixture.Freeze<IOsDependent>();
 
-            Assert.Throws<Exception>(() => ProjectFileWatcher.FindMatchingDirectory(rootDirectoy, "Libraries", logger));
+            Assert.Throws<Exception>(() =>
+                ProjectFileWatcher.FindMatchingDirectory(rootDirectory, "Libraries", logger, osDependant));
         }
 
         [Test]
         public void
             WhenDirectoryMatchesLibraries_AndThereIsRelativeLibrariesDirectory_ReturnsRelativeLibrariesDirectory()
         {
-            var rootDirectoy = new ProjectRoot
+            var rootDirectory = new ProjectRoot(StringComparison.Ordinal)
             {
                 AbsoluteRootPath = @"D:\root",
                 Name = "Root",
                 Parent = null,
             };
-            var libraries = new ProjectLibraries
+            var libraries = new ProjectLibraries(StringComparison.Ordinal)
             {
                 Name = "Libraries",
                 Parent = null,
             };
-            rootDirectoy.Items.Add(libraries);
-            var relativeLibraries = new ProjectDirectory
+            rootDirectory.Items.Add(libraries);
+            var relativeLibraries = new ProjectDirectory(StringComparison.Ordinal)
             {
                 Name = "Libraries",
-                Parent = rootDirectoy,
+                Parent = rootDirectory,
             };
-            rootDirectoy.Items.Add(relativeLibraries);
+            rootDirectory.Items.Add(relativeLibraries);
             var logger = Fixture.Freeze<ILogger>();
+            var osDependant = Fixture.Freeze<IOsDependent>();
 
-            var actual = ProjectFileWatcher.FindMatchingDirectory(rootDirectoy, "Libraries", logger);
+            var actual = ProjectFileWatcher.FindMatchingDirectory(rootDirectory, "Libraries", logger, osDependant);
 
             Assert.That(actual, Is.SameAs(relativeLibraries));
         }

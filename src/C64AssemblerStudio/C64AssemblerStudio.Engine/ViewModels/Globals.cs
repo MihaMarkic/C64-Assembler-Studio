@@ -4,10 +4,8 @@ using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
-using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
-using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -24,7 +22,6 @@ public sealed class Globals: NotifiableObject
     /// Holds active project, when no project is defined it contains <see cref="EmptyProjectViewModel"/>.
     /// </summary>
     public IProjectViewModel Project { get; private set; }
-
     public Settings Settings { get; private set; } = new();
     public bool IsProjectOpen => Project is not EmptyProjectViewModel;
 
@@ -88,9 +85,9 @@ public sealed class Globals: NotifiableObject
     /// </summary>
     /// <param name="filter">Relative file path without extension or *, just the directory and file name part</param>
     /// <param name="extension">File extension to watch for.</param>
-    /// <param name="excludedFile">Full file name to exclude from results</param>
+    /// <param name="excludedFiles">Full file names to exclude from results</param>
     /// <returns>A dictionary with source as key and file names array as value.</returns>
-    public FrozenDictionary<string, ImmutableArray<string>> GetMatchingFiles(string filter, string extension, string? excludedFile = null)
+    public FrozenDictionary<string, ImmutableArray<string>> GetMatchingFiles(string filter, string extension, FrozenSet<string> excludedFiles)
     {
         string? projectDirectory = Project.Directory;
         ArgumentNullException.ThrowIfNull(projectDirectory);
@@ -101,12 +98,12 @@ public sealed class Globals: NotifiableObject
         var searchPattern = $"{fileName}*{extension}";
         var builder = new Dictionary<string, ImmutableArray<string>>
         {
-            { "Project", _fileService.GetFilteredFiles(Path.Combine(projectDirectory, searchDirectory), searchPattern, excludedFile) },
+            { "Project", _fileService.GetFilteredFiles(Path.Combine(projectDirectory, searchDirectory), searchPattern, excludedFiles) },
         };
         foreach (var library in Settings.Libraries)
         {
             builder.Add(library.Key,
-                _fileService.GetFilteredFiles(Path.Combine(library.Value.Path, searchDirectory), searchPattern));
+                _fileService.GetFilteredFiles(Path.Combine(library.Value.Path, searchDirectory), searchPattern, excludedFiles));
         }
 
         return builder.ToFrozenDictionary();

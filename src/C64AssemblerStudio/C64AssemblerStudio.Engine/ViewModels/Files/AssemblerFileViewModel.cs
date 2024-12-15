@@ -2,11 +2,10 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
-using Antlr4.Runtime;
-using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Common.Compiler;
 using C64AssemblerStudio.Core.Extensions;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -33,6 +32,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private readonly CallStackViewModel _callStack;
     private readonly IParserManager _parserManager;
     private readonly ProjectExplorerViewModel _projectExplorer;
+    private readonly IOsDependent _osDependent;
     public BreakpointsViewModel Breakpoints { get; }
     public event EventHandler? BreakpointsChanged;
     public FrozenDictionary<int, SyntaxLine> Lines { get; private set; } = FrozenDictionary<int, SyntaxLine>.Empty;
@@ -90,7 +90,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private void RaiseBreakpointsChanged(EventArgs e) => BreakpointsChanged?.Invoke(this, e);
 
     /// <summary>
-    /// Crateas an <see cref="AssemblerFileViewModel"/>.
+    /// Crates an <see cref="AssemblerFileViewModel"/>.
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="fileService"></param>
@@ -104,6 +104,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     /// <param name="parserManager"></param>
     /// <param name="projectExplorer"></param>
     /// <param name="file"></param>
+    /// <param name="osDependent"></param>
     /// <param name="selectedDefineSymbols">Preselected define symbols</param>
     /// <remarks>
     /// Instance of <see cref="AssemblerFileViewModel"/> are created through
@@ -115,7 +116,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         IVice vice, CallStackViewModel callStack,
         Globals globals, ErrorsOutputViewModel errorsOutput,
         IParserManager parserManager, ProjectExplorerViewModel projectExplorer,
-        ProjectFile file,
+        ProjectFile file, IOsDependent osDependent,
         NullableArgument<FrozenSet<string>> selectedDefineSymbols) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {
@@ -125,6 +126,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         _callStack = callStack;
         _parserManager = parserManager;
         _projectExplorer = projectExplorer;
+        _osDependent = osDependent;
         ByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         MatchingByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
@@ -195,7 +197,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 case CompletionOptionType.FileReference:
                 {
                     var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "asm",
-                        excludedFile: File.AbsolutePath);
+                        excludedFiles: _osDependent.ToFileFrozenSet([File.AbsolutePath]));
                     foreach (var s in suggestions)
                     {
                         foreach (var p in s.Value)
@@ -223,7 +225,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 case CompletionOptionType.ProgramFile when _sourceFile is not null:
                 {
                     var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "prg",
-                        excludedFile: File.AbsolutePath);
+                        excludedFiles: ExistingExternalFilesToFrozenSet(completionOption.Value.ExcludedFiles));
                     foreach (var s in suggestions)
                     {
                         foreach (var p in s.Value)
@@ -240,7 +242,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 case CompletionOptionType.SidFile when _sourceFile is not null:
                 {
                     var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "sid",
-                        excludedFile: File.AbsolutePath);
+                        excludedFiles: ExistingExternalFilesToFrozenSet(completionOption.Value.ExcludedFiles));
                     foreach (var s in suggestions)
                     {
                         foreach (var p in s.Value)
@@ -265,6 +267,29 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
 
         return (false, ImmutableArray<EditorCompletionItem>.Empty);
+    }
+
+    /// <summary>
+    /// Takes relative file paths and converts them to absolute for project directory and all libraries. 
+    /// </summary>
+    /// <param name="existingFiles"></param>
+    /// <returns></returns>
+    private FrozenSet<string> ExistingExternalFilesToFrozenSet(IList<string> existingFiles)
+    {
+        var fileAbsoluteDirectory = File.AbsoluteDirectory;
+        var result = new HashSet<string>(_osDependent.FileStringComparer);
+        foreach (var f in existingFiles)
+        {
+            result.Add(Path.Combine(fileAbsoluteDirectory, f));
+        }
+        foreach (var l in Globals.Settings.Libraries)
+        {
+            foreach (var f in existingFiles)
+            {
+                result.Add(Path.Combine(l.Value.Path, f));
+            }
+        }
+        return result.ToFrozenSet(_osDependent.FileStringComparer);
     }
 
     private void RaiseSyntaxColoringUpdated(EventArgs e) => SyntaxColoringUpdated?.Invoke(this, e);
@@ -457,7 +482,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         bool IsMatch(BreakpointViewModel b)
         {
             return b.Bind is BreakpointLineBind lineBind &&
-                   filePath.Equals(lineBind.FilePath, OsDependent.FileStringComparison);
+                   filePath.Equals(lineBind.FilePath, _osDependent.FileStringComparison);
         }
 
         bool hasChanges =

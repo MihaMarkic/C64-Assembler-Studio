@@ -80,10 +80,10 @@ public class DesignErrorsOutputViewModel : ErrorsOutputViewModel
     public DesignErrorsOutputViewModel() : base()
     {
         AddLines([
-            new(new ProjectFile { FileType = FileType.Assembler, Name = "Test.asm", Parent = null },
+            new(new ProjectFile(StringComparison.Ordinal) { FileType = FileType.Assembler, Name = "Test.asm", Parent = null },
                 new SyntaxError("Test error from parser", null, 1, new SingleLineTextRange(10, 25),
                     SyntaxErrorParserSource.Default)),
-            new(new ProjectFile { FileType = FileType.Assembler, Name = "Other.asm", Parent = null },
+            new(new ProjectFile(StringComparison.Ordinal) { FileType = FileType.Assembler, Name = "Other.asm", Parent = null },
                 new SyntaxError("Test error from compiler", null, 8, new SingleLineTextRange(3, 6),
                     SyntaxErrorCompiledFileSource.Default))
         ]);

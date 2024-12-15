@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Righthand.MessageBus;
 
@@ -9,6 +10,7 @@ namespace C64AssemblerStudio.Engine.ViewModels;
 public class AboutViewModel: OverlayContentViewModel
 {
     private readonly ISystemInfo _systemInfo;
+    private readonly IOsDependent _osDependent;
     public RelayCommandWithParameter<ThirdPartyLibrary> OpenLinkCommand { get; }
     public ImmutableArray<ThirdPartyLibrary> Libraries { get; } =
     [
@@ -32,15 +34,16 @@ public class AboutViewModel: OverlayContentViewModel
     ];
 
     // ReSharper disable once MemberCanBeProtected.Global
-    public AboutViewModel(ISystemInfo systemInfo, IDispatcher dispatcher): base(dispatcher)
+    public AboutViewModel(ISystemInfo systemInfo, IDispatcher dispatcher, IOsDependent osDependent): base(dispatcher)
     {
         _systemInfo = systemInfo;
+        _osDependent = osDependent;
         OpenLinkCommand = new RelayCommandWithParameter<ThirdPartyLibrary>(OpenLink);
     }
 
     private void OpenLink(ThirdPartyLibrary library)
     {
-        Process.Start(OsDependent.FileAppOpenName, library.Url);
+        Process.Start(_osDependent.FileAppOpenName, library.Url);
     }
     public Version Version => _systemInfo.Version;
 }
@@ -53,7 +56,7 @@ public class DesignAboutViewModel : AboutViewModel
     {
         public Version Version =>new Version(0, 1, 2);
     }
-    public DesignAboutViewModel() : base(new InternalSystemInfo(), null!)
+    public DesignAboutViewModel() : base(new InternalSystemInfo(), null!, null!)
     {
     }
 }

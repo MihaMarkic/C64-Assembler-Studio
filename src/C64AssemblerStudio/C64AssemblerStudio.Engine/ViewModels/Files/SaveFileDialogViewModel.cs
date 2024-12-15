@@ -30,8 +30,13 @@ public class DesignSaveFileDialogViewModel : SaveFileDialogViewModel
     {
         UnsavedFiles =
         [
-            new ProjectFile { FileType = FileType.Assembler, Name = "misc.asm", Parent = null },
-            new ProjectFile { FileType = FileType.Assembler, Name = "relative.asm", Parent = new ProjectDirectory { Name = "subdir", Parent = null} }
+            new ProjectFile(StringComparison.Ordinal)
+                { FileType = FileType.Assembler, Name = "misc.asm", Parent = null },
+            new ProjectFile(StringComparison.Ordinal)
+            {
+                FileType = FileType.Assembler, Name = "relative.asm",
+                Parent = new ProjectDirectory(StringComparison.Ordinal) { Name = "subdir", Parent = null }
+            }
         ];
     }
 }
@@ -39,6 +44,7 @@ public class DesignSaveFileDialogViewModel : SaveFileDialogViewModel
 public record SaveFilesDialogResult
 {
     public SaveFilesDialogResultCode Code { get; init; }
+
     public SaveFilesDialogResult(SaveFilesDialogResultCode code)
     {
         Code = code;

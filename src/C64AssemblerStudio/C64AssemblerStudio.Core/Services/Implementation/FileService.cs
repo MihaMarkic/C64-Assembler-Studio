@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Core.Services.Abstract;
+﻿using System.Collections.Frozen;
+using C64AssemblerStudio.Core.Services.Abstract;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 
@@ -21,16 +22,16 @@ public class FileService : IFileService
         => File.WriteAllTextAsync(path, text, ct);
 
     /// <inheritdoc />
-    public ImmutableArray<string> GetFilteredFiles(string path, string searchPattern, string? excludedFile = null)
+    public ImmutableArray<string> GetFilteredFiles(string path, string searchPattern, FrozenSet<string> excludedFiles)
     {
         if (Directory.Exists(path))
         {
             try
             {
                 var files = Directory.GetFiles(path, searchPattern, SearchOption.TopDirectoryOnly);
-                if (excludedFile is not null)
+                if (excludedFiles.Count > 0)
                 {
-                    return [..files.Where(f => !f.Equals(excludedFile, OsDependent.FileStringComparison))];
+                    return [..files.Where(f => !excludedFiles.Contains(f))];
                 }
                 return [..files];
             }
