@@ -47,6 +47,8 @@ public class StandardCompletionData: SourceCompletionData<StandardCompletionItem
     public override void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
     {
         int start = completionSegment.Offset - Item.RootText.Length + Item.ReplacementRelativeOffset;
-        textArea.Document.Replace(start, Item.ReplacementLength, Text);
+        string replacementText = Item.PostfixDoubleQuote ? $"{Text}\"" : Text;
+        textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
+        Debug.WriteLine($"Replacement length: {Item.ReplacementLength}");
     }
 }

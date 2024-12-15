@@ -185,7 +185,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             await _updateSyntaxCompletion.Task;
         }
 
-        Debug.WriteLine($"Caret column is at {CaretColumn}, using {CaretColumn-2}");
+        Debug.WriteLine($"Caret column is at {CaretColumn}, using {CaretColumn - 2}");
         var (lineStart, lineLength) = Content.AsSpan().ExtractLinePosition(CaretLine - 1);
         var completionOption =
             _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn - 2, Content, lineStart, lineLength);
@@ -256,7 +256,59 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                     }
                 }
                     break;
-
+                case CompletionOptionType.Segments when _sourceFile is not null:
+                {
+                    var allFiles = _parser.AllFiles;
+                    foreach (var k in allFiles.Keys)
+                    {
+                        Debug.WriteLine($"Looking at {k}");
+                        var fileWithSet = allFiles.GetValueOrDefault(k);
+                        if (fileWithSet is not null)
+                        {
+                            foreach (var s in fileWithSet.AllDefineSets)
+                            {
+                                Debug.WriteLine($"\tLooking at set {string.Join(", ", s)}");
+                                var parsedSourceFile = allFiles.GetFileOrDefault(k, s);
+                                if (parsedSourceFile is not null)
+                                {
+                                    foreach (var si in parsedSourceFile.SegmentDefinitions)
+                                    {
+                                        if (!completionOption.Value.ExcludedFiles.Contains(si.Name))
+                                        {
+                                            builder.Add(new StandardCompletionItem(si.Name, "Segment",
+                                                completionOption.Value.Root,
+                                                completionOption.Value.ReplacementLength, 0)
+                                            {
+                                                PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+                                            });
+                                        }
+                                        else
+                                        {
+                                            Debug.WriteLine($"Segment {si.Name} is excluded");        
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Debug.WriteLine($"Failed to get parsed source file");
+                                }
+                            }
+                        }
+                    }
+                    
+                    // foreach (var s in suggestions)
+                    // {
+                    //     foreach (var p in s.Value)
+                    //     {
+                    //         builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
+                    //             completionOption.Value.ReplacementLength)
+                    //         {
+                    //             PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+                    //         });
+                    //     }
+                    // }
+                }
+                    break;
 
                 default:
                     throw new IndexOutOfRangeException(nameof(CompletionOption.Type));
@@ -282,6 +334,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         {
             result.Add(Path.Combine(fileAbsoluteDirectory, f));
         }
+
         foreach (var l in Globals.Settings.Libraries)
         {
             foreach (var f in existingFiles)
@@ -289,6 +342,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 result.Add(Path.Combine(l.Value.Path, f));
             }
         }
+
         return result.ToFrozenSet(_osDependent.FileStringComparer);
     }
 
