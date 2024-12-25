@@ -3,6 +3,7 @@ using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Extensions;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
@@ -23,6 +24,7 @@ public class ProjectExplorerViewModel : ViewModel
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly Globals _globals;
     private readonly ProjectFilesWatcherViewModel _projectFilesWatcher;
+    private readonly IOsDependent _osDependent;
     public bool IsRefreshing => _projectFilesWatcher.IsRefreshing;
     public bool IsProjectOpen => _projectFilesWatcher.IsProjectOpen;
     public RelayCommandWithParameter<ProjectFile> OpenFileCommand { get; }
@@ -39,13 +41,15 @@ public class ProjectExplorerViewModel : ViewModel
     public ObservableCollection<ProjectItem> Items => _projectFilesWatcher.Items;
 
     public ProjectExplorerViewModel(ILogger<ProjectExplorerViewModel> logger, IDispatcher dispatcher,
-        IServiceScopeFactory serviceScopeFactory, Globals globals, ProjectFilesWatcherViewModel projectFilesWatcher)
+        IServiceScopeFactory serviceScopeFactory, Globals globals, ProjectFilesWatcherViewModel projectFilesWatcher,
+        IOsDependent osDependent)
     {
         _logger = logger;
         _dispatcher = dispatcher;
         _serviceScopeFactory = serviceScopeFactory;
         _globals = globals;
         _projectFilesWatcher = projectFilesWatcher;
+        _osDependent = osDependent;
         _projectFilesWatcher.PropertyChanged += ProjectFilesWatcherOnPropertyChanged;
         OpenFileCommand = new RelayCommandWithParameter<ProjectFile>(OpenFile);
         AddFileCommand = new RelayCommand<ProjectDirectory>(AddFile);
@@ -84,7 +88,7 @@ public class ProjectExplorerViewModel : ViewModel
         else
         {
             var path = file.AbsolutePath.ConvertsDirectorySeparators();
-            Process.Start(OsDependent.FileAppOpenName, path);
+            Process.Start(_osDependent.FileAppOpenName, path);
         }
     }
 
@@ -92,7 +96,7 @@ public class ProjectExplorerViewModel : ViewModel
     {
         string path = item is ProjectDirectory ? item.AbsolutePath: item.AbsoluteDirectory;
 
-        Process.Start(OsDependent.FileAppOpenName, path.ConvertsDirectorySeparators());
+        Process.Start(_osDependent.FileAppOpenName, path.ConvertsDirectorySeparators());
     }
 
     private void ProjectFilesWatcherOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -247,7 +251,7 @@ public class ProjectExplorerViewModel : ViewModel
     public ProjectFile? GetProjectFileFromFullPath(string fullPath)
     {
         var directory = _globals.Project.Directory;
-        if (directory is not null && fullPath.StartsWith(directory, OsDependent.FileStringComparison))
+        if (directory is not null && fullPath.StartsWith(directory, _osDependent.FileStringComparison))
         {
             var relativePath = fullPath[(directory.Length)..].TrimStart(Path.DirectorySeparatorChar);
             return FindProjectFile(relativePath);
@@ -268,7 +272,7 @@ public class ProjectExplorerViewModel : ViewModel
         foreach (string part in parts[0..^1])
         {
             var dir = items.OfType<ProjectDirectory>()
-                .FirstOrDefault(i => part.Equals(i.Name, OsDependent.FileStringComparison));
+                .FirstOrDefault(i => part.Equals(i.Name, _osDependent.FileStringComparison));
             if (dir is null)
             {
                 return null;
@@ -278,7 +282,7 @@ public class ProjectExplorerViewModel : ViewModel
 
         string fileName = parts.Last();
         return items.OfType<ProjectFile>()
-            .FirstOrDefault(i => fileName.Equals(i.Name, OsDependent.FileStringComparison));
+            .FirstOrDefault(i => fileName.Equals(i.Name, _osDependent.FileStringComparison));
     }
     
     public (ProjectFile File, FileLocation Location)? GetExecutionLocation(ushort address)

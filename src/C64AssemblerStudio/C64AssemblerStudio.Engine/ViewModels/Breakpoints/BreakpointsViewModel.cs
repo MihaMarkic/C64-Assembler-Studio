@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
@@ -57,6 +58,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     private readonly CommandsManager _commandsManager;
     private readonly DebugOutputViewModel _debugOutput;
     private readonly IAddressEntryGrammarService _addressEntryGrammar;
+    private readonly IOsDependent _osDependent;
     public ObservableCollection<BreakpointViewModel> Breakpoints { get; }
 
     /// <summary>
@@ -87,7 +89,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     public BreakpointsViewModel(ILogger<BreakpointsViewModel> logger, IVice vice, IDispatcher dispatcher,
         Globals globals,
         IServiceScopeFactory serviceScopeFactory, ISettingsManager settingsManager, DebugOutputViewModel debugOutput,
-        IAddressEntryGrammarService addressEntryGrammar)
+        IAddressEntryGrammarService addressEntryGrammar, IOsDependent osDependent)
     {
         _logger = logger;
         _dispatcher = dispatcher;
@@ -97,6 +99,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
         _settingsManager = settingsManager;
         _debugOutput = debugOutput;
         _addressEntryGrammar = addressEntryGrammar;
+        _osDependent = osDependent;
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _commandsManager = new CommandsManager(this, _uiFactory);
         Breakpoints = new ObservableCollection<BreakpointViewModel>();
@@ -393,7 +396,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
                 return builder.ToFrozenDictionary(p => p.Key, p => p.Value.ToImmutable());
             },
-            OsDependent.FileStringComparer);
+            _osDependent.FileStringComparer);
         return map;
     }
 

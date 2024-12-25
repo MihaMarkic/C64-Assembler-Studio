@@ -1,6 +1,7 @@
 ﻿using System.Collections.Frozen;
 using System.Diagnostics;
 using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Services.Abstract;
@@ -23,6 +24,7 @@ public class Vice : NotifiableObject, IVice
     private readonly Globals _globals;
     private readonly IDispatcher _dispatcher;
     private readonly TaskFactory _uiFactory;
+    private readonly IOsDependent _osDependent;
     public RegistersViewModel Registers { get; }
     public ViceMemoryViewModel Memory { get; }
     public CallStackViewModel CallStack { get; }
@@ -47,12 +49,14 @@ public class Vice : NotifiableObject, IVice
     public bool IsPaused { get; private set; }
 
     public Vice(ILogger<Vice> logger, IViceBridge bridge, Globals globals, IDispatcher dispatcher,
-        RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack)
+        RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack,
+        IOsDependent osDependent)
     {
         _logger = logger;
         _bridge = bridge;
         _globals = globals;
         _dispatcher = dispatcher;
+        _osDependent = osDependent;
         Registers = registers;
         Memory = viceMemory;
         CallStack = callStack;
@@ -308,7 +312,7 @@ public class Vice : NotifiableObject, IVice
         string? realVicePath = _globals.Settings.RealVicePath;
         if (!string.IsNullOrWhiteSpace(realVicePath))
         {
-            string path = Path.Combine(realVicePath, OsDependent.ViceExeName);
+            string path = Path.Combine(realVicePath, _osDependent.ViceExeName);
             try
             {
                 string arguments = _globals.Settings.BinaryMonitorArgument;

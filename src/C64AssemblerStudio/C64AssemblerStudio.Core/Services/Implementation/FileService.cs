@@ -1,4 +1,6 @@
-﻿using C64AssemblerStudio.Core.Services.Abstract;
+﻿using System.Collections;
+using System.Collections.Frozen;
+using C64AssemblerStudio.Core.Services.Abstract;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 
@@ -21,30 +23,37 @@ public class FileService : IFileService
         => File.WriteAllTextAsync(path, text, ct);
 
     /// <inheritdoc />
-    public ImmutableArray<string> GetFilteredFiles(string path, string searchPattern, string? excludedFile = null)
+    public IEnumerable<string> GetFilteredFiles(string path, string searchPattern, FrozenSet<string> excludedFiles)
     {
         if (Directory.Exists(path))
         {
+            string[] allFiles;
             try
             {
-                var files = Directory.GetFiles(path, searchPattern, SearchOption.TopDirectoryOnly);
-                if (excludedFile is not null)
-                {
-                    return [..files.Where(f => !f.Equals(excludedFile, OsDependent.FileStringComparison))];
-                }
-                return [..files];
+                allFiles = Directory.GetFiles(path, searchPattern, SearchOption.TopDirectoryOnly);
             }
             catch (DirectoryNotFoundException)
             {
                 _logger.LogError("Directory {Directory} does not exist", path);
+                yield break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Couldn't enumerate files in directory {Directory} with pattern {Pattern}", path,
                     searchPattern);
+                yield break;
+            }
+
+            var validFiles = allFiles.AsEnumerable();
+            if (excludedFiles.Count > 0)
+            {
+                validFiles = validFiles.Where(f => !excludedFiles.Contains(f));
+            }
+
+            foreach (var f in validFiles)
+            {
+                yield return f;
             }
         }
-
-        return ImmutableArray<string>.Empty;
     }
 }

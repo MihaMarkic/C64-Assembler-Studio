@@ -1,4 +1,5 @@
-﻿using Avalonia.Media;
+﻿using System.Diagnostics;
+using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
@@ -34,6 +35,7 @@ public class FileReferenceSourceCompletionData : SourceCompletionData<FileRefere
         int start = completionSegment.Offset - Item.RootText.Length;
         string replacementText = Item.PostfixDoubleQuote ? $"{Text}\"" : Text;
         textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
+        Debug.WriteLine($"Replacement length: {Item.ReplacementLength}");
     }
 }
 
@@ -45,6 +47,8 @@ public class StandardCompletionData: SourceCompletionData<StandardCompletionItem
     public override void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
     {
         int start = completionSegment.Offset - Item.RootText.Length + Item.ReplacementRelativeOffset;
-        textArea.Document.Replace(start, Item.ReplacementLength, Text);
+        string replacementText = Item.PostfixDoubleQuote ? $"{Text}\"" : Text;
+        textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
+        Debug.WriteLine($"Replacement length: {Item.ReplacementLength}");
     }
 }

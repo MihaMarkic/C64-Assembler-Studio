@@ -6,6 +6,7 @@ namespace C64AssemblerStudio.Engine.Models.Projects;
 
 public abstract class ProjectItem: NotifiableObject
 {
+    protected StringComparison FileStringComparison { get; }
     public required ProjectDirectory? Parent { get; init; }
     public required string Name { get; set; }
 
@@ -13,6 +14,11 @@ public abstract class ProjectItem: NotifiableObject
     /// When file or directory exists on disk, this value is true, false otherwise.
     /// </summary>
     public abstract bool Exists { get; }
+
+    public ProjectItem(StringComparison fileStringComparison)
+    {
+        FileStringComparison = fileStringComparison;
+    }
 
     public string RelativeDirectory
     {
@@ -77,11 +83,11 @@ public abstract class ProjectItem: NotifiableObject
 
         string thisDirectory = RelativeDirectory;
         string otherDirectory = other.RelativeDirectory;
-        if (!thisDirectory.Equals(otherDirectory, OsDependent.FileStringComparison))
+        if (!thisDirectory.Equals(otherDirectory, FileStringComparison))
         {
             return false;
         }
-        return Name.Equals(other.Name, OsDependent.FileStringComparison);
+        return Name.Equals(other.Name, FileStringComparison);
     }
 }
 
@@ -93,6 +99,9 @@ public class ProjectDirectory : ProjectItem
     /// When directory exists on disk this value is true, false otherwise.
     /// </summary>
     public override bool Exists => Directory.Exists(AbsoluteDirectory);
+    public ProjectDirectory(StringComparison fileStringComparison) : base(fileStringComparison)
+    {
+    }
 
     public IEnumerable<ProjectDirectory> GetSubdirectories()
     {
@@ -112,12 +121,20 @@ public class ProjectFile : ProjectItem
     /// When file exists on disk this value is true, false otherwise.
     /// </summary>
     public override bool Exists => File.Exists(AbsolutePath);
+    public ProjectFile(StringComparison fileStringComparison) : base(fileStringComparison)
+    {
+    }
+
 }
 
 public class ProjectLibraries : ProjectItem
 {
     public ObservableCollection<ProjectLibrary> Items { get; } = [];
     public override bool Exists => true;
+    public ProjectLibraries(StringComparison fileStringComparison) : base(fileStringComparison)
+    {
+    }
+
 }
 
 public abstract class ProjectRootDirectory : ProjectDirectory
@@ -125,9 +142,25 @@ public abstract class ProjectRootDirectory : ProjectDirectory
     public required string AbsoluteRootPath { get; init; }
     public override string AbsolutePath => AbsoluteRootPath;
     public override string AbsoluteDirectory => AbsoluteRootPath;
+    public ProjectRootDirectory(StringComparison fileStringComparison) : base(fileStringComparison)
+    {
+    }
+
 }
 
 public class ProjectLibrary : ProjectRootDirectory
-{ }
-public class ProjectRoot: ProjectRootDirectory
-{ }
+{
+    public ProjectLibrary(StringComparison fileStringComparison) : base(fileStringComparison)
+    {
+    }
+
+    
+}
+
+public class ProjectRoot : ProjectRootDirectory
+{
+    public ProjectRoot(StringComparison fileStringComparison) : base(fileStringComparison)
+    {
+    }
+
+}

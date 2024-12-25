@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -17,6 +18,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
 {
     private readonly ILogger<ProjectFilesWatcherViewModel> _logger;
     private readonly IServiceFactory _serviceFactory;
+    private readonly IOsDependent _osDependent;
     /// <summary>
     /// Keeps tracks of file watchers.
     /// </summary>
@@ -31,12 +33,13 @@ public class ProjectFilesWatcherViewModel: ViewModel
     public ProjectRoot? Root { get; private set; }
     private readonly ISubscription _projectChangedSubscription;
     public ProjectFilesWatcherViewModel(ILogger<ProjectFilesWatcherViewModel> logger, IServiceFactory serviceFactory,
-        Globals globals, IDispatcher dispatcher)
+        Globals globals, IDispatcher dispatcher, IOsDependent osDependent)
     {
         _logger = logger;
         _serviceFactory = serviceFactory;
         _globals = globals;
         _settings = globals.Settings;
+        _osDependent = osDependent;
         _globals.PropertyChanged += GlobalsOnPropertyChanged;
         _settings.PropertyChanged += SettingsOnPropertyChanged;
         _projectChangedSubscription = dispatcher.Subscribe<ProjectSettingsChangedMessage>(ProjectSettingsChanged);
@@ -173,13 +176,13 @@ public class ProjectFilesWatcherViewModel: ViewModel
                 var project = _globals.Project;
                 var directory = Path.GetDirectoryName(project.Path).ValueOrThrow();
                 // virtual hidden root
-                Root = new ProjectRoot
+                Root = new ProjectRoot(_osDependent.FileStringComparison)
                 {
                     AbsoluteRootPath = Path.GetFullPath(Path.GetDirectoryName(project.Path)!).ValueOrThrow(),
                     Name = "Hidden root",
                     Parent = null,
                 };
-                Libraries = new ProjectLibraries { Parent = null, Name = "Libraries" }; 
+                Libraries = new ProjectLibraries(_osDependent.FileStringComparison) { Parent = null, Name = "Libraries" }; 
                 Root.Items.Add(Libraries);
                 var tasks = new List<Task>(_settings.Libraries.Count + 1);
                 var projectRefreshTask = RefreshProjectStructureAsync(Root, ctInternal);
@@ -201,7 +204,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
 
     private async Task AddLibraryAsync(string name, string path, CancellationToken ct)
     {
-        var library = new ProjectLibrary
+        var library = new ProjectLibrary(_osDependent.FileStringComparison)
         {
             Name = name,
             Parent = null,
@@ -302,7 +305,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
     {
         foreach (var d in Directory.GetDirectories(path))
         {
-            var directory = new ProjectDirectory { Name = Path.GetFileName(d).ValueOrThrow(), Parent = parent };
+            var directory = new ProjectDirectory(_osDependent.FileStringComparison) { Name = Path.GetFileName(d).ValueOrThrow(), Parent = parent };
             foreach (var i in CollectDirectoriesAndFiles(directory, d))
             {
                 directory.Items.Add(i);
@@ -314,7 +317,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
         foreach (var f in Directory.GetFiles(path))
         {
             var fileType = ProjectFileClassificator.Classify(f);
-            yield return new ProjectFile { Name = Path.GetFileName(f), FileType = fileType, Parent = parent };
+            yield return new ProjectFile(_osDependent.FileStringComparison) { Name = Path.GetFileName(f), FileType = fileType, Parent = parent };
         }
     }
 

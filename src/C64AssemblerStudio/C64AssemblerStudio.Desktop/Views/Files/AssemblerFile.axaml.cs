@@ -67,7 +67,7 @@ public partial class AssemblerFile : UserControl
 
     private void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
     {
-        if (e.Text is "\"" or "#")
+        if (e.Text is "\"" or "#" or "." or ",")
         {
             _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CharacterTyped);
         }

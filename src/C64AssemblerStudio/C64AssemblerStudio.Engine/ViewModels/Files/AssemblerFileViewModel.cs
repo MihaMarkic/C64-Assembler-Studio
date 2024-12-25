@@ -2,11 +2,10 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
-using Antlr4.Runtime;
-using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Common.Compiler;
 using C64AssemblerStudio.Core.Extensions;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -18,6 +17,7 @@ using C64AssemblerStudio.Engine.ViewModels.Tools;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.KickAssembler.Services.CompletionOptionCollectors;
 using Righthand.RetroDbgDataProvider.Models;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 using Righthand.RetroDbgDataProvider.Models.Program;
@@ -28,15 +28,16 @@ namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
 public class AssemblerFileViewModel : ProjectFileViewModel
 {
-    
     private readonly ErrorsOutputViewModel _errorsOutput;
     private readonly IVice _vice;
     private readonly CallStackViewModel _callStack;
     private readonly IParserManager _parserManager;
     private readonly ProjectExplorerViewModel _projectExplorer;
+    private readonly IOsDependent _osDependent;
     public BreakpointsViewModel Breakpoints { get; }
     public event EventHandler? BreakpointsChanged;
     public FrozenDictionary<int, SyntaxLine> Lines { get; private set; } = FrozenDictionary<int, SyntaxLine>.Empty;
+
     public FrozenDictionary<int, ImmutableArray<SingleLineTextRange>> IgnoredContent { get; private set; } =
         FrozenDictionary<int, ImmutableArray<SingleLineTextRange>>.Empty;
 
@@ -51,14 +52,17 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public bool IsDefineSymbolsVisible => DefineSymbols.Length > 1;
     public bool IsHeaderVisible => IsByteDumpToggleVisible || IsDefineSymbolsVisible;
     public ImmutableArray<ByteDumpLineViewModel> ByteDumpLines { get; private set; }
+
     /// <summary>
     /// Keeps call stack lines
     /// </summary>
     public ImmutableArray<CallStackViewModel.SourceCallStackItem> CallStackItems { get; private set; }
+
     /// <summary>
     /// A list of <see cref="ByteDumpLineViewModel"/> for this file.
     /// </summary>
     public ImmutableArray<ByteDumpLineViewModel> MatchingByteDumpLines { get; private set; }
+
     /// <summary>
     /// Signals to clients that syntax coloring data has been updated.
     /// </summary>
@@ -66,23 +70,28 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     /// Client could alternatively watch for changes on <see cref="Lines"/> and <see cref="IgnoredContent"/>,
     /// but that could result in duplicate refreshes.
     /// </remarks>
-    public event EventHandler? SyntaxColoringUpdated; 
+    public event EventHandler? SyntaxColoringUpdated;
+
     private ParsedSourceFile? _sourceFile;
+
     /// <summary>
     /// Parsed Source file with all defined sets.
     /// </summary>
     private IImmutableParsedFileSet<ParsedSourceFile>? _sourceFileWithSets;
+
     private readonly ISourceCodeParser<ParsedSourceFile> _parser;
     private readonly bool _initialized;
+
     /// <summary>
     /// Prevent triggering collateral parsing on setting <see cref="SelectedDefineSymbols"/> from code.
     /// Reparsing should be done only on user input.
     /// </summary>
     private bool _settingsSelectedDefineSymbols;
+
     private void RaiseBreakpointsChanged(EventArgs e) => BreakpointsChanged?.Invoke(this, e);
 
     /// <summary>
-    /// Crateas an <see cref="AssemblerFileViewModel"/>.
+    /// Crates an <see cref="AssemblerFileViewModel"/>.
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="fileService"></param>
@@ -96,6 +105,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     /// <param name="parserManager"></param>
     /// <param name="projectExplorer"></param>
     /// <param name="file"></param>
+    /// <param name="osDependent"></param>
     /// <param name="selectedDefineSymbols">Preselected define symbols</param>
     /// <remarks>
     /// Instance of <see cref="AssemblerFileViewModel"/> are created through
@@ -106,8 +116,8 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         IDispatcher dispatcher, StatusInfoViewModel statusInfo, BreakpointsViewModel breakpoints,
         IVice vice, CallStackViewModel callStack,
         Globals globals, ErrorsOutputViewModel errorsOutput,
-        IParserManager parserManager, ProjectExplorerViewModel projectExplorer, 
-        ProjectFile file,
+        IParserManager parserManager, ProjectExplorerViewModel projectExplorer,
+        ProjectFile file, IOsDependent osDependent,
         NullableArgument<FrozenSet<string>> selectedDefineSymbols) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {
@@ -117,10 +127,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         _callStack = callStack;
         _parserManager = parserManager;
         _projectExplorer = projectExplorer;
+        _osDependent = osDependent;
         ByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         MatchingByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
-        AddOrRemoveBreakpointCommand = new RelayCommandWithParameterAsync<int>(AddOrRemoveBreakpoint, CanSetOrRemoveBreakpointAtLine);
+        AddOrRemoveBreakpointCommand =
+            new RelayCommandWithParameterAsync<int>(AddOrRemoveBreakpoint, CanSetOrRemoveBreakpointAtLine);
         Breakpoints.Breakpoints.CollectionChanged += BreakpointsOnCollectionChanged;
         _errorsOutput.PropertyChanged += ErrorsOutputOnPropertyChanged;
         _errorsOutput.CompilerErrorsAdded += ErrorsOutputOnCompilerErrorsAdded;
@@ -135,10 +147,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         {
             SelectedDefineSymbols = selectedDefineSymbols.Value;
         }
+
         UpdateDefineSymbolsAndSelection();
         UpdateSyntaxInfo();
         _initialized = true;
     }
+
     private void ErrorsOutputOnCompilerErrorsAdded(object? sender, EventArgs e)
     {
         Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
@@ -159,8 +173,18 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 break;
         }
     }
-    
 
+
+    internal static IEnumerable<string> PopulateSuggestionsForArrayProperty(string root, string valueType, FrozenSet<string> excluded)
+    {
+        var suitableValues = string.IsNullOrEmpty(root) ? ArrayProperties.GetNames(valueType) : ArrayProperties.GetNames(valueType, root);
+
+        var values = suitableValues.Except(excluded);
+        foreach (var value in values)
+        {
+            yield return value;
+        }
+    }
     public async Task<(bool ShouldShow, ImmutableArray<EditorCompletionItem> Items)> ShouldShowCompletionAsync(
         TextChangeTrigger trigger, CancellationToken ct = default)
     {
@@ -172,17 +196,31 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             await _updateSyntaxCompletion.Task;
         }
 
-        ReadOnlySpan<char> lineText = Content.AsSpan().ExtractLine(CaretLine-1);
-        var completionOption = _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn-2, lineText);
+        Debug.WriteLine($"Caret column is at {CaretColumn}, using {CaretColumn - 2}");
+        var (lineStart, lineLength) = Content.AsSpan().ExtractLinePosition(CaretLine - 1);
+        var completionOption =
+            _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn - 2, Content, lineStart, lineLength);
         if (completionOption is not null)
         {
             var builder = ImmutableArray.CreateBuilder<EditorCompletionItem>();
             switch (completionOption.Value.Type)
             {
+                case CompletionOptionType.ArrayProperty:
+                    string root = completionOption.Value.Root;
+                    string valueType = completionOption.Value.ValueType.ValueOrThrow();
+                    var existingProperties = completionOption.Value.ExcludedValues;
+                    
+                    var values = PopulateSuggestionsForArrayProperty(root, valueType, existingProperties);
+                    foreach (var v in values)
+                    {
+                        builder.Add(new StandardCompletionItem(v, "Array", completionOption.Value.Root,
+                            completionOption.Value.ReplacementLength, 0));
+                    }
+                    break;
                 case CompletionOptionType.FileReference:
                 {
                     var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "asm",
-                        excludedFile: File.AbsolutePath);
+                        excludedFiles: _osDependent.ToFileFrozenSet([File.AbsolutePath]));
                     foreach (var s in suggestions)
                     {
                         foreach (var p in s.Value)
@@ -207,6 +245,95 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                     }
                 }
                     break;
+                case CompletionOptionType.ProgramFile when _sourceFile is not null:
+                {
+                    var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "prg",
+                        excludedFiles: ExistingExternalFilesToFrozenSet(completionOption.Value.ExcludedValues));
+                    foreach (var s in suggestions)
+                    {
+                        foreach (var p in s.Value)
+                        {
+                            builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
+                                completionOption.Value.ReplacementLength)
+                            {
+                                PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+                            });
+                        }
+                    }
+                }
+                    break;
+                case CompletionOptionType.SidFile when _sourceFile is not null:
+                {
+                    var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "sid",
+                        excludedFiles: ExistingExternalFilesToFrozenSet(completionOption.Value.ExcludedValues));
+                    foreach (var s in suggestions)
+                    {
+                        foreach (var p in s.Value)
+                        {
+                            builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
+                                completionOption.Value.ReplacementLength)
+                            {
+                                PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+                            });
+                        }
+                    }
+                }
+                    break;
+                case CompletionOptionType.Segments when _sourceFile is not null:
+                {
+                    var allFiles = _parser.AllFiles;
+                    foreach (var k in allFiles.Keys)
+                    {
+                        Debug.WriteLine($"Looking at {k}");
+                        var fileWithSet = allFiles.GetValueOrDefault(k);
+                        if (fileWithSet is not null)
+                        {
+                            foreach (var s in fileWithSet.AllDefineSets)
+                            {
+                                Debug.WriteLine($"\tLooking at set {string.Join(", ", s)}");
+                                var parsedSourceFile = allFiles.GetFileOrDefault(k, s);
+                                if (parsedSourceFile is not null)
+                                {
+                                    foreach (var si in parsedSourceFile.SegmentDefinitions)
+                                    {
+                                        if (!completionOption.Value.ExcludedValues.Contains(si.Name) &&
+                                            si.Name.StartsWith(completionOption.Value.Root, StringComparison.Ordinal))
+                                        {
+                                            builder.Add(new StandardCompletionItem(si.Name, "Segment",
+                                                completionOption.Value.Root,
+                                                completionOption.Value.ReplacementLength, 0)
+                                            {
+                                                PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+                                            });
+                                        }
+                                        else
+                                        {
+                                            Debug.WriteLine($"Segment {si.Name} is excluded");        
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Debug.WriteLine($"Failed to get parsed source file");
+                                }
+                            }
+                        }
+                    }
+                    
+                    // foreach (var s in suggestions)
+                    // {
+                    //     foreach (var p in s.Value)
+                    //     {
+                    //         builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
+                    //             completionOption.Value.ReplacementLength)
+                    //         {
+                    //             PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+                    //         });
+                    //     }
+                    // }
+                }
+                    break;
+
                 default:
                     throw new IndexOutOfRangeException(nameof(CompletionOption.Type));
             }
@@ -216,6 +343,31 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
 
         return (false, ImmutableArray<EditorCompletionItem>.Empty);
+    }
+
+    /// <summary>
+    /// Takes relative file paths and converts them to absolute for project directory and all libraries. 
+    /// </summary>
+    /// <param name="existingFiles"></param>
+    /// <returns></returns>
+    private FrozenSet<string> ExistingExternalFilesToFrozenSet(ISet<string> existingFiles)
+    {
+        var fileAbsoluteDirectory = File.AbsoluteDirectory;
+        var result = new HashSet<string>(_osDependent.FileStringComparer);
+        foreach (var f in existingFiles)
+        {
+            result.Add(Path.Combine(fileAbsoluteDirectory, f));
+        }
+
+        foreach (var l in Globals.Settings.Libraries)
+        {
+            foreach (var f in existingFiles)
+            {
+                result.Add(Path.Combine(l.Value.Path, f));
+            }
+        }
+
+        return result.ToFrozenSet(_osDependent.FileStringComparer);
     }
 
     private void RaiseSyntaxColoringUpdated(EventArgs e) => SyntaxColoringUpdated?.Invoke(this, e);
@@ -258,10 +410,12 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     }
 
     private TaskCompletionSource? _updateSyntaxCompletion;
+
     private void UpdateSyntaxInfo()
     {
         _ = UpdateSyntaxInfoAsync();
     }
+
     private async Task UpdateSyntaxInfoAsync()
     {
         if (_syntaxInfoUpdatesCts is not null)
@@ -331,7 +485,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             {
                 int? start = line == r.Start.Row ? r.Start.Column : null;
                 int? end = line == r.End.Row ? r.End.Column : null;
-                var lineRange = builder.TryGetValue(line, out var range) ? range : ImmutableArray<SingleLineTextRange>.Empty;
+                var lineRange = builder.TryGetValue(line, out var range)
+                    ? range
+                    : ImmutableArray<SingleLineTextRange>.Empty;
                 lineRange = lineRange.AddRange(new SingleLineTextRange(start, end));
                 builder[line] = lineRange;
             }
@@ -346,10 +502,11 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         // addition is possible only on non-empty lines
         if (breakpoint is null)
         {
-            return Lines.TryGetValue(lineNumber, out var line) 
+            return Lines.TryGetValue(lineNumber, out var line)
                    && !line.Items.IsEmpty
                    && IsLineAvailableForBreakpoint(line.Items);
         }
+
         // always can remove
         return true;
     }
@@ -371,7 +528,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     {
         switch (e.PropertyName)
         {
-            case nameof (CallStackViewModel.CallStack):
+            case nameof(CallStackViewModel.CallStack):
                 UpdateCallStackItems();
                 break;
         }
@@ -392,15 +549,18 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
     private void UpdateCallStackItems()
     {
-        CallStackItems = [.._callStack.CallStack.OfType<CallStackViewModel.SourceCallStackItem>().Where(i => i.File == File)];
+        CallStackItems =
+            [.._callStack.CallStack.OfType<CallStackViewModel.SourceCallStackItem>().Where(i => i.File == File)];
     }
+
     private void BreakpointsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         string filePath = File.GetRelativeFilePath();
+
         bool IsMatch(BreakpointViewModel b)
         {
             return b.Bind is BreakpointLineBind lineBind &&
-                   filePath.Equals(lineBind.FilePath, OsDependent.FileStringComparison);
+                   filePath.Equals(lineBind.FilePath, _osDependent.FileStringComparison);
         }
 
         bool hasChanges =
@@ -464,6 +624,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
         return null;
     }
+
     protected override void OnPropertyChanged(string name = default!)
     {
         // OnPropertyChanged has to happen before _parserManager is invoked
@@ -473,6 +634,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         {
             return;
         }
+
         switch (name)
         {
             case nameof(Content):
@@ -487,6 +649,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 {
                     LoadByteDump();
                 }
+
                 break;
             case nameof(ExecutionAddress):
                 UpdateByteDumpExecutionLine();
@@ -499,6 +662,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 {
                     IsByteDumpVisible = false;
                 }
+
                 break;
             case nameof(SelectedDefineSymbols):
                 if (!_settingsSelectedDefineSymbols)
@@ -506,9 +670,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                     // trigger reparsing only on user input
                     UpdateSyntaxInfo();
                 }
+
                 break;
         }
-
     }
 
     internal void UpdateByteDumpExecutionLine()
@@ -571,6 +735,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             _vice.PropertyChanged -= ViceOnPropertyChanged;
             _callStack.PropertyChanged -= CallStackOnPropertyChanged;
         }
+
         base.Dispose(disposing);
     }
 
@@ -582,9 +747,11 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     {
         if (item.ReferencedFile.FullFilePath is null)
         {
-            Logger.LogError("Clicked file {RelativePath} is missing FullFilePath", item.ReferencedFile.RelativeFilePath);
+            Logger.LogError("Clicked file {RelativePath} is missing FullFilePath",
+                item.ReferencedFile.RelativeFilePath);
             return;
         }
+
         var file = _projectExplorer.GetProjectFileFromFullPath(item.ReferencedFile.FullFilePath!);
         if (file is null)
         {

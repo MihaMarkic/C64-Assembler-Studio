@@ -1,10 +1,13 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Antlr4.Runtime;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
+using Righthand.RetroDbgDataProvider.KickAssembler.Services.CompletionOptionCollectors;
 using Righthand.RetroDbgDataProvider.Models.Program;
 using TestsBase;
 
@@ -27,6 +30,27 @@ public class AssemblerFileViewModelTest: BaseTest<AssemblerFileViewModel>
             Assert.That(actual.Values.Single(), Is.EquivalentTo(expectedRange));
         }
     }
+    [TestFixture]
+    public class PopulateSuggestionsForArrayProperty : AssemblerFileViewModelTest
+    {
+        public static IEnumerable<(string Root, string ValueType, FrozenSet<string> Excluded, FrozenSet<string> Expected)> GetEnumerator()
+        {
+            yield return new ("", ".file", ["mbfiles"], ["name","type"]);
+            yield return new ("t", ".file", ["mbfiles"], ["type"]);
+            yield return new ("na", ".file", ["mbfiles"], ["name"]);
+            yield return new ("x", ".file", ["mbfiles"], []);
+        }
+        
+        [TestCaseSource(nameof(GetEnumerator))]
+        public void GivenSamples_ReturnsNames((string Root, string ValueType, FrozenSet<string> Excluded, FrozenSet<string> Expected) td)
+        {
+            var actual = AssemblerFileViewModel.PopulateSuggestionsForArrayProperty(td.Root, td.ValueType, td.Excluded)
+                .ToFrozenSet();
+
+            Assert.That(actual, Is.EquivalentTo(td.Expected));
+        }
+    }
+
     // [TestFixture]
     // public class ParseText : AssemblerFileViewModelTest
     // {

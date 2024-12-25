@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Engine.Models.Projects;
+﻿using C64AssemblerStudio.Core.Services.Abstract;
+using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ public class ServiceFactory : IServiceFactory
     public IProjectFileWatcher CreateProjectFileWatcher(ProjectRootDirectory rootDirectory)
     {
         var logger = _serviceProvider.GetRequiredService<ILogger<ProjectFileWatcher>>();
-        return new ProjectFileWatcher(rootDirectory, logger);
+        var osDependent = _serviceProvider.GetRequiredService<IOsDependent>();
+        return new ProjectFileWatcher(rootDirectory, logger, osDependent);
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Frozen;
 using System.ComponentModel;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.BindingValidators;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Models.SystemDialogs;
@@ -19,6 +20,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     private readonly Globals _globals;
     private readonly ISettingsManager _settingsManager;
     private readonly ISystemDialogs _systemDialogs;
+    private readonly IOsDependent _osDependent;
     public Settings Settings => _globals.Settings;
     private readonly ErrorHandler _errorHandler;
     public bool IsVicePathGood { get; private set; }
@@ -43,12 +45,14 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
 
     public SettingsViewModel(ILogger<SettingsViewModel> logger, Globals globals,
         LibrariesEditorViewModel librariesEditor, IDispatcher dispatcher,
-        ISettingsManager settingsManager, ISystemDialogs systemDialogs, IServiceScope serviceScope) : base(dispatcher)
+        ISettingsManager settingsManager, ISystemDialogs systemDialogs, IServiceScope serviceScope,
+        IOsDependent osDependent) : base(dispatcher)
     {
         _logger = logger;
         _globals = globals;
         _settingsManager = settingsManager;
         _systemDialogs = systemDialogs;
+        _osDependent = osDependent;
         globals.Settings.PropertyChanged += Settings_PropertyChanged;
         LibrariesEditor = librariesEditor;
         LibrariesEditor.Init(Settings.Libraries.Values);
@@ -112,7 +116,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         string pathToVerify = Settings.ViceFilesInBinDirectory ? binPath : Settings.VicePath;
         try
         {
-            IsVicePathGood = Directory.GetFiles(pathToVerify, OsDependent.ViceExeName).Any();
+            IsVicePathGood = Directory.GetFiles(pathToVerify, _osDependent.ViceExeName).Any();
         }
         catch (Exception ex)
         {

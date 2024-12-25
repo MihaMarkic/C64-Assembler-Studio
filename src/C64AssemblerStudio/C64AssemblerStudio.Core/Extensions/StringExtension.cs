@@ -49,11 +49,12 @@ public static class StringExtension
         return source is not null ? [..source.Split(separator)] : ImmutableArray<string>.Empty;
     }
 
-    public static ReadOnlySpan<char> ExtractLine(this ReadOnlySpan<char> text, int lineNumber)
+    public static (int Start, int Length) ExtractLinePosition(this ReadOnlySpan<char> text, int lineNumber)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(lineNumber);
 
         var currentText = text;
+        int lineStartIndex = 0;
         int lineEndIndex = text.IndexOf(Environment.NewLine);
         int current = 0;
         while (current < lineNumber)
@@ -62,20 +63,26 @@ public static class StringExtension
             {
                 throw new ArgumentOutOfRangeException(nameof(lineNumber));
             }
-            currentText = currentText[(lineEndIndex + Environment.NewLine.Length)..]; 
+
+            currentText = currentText[(lineEndIndex + Environment.NewLine.Length)..];
+            lineStartIndex += lineEndIndex + Environment.NewLine.Length; 
             lineEndIndex = currentText.IndexOf(Environment.NewLine);
             current++;
         }
 
         if (lineEndIndex < 0)
         {
-            return currentText;
+            return (lineStartIndex, text.Length - lineStartIndex);
         }
         else
         {
-            return currentText[..lineEndIndex];
+            return (lineStartIndex, lineEndIndex);
         }
-        
+    }
+    public static ReadOnlySpan<char> ExtractLine(this ReadOnlySpan<char> text, int lineNumber)
+    {
+        var (start, length) = ExtractLinePosition(text, lineNumber);
+        return text[start..(start+length)];
     }
     public static string ConvertsDirectorySeparators(this string path)
     {
