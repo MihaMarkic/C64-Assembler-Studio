@@ -31,7 +31,7 @@ public class AssemblerFileViewModelTest: BaseTest<AssemblerFileViewModel>
         }
     }
     [TestFixture]
-    public class PopulateSuggestionsForArrayProperty : AssemblerFileViewModelTest
+    public class PopulateSuggestionsForArrayPropertyName : AssemblerFileViewModelTest
     {
         public static IEnumerable<(string Root, string ValueType, FrozenSet<string> Excluded, FrozenSet<string> Expected)> GetEnumerator()
         {
@@ -44,7 +44,7 @@ public class AssemblerFileViewModelTest: BaseTest<AssemblerFileViewModel>
         [TestCaseSource(nameof(GetEnumerator))]
         public void GivenSamples_ReturnsNames((string Root, string ValueType, FrozenSet<string> Excluded, FrozenSet<string> Expected) td)
         {
-            var actual = AssemblerFileViewModel.PopulateSuggestionsForArrayProperty(td.Root, td.ValueType, td.Excluded)
+            var actual = AssemblerFileViewModel.PopulateSuggestionsForArrayPropertyName(td.Root, td.ValueType, td.Excluded)
                 .ToFrozenSet();
 
             Assert.That(actual, Is.EquivalentTo(td.Expected));

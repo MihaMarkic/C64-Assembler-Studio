@@ -175,7 +175,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     }
 
 
-    internal static IEnumerable<string> PopulateSuggestionsForArrayProperty(string root, string valueType, FrozenSet<string> excluded)
+    internal static IEnumerable<string> PopulateSuggestionsForArrayPropertyName(string root, string valueType, FrozenSet<string> excluded)
     {
         var suitableValues = string.IsNullOrEmpty(root) ? ArrayProperties.GetNames(valueType) : ArrayProperties.GetNames(valueType, root);
 
@@ -185,6 +185,24 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             yield return value;
         }
     }
+
+    internal static IEnumerable<string> PopulateSuggestionsForArrayPropertyValue(string root, string valueType, string propertyName, FrozenSet<string> excluded)
+    {
+        if (ArrayProperties.GetProperty(valueType, propertyName, out var property))
+        {
+            switch (property.Type)
+            {
+                case ArrayPropertyType.Bool:
+                    foreach (var v in ArrayPropertyValues.BoolValues.Where(v => v.StartsWith(root, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        yield return v;
+                    }
+
+                    break;
+            }
+        }
+    }
+
     public async Task<(bool ShouldShow, ImmutableArray<EditorCompletionItem> Items)> ShouldShowCompletionAsync(
         TextChangeTrigger trigger, CancellationToken ct = default)
     {
@@ -205,17 +223,34 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             var builder = ImmutableArray.CreateBuilder<EditorCompletionItem>();
             switch (completionOption.Value.Type)
             {
-                case CompletionOptionType.ArrayProperty:
+                case CompletionOptionType.ArrayPropertyName:
+                {
                     string root = completionOption.Value.Root;
-                    string valueType = completionOption.Value.ValueType.ValueOrThrow();
+                    string valueType = completionOption.Value.DirectiveType.ValueOrThrow();
                     var existingProperties = completionOption.Value.ExcludedValues;
-                    
-                    var values = PopulateSuggestionsForArrayProperty(root, valueType, existingProperties);
+
+                    var values = PopulateSuggestionsForArrayPropertyName(root, valueType, existingProperties);
                     foreach (var v in values)
                     {
                         builder.Add(new StandardCompletionItem(v, "Array", completionOption.Value.Root,
                             completionOption.Value.ReplacementLength, 0));
                     }
+                }
+                    break;
+                case CompletionOptionType.ArrayPropertyValue:
+                {
+                    string root = completionOption.Value.Root;
+                    string directiveType = completionOption.Value.DirectiveType.ValueOrThrow();
+                    string valueType = completionOption.Value.ValueType.ValueOrThrow();
+                    var existingProperties = completionOption.Value.ExcludedValues;
+
+                    var values = PopulateSuggestionsForArrayPropertyValue(root, directiveType, valueType, existingProperties);
+                    foreach (var v in values)
+                    {
+                        builder.Add(new StandardCompletionItem(v, "Array", completionOption.Value.Root,
+                            completionOption.Value.ReplacementLength, 0));
+                    }
+                }
                     break;
                 case CompletionOptionType.FileReference:
                 {
