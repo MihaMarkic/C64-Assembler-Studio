@@ -80,44 +80,4 @@ public sealed class Globals: NotifiableObject
         }
         Project = _emptyProject;    
     }
-
-    /// <summary>
-    /// Searches for matching files in project and all libraries.
-    /// </summary>
-    /// <param name="filter">Relative file path without extension or *, just the directory and file name part</param>
-    /// <param name="extension">File extension to watch for.</param>
-    /// <param name="excludedFiles">Full file names to exclude from results</param>
-    /// <returns>A dictionary with source as key and file names array as value.</returns>
-    public FrozenDictionary<string, FrozenSet<string>> GetMatchingFiles(string filter, string extension, FrozenSet<string> excludedFiles)
-    {
-        string? projectDirectory = Project.Directory;
-        ArgumentNullException.ThrowIfNull(projectDirectory);
-        var searchDirectory = Path.GetDirectoryName(filter) ?? string.Empty;
-        string directExtension = Path.GetExtension(filter);
-        string fileName = Path.GetFileNameWithoutExtension(filter);
-        extension = directExtension.Length > 1 ? $"{directExtension}*" : $".{extension}";
-        var searchPattern = $"{fileName}*{extension}";
-        var projectFiles = _fileService.GetFilteredFiles(Path.Combine(projectDirectory, searchDirectory), searchPattern,
-            excludedFiles);
-        var candidateProjectFiles = projectFiles
-            .Where(f => Path.GetFileName(f).StartsWith(filter, OsDependent.FileStringComparison))
-            .ToFrozenSet();
-        var builder = new Dictionary<string, FrozenSet<string>>
-        {
-            { "Project", candidateProjectFiles },
-        };
-        foreach (var library in Settings.Libraries)
-        {
-            var libraryFiles = _fileService.GetFilteredFiles(Path.Combine(library.Value.Path, searchDirectory),
-                searchPattern, excludedFiles);
-            var validLibraryFiles = libraryFiles
-                .Where(f => Path.GetFileName(f).StartsWith(filter, OsDependent.FileStringComparison))
-                .ToFrozenSet();
-            builder.Add(library.Key, validLibraryFiles);
-        }
-
-        return builder.ToFrozenDictionary();
-    }
-    
-    
 }

@@ -34,6 +34,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private readonly IParserManager _parserManager;
     private readonly ProjectExplorerViewModel _projectExplorer;
     private readonly IOsDependent _osDependent;
+    private readonly IProjectServices _projectServices;
     public BreakpointsViewModel Breakpoints { get; }
     public event EventHandler? BreakpointsChanged;
     public FrozenDictionary<int, SyntaxLine> Lines { get; private set; } = FrozenDictionary<int, SyntaxLine>.Empty;
@@ -117,7 +118,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         IVice vice, CallStackViewModel callStack,
         Globals globals, ErrorsOutputViewModel errorsOutput,
         IParserManager parserManager, ProjectExplorerViewModel projectExplorer,
-        ProjectFile file, IOsDependent osDependent,
+        ProjectFile file, IOsDependent osDependent, IProjectServices projectServices,
         NullableArgument<FrozenSet<string>> selectedDefineSymbols) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {
@@ -128,6 +129,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         _parserManager = parserManager;
         _projectExplorer = projectExplorer;
         _osDependent = osDependent;
+        _projectServices = projectServices;
         ByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         MatchingByteDumpLines = ImmutableArray<ByteDumpLineViewModel>.Empty;
         Errors = FrozenDictionary<int, SyntaxErrorLine>.Empty;
@@ -216,168 +218,189 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
         Debug.WriteLine($"Caret column is at {CaretColumn}, using {CaretColumn - 2}");
         var (lineStart, lineLength) = Content.AsSpan().ExtractLinePosition(CaretLine - 1);
+        var completionOptionContext = new CompletionOptionContext(_projectServices);
         var completionOption =
-            _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn - 2, Content, lineStart, lineLength);
+            _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn - 2, Content, lineStart, lineLength, completionOptionContext);
         if (completionOption is not null)
         {
             var builder = ImmutableArray.CreateBuilder<EditorCompletionItem>();
-            switch (completionOption.Value.Type)
+            foreach (var s in completionOption.Value.Suggestions)
             {
-                case CompletionOptionType.ArrayPropertyName:
+                switch (s)
                 {
-                    string root = completionOption.Value.Root;
-                    string valueType = completionOption.Value.DirectiveType.ValueOrThrow();
-                    var existingProperties = completionOption.Value.ExcludedValues;
-
-                    var values = PopulateSuggestionsForArrayPropertyName(root, valueType, existingProperties);
-                    foreach (var v in values)
-                    {
-                        builder.Add(new StandardCompletionItem(v, "Array", completionOption.Value.Root,
-                            completionOption.Value.ReplacementLength, 0));
-                    }
+                    case StandardSuggestion standardSuggestion:
+                        builder.Add(new StandardCompletionItem(standardSuggestion.Text, standardSuggestion.Origin.ToString(), completionOption.Value.RootText, completionOption.Value.ReplacementLength, 0));
+                        break;
+                    case FileSuggestion fileSuggestion:
+                        break;
                 }
-                    break;
-                case CompletionOptionType.ArrayPropertyValue:
-                {
-                    string root = completionOption.Value.Root;
-                    string directiveType = completionOption.Value.DirectiveType.ValueOrThrow();
-                    string valueType = completionOption.Value.ValueType.ValueOrThrow();
-                    var existingProperties = completionOption.Value.ExcludedValues;
-
-                    var values = PopulateSuggestionsForArrayPropertyValue(root, directiveType, valueType, existingProperties);
-                    foreach (var v in values)
-                    {
-                        builder.Add(new StandardCompletionItem(v, "Array", completionOption.Value.Root,
-                            completionOption.Value.ReplacementLength, 0));
-                    }
-                }
-                    break;
-                case CompletionOptionType.FileReference:
-                {
-                    var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "asm",
-                        excludedFiles: _osDependent.ToFileFrozenSet([File.AbsolutePath]));
-                    foreach (var s in suggestions)
-                    {
-                        foreach (var p in s.Value)
-                        {
-                            builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
-                                completionOption.Value.ReplacementLength)
-                            {
-                                PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
-                            });
-                        }
-                    }
-                }
-
-                    break;
-                case CompletionOptionType.PreprocessorDirective when _sourceFile is not null:
-                {
-                    var suggestions = _sourceFile.GetPreprocessorDirectiveSuggestions(completionOption.Value.Root);
-                    foreach (var s in suggestions)
-                    {
-                        builder.Add(new StandardCompletionItem(s, "PPD", completionOption.Value.Root,
-                            completionOption.Value.ReplacementLength, -1));
-                    }
-                }
-                    break;
-                case CompletionOptionType.ProgramFile when _sourceFile is not null:
-                {
-                    var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "prg",
-                        excludedFiles: ExistingExternalFilesToFrozenSet(completionOption.Value.ExcludedValues));
-                    foreach (var s in suggestions)
-                    {
-                        foreach (var p in s.Value)
-                        {
-                            builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
-                                completionOption.Value.ReplacementLength)
-                            {
-                                PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
-                            });
-                        }
-                    }
-                }
-                    break;
-                case CompletionOptionType.SidFile when _sourceFile is not null:
-                {
-                    var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "sid",
-                        excludedFiles: ExistingExternalFilesToFrozenSet(completionOption.Value.ExcludedValues));
-                    foreach (var s in suggestions)
-                    {
-                        foreach (var p in s.Value)
-                        {
-                            builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
-                                completionOption.Value.ReplacementLength)
-                            {
-                                PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
-                            });
-                        }
-                    }
-                }
-                    break;
-                case CompletionOptionType.Segments when _sourceFile is not null:
-                {
-                    var allFiles = _parser.AllFiles;
-                    foreach (var k in allFiles.Keys)
-                    {
-                        Debug.WriteLine($"Looking at {k}");
-                        var fileWithSet = allFiles.GetValueOrDefault(k);
-                        if (fileWithSet is not null)
-                        {
-                            foreach (var s in fileWithSet.AllDefineSets)
-                            {
-                                Debug.WriteLine($"\tLooking at set {string.Join(", ", s)}");
-                                var parsedSourceFile = allFiles.GetFileOrDefault(k, s);
-                                if (parsedSourceFile is not null)
-                                {
-                                    foreach (var si in parsedSourceFile.SegmentDefinitions)
-                                    {
-                                        if (!completionOption.Value.ExcludedValues.Contains(si.Name) &&
-                                            si.Name.StartsWith(completionOption.Value.Root, StringComparison.Ordinal))
-                                        {
-                                            builder.Add(new StandardCompletionItem(si.Name, "Segment",
-                                                completionOption.Value.Root,
-                                                completionOption.Value.ReplacementLength, 0)
-                                            {
-                                                PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
-                                            });
-                                        }
-                                        else
-                                        {
-                                            Debug.WriteLine($"Segment {si.Name} is excluded");        
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    Debug.WriteLine($"Failed to get parsed source file");
-                                }
-                            }
-                        }
-                    }
-                    
-                    // foreach (var s in suggestions)
-                    // {
-                    //     foreach (var p in s.Value)
-                    //     {
-                    //         builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
-                    //             completionOption.Value.ReplacementLength)
-                    //         {
-                    //             PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
-                    //         });
-                    //     }
-                    // }
-                }
-                    break;
-
-                default:
-                    throw new IndexOutOfRangeException(nameof(CompletionOption.Type));
             }
-
-            var items = builder.ToImmutable();
-            return (items.Length > 0, items);
+            if (builder.Count > 0)
+            {
+                return (true, builder.ToImmutable());
+            }
         }
 
-        return (false, ImmutableArray<EditorCompletionItem>.Empty);
+            //if (completionOption is not null)
+            //{
+            //    var builder = ImmutableArray.CreateBuilder<EditorCompletionItem>();
+            //    switch (completionOption.Value.Type)
+            //    {
+            //        case CompletionOptionType.ArrayPropertyName:
+            //        {
+            //            string root = completionOption.Value.Root;
+            //            string valueType = completionOption.Value.DirectiveType.ValueOrThrow();
+            //            var existingProperties = completionOption.Value.ExcludedValues;
+
+            //            var values = PopulateSuggestionsForArrayPropertyName(root, valueType, existingProperties);
+            //            foreach (var v in values)
+            //            {
+            //                builder.Add(new StandardCompletionItem(v, "Array", completionOption.Value.Root,
+            //                    completionOption.Value.ReplacementLength, 0));
+            //            }
+            //        }
+            //            break;
+            //        case CompletionOptionType.ArrayPropertyValue:
+            //        {
+            //            string root = completionOption.Value.Root;
+            //            string directiveType = completionOption.Value.DirectiveType.ValueOrThrow();
+            //            string valueType = completionOption.Value.ValueType.ValueOrThrow();
+            //            var existingProperties = completionOption.Value.ExcludedValues;
+
+            //            var values = PopulateSuggestionsForArrayPropertyValue(root, directiveType, valueType, existingProperties);
+            //            foreach (var v in values)
+            //            {
+            //                builder.Add(new StandardCompletionItem(v, "Array", completionOption.Value.Root,
+            //                    completionOption.Value.ReplacementLength, 0));
+            //            }
+            //        }
+            //            break;
+            //        case CompletionOptionType.FileReference:
+            //        {
+            //            var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "asm",
+            //                excludedFiles: _osDependent.ToFileFrozenSet([File.AbsolutePath]));
+            //            foreach (var s in suggestions)
+            //            {
+            //                foreach (var p in s.Value)
+            //                {
+            //                    builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
+            //                        completionOption.Value.ReplacementLength)
+            //                    {
+            //                        PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+            //                    });
+            //                }
+            //            }
+            //        }
+
+            //            break;
+            //        case CompletionOptionType.PreprocessorDirective when _sourceFile is not null:
+            //        {
+            //            var suggestions = _sourceFile.GetPreprocessorDirectiveSuggestions(completionOption.Value.Root);
+            //            foreach (var s in suggestions)
+            //            {
+            //                builder.Add(new StandardCompletionItem(s, "PPD", completionOption.Value.Root,
+            //                    completionOption.Value.ReplacementLength, -1));
+            //            }
+            //        }
+            //            break;
+            //        case CompletionOptionType.ProgramFile when _sourceFile is not null:
+            //        {
+            //            var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "prg",
+            //                excludedFiles: ExistingExternalFilesToFrozenSet(completionOption.Value.ExcludedValues));
+            //            foreach (var s in suggestions)
+            //            {
+            //                foreach (var p in s.Value)
+            //                {
+            //                    builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
+            //                        completionOption.Value.ReplacementLength)
+            //                    {
+            //                        PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+            //                    });
+            //                }
+            //            }
+            //        }
+            //            break;
+            //        case CompletionOptionType.SidFile when _sourceFile is not null:
+            //        {
+            //            var suggestions = Globals.GetMatchingFiles(completionOption.Value.Root, "sid",
+            //                excludedFiles: ExistingExternalFilesToFrozenSet(completionOption.Value.ExcludedValues));
+            //            foreach (var s in suggestions)
+            //            {
+            //                foreach (var p in s.Value)
+            //                {
+            //                    builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
+            //                        completionOption.Value.ReplacementLength)
+            //                    {
+            //                        PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+            //                    });
+            //                }
+            //            }
+            //        }
+            //            break;
+            //        case CompletionOptionType.Segments when _sourceFile is not null:
+            //        {
+            //            var allFiles = _parser.AllFiles;
+            //            foreach (var k in allFiles.Keys)
+            //            {
+            //                Debug.WriteLine($"Looking at {k}");
+            //                var fileWithSet = allFiles.GetValueOrDefault(k);
+            //                if (fileWithSet is not null)
+            //                {
+            //                    foreach (var s in fileWithSet.AllDefineSets)
+            //                    {
+            //                        Debug.WriteLine($"\tLooking at set {string.Join(", ", s)}");
+            //                        var parsedSourceFile = allFiles.GetFileOrDefault(k, s);
+            //                        if (parsedSourceFile is not null)
+            //                        {
+            //                            foreach (var si in parsedSourceFile.SegmentDefinitions)
+            //                            {
+            //                                if (!completionOption.Value.ExcludedValues.Contains(si.Name) &&
+            //                                    si.Name.StartsWith(completionOption.Value.Root, StringComparison.Ordinal))
+            //                                {
+            //                                    builder.Add(new StandardCompletionItem(si.Name, "Segment",
+            //                                        completionOption.Value.Root,
+            //                                        completionOption.Value.ReplacementLength, 0)
+            //                                    {
+            //                                        PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+            //                                    });
+            //                                }
+            //                                else
+            //                                {
+            //                                    Debug.WriteLine($"Segment {si.Name} is excluded");        
+            //                                }
+            //                            }
+            //                        }
+            //                        else
+            //                        {
+            //                            Debug.WriteLine($"Failed to get parsed source file");
+            //                        }
+            //                    }
+            //                }
+            //            }
+
+            //            // foreach (var s in suggestions)
+            //            // {
+            //            //     foreach (var p in s.Value)
+            //            //     {
+            //            //         builder.Add(new FileReferenceCompletionItem(p, s.Key, completionOption.Value.Root,
+            //            //             completionOption.Value.ReplacementLength)
+            //            //         {
+            //            //             PostfixDoubleQuote = !completionOption.Value.EndsWithDoubleQuote,
+            //            //         });
+            //            //     }
+            //            // }
+            //        }
+            //            break;
+
+            //        default:
+            //            throw new IndexOutOfRangeException(nameof(CompletionOption.Type));
+            //    }
+
+            //    var items = builder.ToImmutable();
+            //    return (items.Length > 0, items);
+            //}
+
+            return (false, ImmutableArray<EditorCompletionItem>.Empty);
     }
 
     /// <summary>

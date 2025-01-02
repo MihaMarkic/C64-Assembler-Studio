@@ -38,7 +38,7 @@ public record StandardCompletionItem(
 /// <param name="FileName">Name of the file</param>
 /// <param name="Source">File source - Project or Library</param>
 /// <param name="RootText">Text left of cursor for filtering the suggestions</param>
-/// <param name="ReplacementLength">Lenght of the replacement segment</param>
+/// <param name="ReplacementLength">Length of the replacement segment</param>
 public record FileReferenceCompletionItem(string FileName, string Source, string RootText, int ReplacementLength)
     : EditorCompletionItem(0.0, RootText, ReplacementLength, 0)
 {

@@ -10,7 +10,7 @@ using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider;
-using Righthand.RetroDbgDataProvider.Models;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 using Righthand.ViceMonitor.Bridge;
 [assembly: CLSCompliant(false)]
 namespace C64AssemblerStudio.Engine;
@@ -29,6 +29,7 @@ public static class IoCRegistrar
             .AddTransient<BreakpointConditionsListener>()
             .AddSingleton<IServiceFactory, ServiceFactory>()
             .AddSingleton<IParserManager, ParserManager>()
+            .AddSingleton<IProjectServices, ProjectServices>()
             // ViewModels
             .AddSingleton<MainViewModel>()
             .AddSingleton<StartPageViewModel>()
