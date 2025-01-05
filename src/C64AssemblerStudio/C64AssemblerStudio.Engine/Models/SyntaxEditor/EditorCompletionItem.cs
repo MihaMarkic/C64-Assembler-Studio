@@ -1,47 +1,41 @@
-﻿namespace C64AssemblerStudio.Engine.Models.SyntaxEditor;
+﻿using Righthand.RetroDbgDataProvider.Models.Parsing;
 
+namespace C64AssemblerStudio.Engine.Models.SyntaxEditor;
+
+public interface IEditorCompletionItem
+{
+    string Text { get; }
+    string Description { get; }
+    Suggestion Suggestion { get; }
+}
 /// <summary>
 /// A editor completion item.
 /// </summary>
 /// <param name="Priority"></param>
 /// <param name="RootText">Text left of cursor for filtering the suggestions</param>
-/// <param name="ReplacementLength">Lenght of the replacement segment</param>
-public abstract record EditorCompletionItem(double Priority, string RootText, int ReplacementLength, int ReplacementRelativeOffset)
+/// <param name="ReplacementLength">Length of the replacement segment</param>
+public abstract record EditorCompletionItem<T>(string RootText, int ReplacementLength, string PrependText, string AppendText, T Suggestion): IEditorCompletionItem
+    where T: Suggestion
 {
     /// <summary>
     /// Text to be displayed in suggestions list.
     /// </summary>
     public abstract string Text { get; }
     public abstract string Description { get; }
-    /// <summary>
-    /// Whether text insertion should add double quotes at the end. Used for file references.
-    /// </summary>
-    public bool PostfixDoubleQuote { get; init; }
+    Suggestion IEditorCompletionItem.Suggestion => Suggestion;
+    public string Source => Suggestion.Origin.ToString();
 }
 
-public record StandardCompletionItem(
-    string ReplacementText,
-    string Source,
-    string RootText,
-    int ReplacementLength,
-    int ReplacementRelativeOffset)
-    : EditorCompletionItem(0.0, RootText, ReplacementLength, ReplacementRelativeOffset)
+public record StandardCompletionItem(string RootText, int ReplacementLength, string PrependText, string AppendText, Suggestion Suggestion)
+    : EditorCompletionItem<Suggestion>(RootText, ReplacementLength, PrependText, AppendText, Suggestion)
 {
-    public override string Text => ReplacementText;
-    public override string Description => $"Inserts {Source}";
+    public override string Text => Suggestion.Text;
+    public override string Description => $"Inserts {Suggestion.Origin}";
 }
-    
 
-/// <summary>
-/// A editor completion item for file references.
-/// </summary>
-/// <param name="FileName">Name of the file</param>
-/// <param name="Source">File source - Project or Library</param>
-/// <param name="RootText">Text left of cursor for filtering the suggestions</param>
-/// <param name="ReplacementLength">Length of the replacement segment</param>
-public record FileReferenceCompletionItem(string FileName, string Source, string RootText, int ReplacementLength)
-    : EditorCompletionItem(0.0, RootText, ReplacementLength, 0)
+public record FileReferenceCompletionItem(string RootText, int ReplacementLength, string PrependText, string AppendText, FileSuggestion Suggestion)
+    : EditorCompletionItem<FileSuggestion>(RootText, ReplacementLength, PrependText, AppendText, Suggestion)
 {
-    public override string Text => Path.GetFileName(FileName);
-    public override string Description => $"Inserts reference to file {FileName}";
+    public override string Text => Path.GetFileName(Suggestion.Text);
+    public override string Description => $"Inserts reference to file {Suggestion.Text}";
 }

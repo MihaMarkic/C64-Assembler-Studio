@@ -205,8 +205,8 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
     }
 
-    public async Task<(bool ShouldShow, ImmutableArray<EditorCompletionItem> Items)> ShouldShowCompletionAsync(
-        TextChangeTrigger trigger, CancellationToken ct = default)
+    public async Task<(bool ShouldShow, ImmutableArray<IEditorCompletionItem> Items)> ShouldShowCompletionAsync(
+        TextChangeTrigger trigger, TriggerChar triggerChar, CancellationToken ct = default)
     {
         // when trigger is char typed, wait for parsing to be updated
         // no need when trigger is CompletionRequested since it doesn't cause parsing as no text is changed
@@ -220,16 +220,17 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         var (lineStart, lineLength) = Content.AsSpan().ExtractLinePosition(CaretLine - 1);
         var completionOptionContext = new CompletionOptionContext(_projectServices);
         var completionOption =
-            _sourceFile?.GetCompletionOption(trigger, CaretLine - 1, CaretColumn - 2, Content, lineStart, lineLength, completionOptionContext);
+            _sourceFile?.GetCompletionOption(trigger, triggerChar, CaretLine - 1, CaretColumn - 2, Content, lineStart, lineLength, completionOptionContext);
         if (completionOption is not null)
         {
-            var builder = ImmutableArray.CreateBuilder<EditorCompletionItem>();
+            var builder = ImmutableArray.CreateBuilder<IEditorCompletionItem>();
             foreach (var s in completionOption.Value.Suggestions)
             {
                 switch (s)
                 {
                     case StandardSuggestion standardSuggestion:
-                        builder.Add(new StandardCompletionItem(standardSuggestion.Text, standardSuggestion.Origin.ToString(), completionOption.Value.RootText, completionOption.Value.ReplacementLength, 0));
+                        var (rootText, replacementLength, prependText, appendText) = completionOption.Value;
+                        builder.Add(new StandardCompletionItem(rootText, replacementLength, prependText, appendText, standardSuggestion));
                         break;
                     case FileSuggestion fileSuggestion:
                         break;
@@ -400,7 +401,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             //    return (items.Length > 0, items);
             //}
 
-            return (false, ImmutableArray<EditorCompletionItem>.Empty);
+            return (false, ImmutableArray<IEditorCompletionItem>.Empty);
     }
 
     /// <summary>

@@ -15,6 +15,7 @@ using C64AssemblerStudio.Engine.Models.SyntaxEditor;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Righthand.RetroDbgDataProvider.Models;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 
 namespace C64AssemblerStudio.Desktop.Views.Files;
@@ -60,20 +61,32 @@ public partial class AssemblerFile : UserControl
         // Debug.WriteLine($"{e.Key} {e.KeyModifiers}");
         if (e is { Key: Key.Space, KeyModifiers: KeyModifiers.Control })
         {
-            _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CompletionRequested);
+            _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CompletionRequested, TriggerChar.Invalid);
             e.Handled = true;
         }
     }
 
     private void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
     {
-        if (e.Text is "\"" or "#" or "." or ",")
+        if (!string.IsNullOrEmpty(e.Text))
         {
-            _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CharacterTyped);
+            var triggerChar = e.Text[0] switch
+            {
+                '\"' => TriggerChar.DoubleQuote,
+                '#' => TriggerChar.Hash,
+                '.' => TriggerChar.Dot,
+                ',' => TriggerChar.Comma,
+                _ => TriggerChar.Invalid,
+            };
+
+            if (triggerChar is not TriggerChar.Invalid)
+            {
+                _ = TextAreaOnTextEnteringAsync(TextChangeTrigger.CharacterTyped, triggerChar);
+            }
         }
     }
 
-    private async Task TextAreaOnTextEnteringAsync(TextChangeTrigger trigger)
+    private async Task TextAreaOnTextEnteringAsync(TextChangeTrigger trigger, TriggerChar triggerChar)
     {
         if (ViewModel is not null)
         {
@@ -81,8 +94,7 @@ public partial class AssemblerFile : UserControl
             {
                 try
                 {
-                    var (shouldShow, items) =
-                        await ViewModel.ShouldShowCompletionAsync(trigger);
+                    var (shouldShow, items) = await ViewModel.ShouldShowCompletionAsync(trigger, triggerChar);
                     if (shouldShow)
                     {
                         var builder = ImmutableArray.CreateBuilder<ICompletionData>();
