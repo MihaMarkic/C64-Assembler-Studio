@@ -33,16 +33,17 @@ public class AssemblerFileViewModelTest: BaseTest<AssemblerFileViewModel>
     [TestFixture]
     public class PopulateSuggestionsForArrayPropertyName : AssemblerFileViewModelTest
     {
-        public static IEnumerable<(string Root, string ValueType, FrozenSet<string> Excluded, FrozenSet<string> Expected)> GetEnumerator()
+        public record struct TestItem(string Root, string ValueType, FrozenSet<string> Excluded, FrozenSet<string> Expected);
+        public static IEnumerable<TestItem> GetEnumerator()
         {
-            yield return new ("", ".file", ["mbfiles"], ["name","type"]);
+            yield return new ("", ".file", ["mbfiles"], ["name","type","segments"]);
             yield return new ("t", ".file", ["mbfiles"], ["type"]);
             yield return new ("na", ".file", ["mbfiles"], ["name"]);
             yield return new ("x", ".file", ["mbfiles"], []);
         }
         
         [TestCaseSource(nameof(GetEnumerator))]
-        public void GivenSamples_ReturnsNames((string Root, string ValueType, FrozenSet<string> Excluded, FrozenSet<string> Expected) td)
+        public void GivenSamples_ReturnsNames(TestItem td)
         {
             var actual = AssemblerFileViewModel.PopulateSuggestionsForArrayPropertyName(td.Root, td.ValueType, td.Excluded)
                 .ToFrozenSet();

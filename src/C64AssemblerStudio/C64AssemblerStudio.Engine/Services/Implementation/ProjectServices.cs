@@ -1,7 +1,4 @@
-﻿using Antlr4.Runtime;
-using C64AssemblerStudio.Core.Services.Abstract;
-using C64AssemblerStudio.Engine.Models.Configuration;
-using C64AssemblerStudio.Engine.Models.Projects;
+﻿using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
@@ -58,7 +55,35 @@ public class ProjectServices : IProjectServices
         }
     }
 
-    public FrozenDictionary<string, FrozenSet<string>> GetMatchingFiles(string filter, FrozenSet<string> extensions, ICollection<string> excludedFiles)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="origin"></param>
+    /// <param name="rootFileName"></param>
+    /// <param name="searchPattern"></param>
+    /// <param name="extensions"></param>
+    /// <param name="startDirectory"></param>
+    /// <param name="relativeDirectory"></param>
+    /// <param name="excludedFiles">Excluded files relative paths to either project or library</param>
+    internal void AddMatchingFiles(Dictionary<ProjectFileKey, FrozenSet<string>> builder, ProjectFileOrigin origin, 
+        string rootFileName, string searchPattern, FrozenSet<string> extensions,
+        string startDirectory, string relativeDirectory, FrozenSet<string> excludedFiles)
+    {
+        var projectFiles = _fileService.GetFilteredFiles(Path.Combine(startDirectory, relativeDirectory), searchPattern, excludedFiles);
+        FrozenSet<string> candidateProjectFiles = [
+            ..projectFiles
+                .Select(f => f.Substring(startDirectory.Length).TrimStart(Path.DirectorySeparatorChar))
+                .Where(f =>
+                    !excludedFiles.Contains(f)
+                    && f.StartsWith(rootFileName, OsDependent.FileStringComparison)
+                    && (extensions.Count == 0 || extensions.Contains(Path.GetExtension(f))))
+                
+        ];
+        builder.Add(new(origin, startDirectory), candidateProjectFiles);
+    }
+
+    public FrozenDictionary<ProjectFileKey, FrozenSet<string>> GetMatchingFiles(string filter, FrozenSet<string> extensions, ICollection<string> excludedFiles)
     {
         string? projectDirectory = _globals.Project.Directory;
         ArgumentNullException.ThrowIfNull(projectDirectory);
@@ -68,25 +93,42 @@ public class ProjectServices : IProjectServices
         //extension = directExtension.Length > 1 ? $"{directExtension}*" : $".{extension}";
         var searchPattern = $"{fileName}*";
         var excludedFilesSet = excludedFiles.ToFrozenSet(_osDependent.FileStringComparer);
-        var projectFiles = _fileService.GetFilteredFiles(Path.Combine(projectDirectory, searchDirectory), searchPattern,
-            excludedFilesSet);
-        var candidateProjectFiles = projectFiles
-            .Where(f => Path.GetFileName(f).StartsWith(filter, OsDependent.FileStringComparison))
-            .ToFrozenSet();
-        var builder = new Dictionary<string, FrozenSet<string>>
-        {
-            { "Project", candidateProjectFiles },
-        };
+        var builder = new Dictionary<ProjectFileKey, FrozenSet<string>>();
+
+        AddMatchingFiles(builder, ProjectFileOrigin.Project, filter, searchPattern, extensions, projectDirectory, searchDirectory, excludedFilesSet);
         foreach (var library in _globals.Settings.Libraries)
         {
-            var libraryFiles = _fileService.GetFilteredFiles(Path.Combine(library.Value.Path, searchDirectory),
-                searchPattern, excludedFilesSet);
-            var validLibraryFiles = libraryFiles
-                .Where(f => Path.GetFileName(f).StartsWith(filter, OsDependent.FileStringComparison))
-                .ToFrozenSet();
-            builder.Add(library.Key, validLibraryFiles);
+            string libraryPath = library.Value.Path;
+            AddMatchingFiles(builder, ProjectFileOrigin.Library, filter, searchPattern, extensions, libraryPath, searchDirectory, excludedFilesSet);
         }
 
-        return builder.ToFrozenDictionary(_osDependent.FileStringComparer);
+        return builder.ToFrozenDictionary();
     }
+    internal void AddMatchingDirectories(Dictionary<ProjectFileKey, FrozenSet<string>> builder, ProjectFileOrigin origin,
+        string searchPattern, string startDirectory, string relativeDirectory)
+    {
+        var path = Path.Combine(startDirectory, relativeDirectory);
+        var directories = Directory.GetDirectories(path, searchPattern);
+        var relativeDirectories = directories.Select(d => d.Substring(startDirectory.Length).TrimStart(Path.DirectorySeparatorChar));
+        builder.Add(new(origin, startDirectory), [.. relativeDirectories.Distinct(_osDependent.FileStringComparer)]);
+
+    }
+    public FrozenDictionary<ProjectFileKey, FrozenSet<string>> GetMatchingDirectories(string filter)
+    {
+        string? projectDirectory = _globals.Project.Directory;
+        ArgumentNullException.ThrowIfNull(projectDirectory);
+        string searchPattern = $"{Path.GetFileNameWithoutExtension(filter)}*";
+        var relativeDirectory = Path.GetDirectoryName(filter) ?? "";
+        var builder = new Dictionary<ProjectFileKey, FrozenSet<string>>();
+
+        AddMatchingDirectories(builder, ProjectFileOrigin.Project, searchPattern, projectDirectory, relativeDirectory);
+        foreach (var library in _globals.Settings.Libraries)
+        {
+            string libraryPath = library.Value.Path;
+            AddMatchingDirectories(builder, ProjectFileOrigin.Library, searchPattern, libraryPath, relativeDirectory);
+        }
+
+        return builder.ToFrozenDictionary();
+    }
+
 }

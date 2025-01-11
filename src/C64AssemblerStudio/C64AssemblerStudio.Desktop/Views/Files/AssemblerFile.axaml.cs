@@ -76,6 +76,7 @@ public partial class AssemblerFile : UserControl
                 '#' => TriggerChar.Hash,
                 '.' => TriggerChar.Dot,
                 ',' => TriggerChar.Comma,
+                '=' => TriggerChar.Assignment,
                 _ => TriggerChar.Invalid,
             };
 
@@ -104,6 +105,7 @@ public partial class AssemblerFile : UserControl
                             {
                                 FileReferenceCompletionItem fileReference => new FileReferenceSourceCompletionData(
                                     fileReference),
+                                DirectoryReferenceCompletionItem directoryReference => new DirectoryReferenceSourceCompletionData(directoryReference),
                                 StandardCompletionItem standard => new StandardCompletionData(standard),
                                 _ => throw new Exception($"Not handling {i.GetType().Name}"),
                             };

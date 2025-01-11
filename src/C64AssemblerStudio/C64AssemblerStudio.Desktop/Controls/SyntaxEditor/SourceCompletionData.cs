@@ -32,12 +32,25 @@ public class FileReferenceSourceCompletionData : SourceCompletionData<FileRefere
     }
     public override void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
     {
-        //var suggestion = Item.Suggestion;
-        //int start = completionSegment.Offset - suggestion.RootText.Length;
-        //string replacementText = suggestion.PostfixDoubleQuote ? $"{Text}\"" : Text;
-        //textArea.Document.Replace(start, suggestion.ReplacementLength, replacementText);
-        //Debug.WriteLine($"Replacement length: {suggestion.ReplacementLength}");
-        throw new NotImplementedException();
+        var suggestion = Item.Suggestion;
+        int start = completionSegment.Offset - Item.ReplacementLength;
+        string replacementText = $"{Item.PrependText}{suggestion.Text}{Item.AppendText}";
+        textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
+        Debug.WriteLine($"Replacement length: {Item.ReplacementLength}");
+    }
+}
+public class DirectoryReferenceSourceCompletionData : SourceCompletionData<DirectoryReferenceCompletionItem>
+{
+    public DirectoryReferenceSourceCompletionData(DirectoryReferenceCompletionItem item) : base(item)
+    {
+    }
+    public override void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
+    {
+        var suggestion = Item.Suggestion;
+        int start = completionSegment.Offset - Item.ReplacementLength; // + Item.ReplacementRelativeOffset;
+        string replacementText = $"{Item.PrependText}{suggestion.Text}"; // don't append for directory suggestions
+        textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
+        Debug.WriteLine($"Replacement length: {Item.ReplacementLength}");
     }
 }
 
@@ -49,7 +62,7 @@ public class StandardCompletionData: SourceCompletionData<StandardCompletionItem
     public override void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
     {
         var suggestion = Item.Suggestion;
-        int start = completionSegment.Offset - Item.RootText.Length; // + Item.ReplacementRelativeOffset;
+        int start = completionSegment.Offset - Item.ReplacementLength; // + Item.ReplacementRelativeOffset;
         string replacementText = $"{Item.PrependText}{suggestion.Text}{Item.AppendText}";
         textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
         Debug.WriteLine($"Replacement length: {Item.ReplacementLength}");

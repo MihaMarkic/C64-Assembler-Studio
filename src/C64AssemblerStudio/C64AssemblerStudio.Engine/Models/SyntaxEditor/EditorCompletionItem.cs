@@ -39,3 +39,9 @@ public record FileReferenceCompletionItem(string RootText, int ReplacementLength
     public override string Text => Path.GetFileName(Suggestion.Text);
     public override string Description => $"Inserts reference to file {Suggestion.Text}";
 }
+public record DirectoryReferenceCompletionItem(string RootText, int ReplacementLength, string PrependText, string AppendText, DirectorySuggestion Suggestion)
+    : EditorCompletionItem<DirectorySuggestion>(RootText, ReplacementLength, PrependText, AppendText, Suggestion)
+{
+    public override string Text => Suggestion.Text;
+    public override string Description => $"Inserts reference to directory {Suggestion.Text}";
+}

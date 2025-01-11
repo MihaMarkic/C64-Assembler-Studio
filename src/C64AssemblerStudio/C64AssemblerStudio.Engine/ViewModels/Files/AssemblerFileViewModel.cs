@@ -226,13 +226,17 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             var builder = ImmutableArray.CreateBuilder<IEditorCompletionItem>();
             foreach (var s in completionOption.Value.Suggestions)
             {
+                var (rootText, replacementLength, prependText, appendText) = completionOption.Value;
                 switch (s)
                 {
                     case StandardSuggestion standardSuggestion:
-                        var (rootText, replacementLength, prependText, appendText) = completionOption.Value;
                         builder.Add(new StandardCompletionItem(rootText, replacementLength, prependText, appendText, standardSuggestion));
                         break;
                     case FileSuggestion fileSuggestion:
+                        builder.Add(new FileReferenceCompletionItem(rootText, replacementLength, prependText, appendText, fileSuggestion));
+                        break;
+                    case DirectorySuggestion directorySuggestion:
+                        builder.Add(new DirectoryReferenceCompletionItem(rootText, replacementLength, prependText, appendText, directorySuggestion));
                         break;
                 }
             }

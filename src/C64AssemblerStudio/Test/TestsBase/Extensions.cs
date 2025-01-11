@@ -18,4 +18,10 @@ public static class Extensions
         }
         return true;
     }
+    /// <summary>
+    /// Converts slash delimited path to the OS' one (i.e. to \ for Windows)
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public static string ToPath(this string path) => path.Replace('/', Path.DirectorySeparatorChar);
 }
