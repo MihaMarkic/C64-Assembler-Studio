@@ -58,7 +58,7 @@
                            Foreground="{Binding Converter={x:Static converters:StudioConverters.CompletionSourceToBrushConverter}}"
                            FontSize="9"
                            Margin="4,0,0,0" />
-                <TextBlock Text="{Binding Text}" VerticalAlignment="Center" />
+              <TextBlock Classes.isDefault="{Binding IsDefault}" Text="{Binding Text}" VerticalAlignment="Center" />
             </DockPanel>
         </DataTemplate>
       <!-- template for directory references condition completion suggestion -->
@@ -70,7 +70,7 @@
                      Foreground="{Binding Converter={x:Static converters:StudioConverters.CompletionSourceToBrushConverter}}"
                      FontSize="9"
                      Margin="4,0,0,0" />
-          <TextBlock Text="{Binding Text}" VerticalAlignment="Center" />
+          <TextBlock Classes.isDefault="{Binding IsDefault}" Text="{Binding Text}" VerticalAlignment="Center" />
         </DockPanel>
       </DataTemplate>
         <!-- template for generic completion suggestion -->
@@ -82,7 +82,7 @@
                            Foreground="{Binding Converter={x:Static converters:StudioConverters.CompletionSourceToBrushConverter}}"
                            FontSize="9"
                            Margin="4,0,0,0" />
-                <TextBlock Text="{Binding Text}" VerticalAlignment="Center" />
+                <TextBlock Classes.isDefault="{Binding IsDefault}" Text="{Binding Text}" VerticalAlignment="Center" />
             </DockPanel>
         </DataTemplate>
     </Application.DataTemplates>

@@ -6,6 +6,7 @@ public interface IEditorCompletionItem
 {
     string Text { get; }
     string Description { get; }
+    bool IsDefault { get; }
     Suggestion Suggestion { get; }
 }
 /// <summary>
@@ -22,6 +23,7 @@ public abstract record EditorCompletionItem<T>(string RootText, int ReplacementL
     /// </summary>
     public abstract string Text { get; }
     public abstract string Description { get; }
+    public bool IsDefault => Suggestion.IsDefault;
     Suggestion IEditorCompletionItem.Suggestion => Suggestion;
     public string Source => Suggestion.Origin.ToString();
 }

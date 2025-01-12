@@ -15,6 +15,7 @@ public abstract class SourceCompletionData<T>: ICompletionData
     public object Content => Item;
     public object Description => "Description";
     public double Priority => (double)Item.Suggestion.Priority;
+    public bool IsDefault => Item.IsDefault;
     protected T Item { get; }
 
     protected SourceCompletionData(T item)
