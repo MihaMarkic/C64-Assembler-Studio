@@ -36,7 +36,7 @@ public class FileReferenceSourceCompletionData : SourceCompletionData<FileRefere
         var suggestion = Item.Suggestion;
         int start = completionSegment.Offset - Item.ReplacementLength;
         string replacementText = $"{Item.PrependText}{suggestion.Text}{Item.AppendText}";
-        textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
+        textArea.Document.Replace(start, Item.ReplacementLength + completionSegment.Length, replacementText);
         Debug.WriteLine($"Replacement length: {Item.ReplacementLength}");
     }
 }
@@ -50,7 +50,7 @@ public class DirectoryReferenceSourceCompletionData : SourceCompletionData<Direc
         var suggestion = Item.Suggestion;
         int start = completionSegment.Offset - Item.ReplacementLength; // + Item.ReplacementRelativeOffset;
         string replacementText = $"{Item.PrependText}{suggestion.Text}"; // don't append for directory suggestions
-        textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
+        textArea.Document.Replace(start, Item.ReplacementLength + completionSegment.Length, replacementText);
         Debug.WriteLine($"Replacement length: {Item.ReplacementLength}");
     }
 }
@@ -65,7 +65,7 @@ public class StandardCompletionData: SourceCompletionData<StandardCompletionItem
         var suggestion = Item.Suggestion;
         int start = completionSegment.Offset - Item.ReplacementLength; // + Item.ReplacementRelativeOffset;
         string replacementText = $"{Item.PrependText}{suggestion.Text}{Item.AppendText}";
-        textArea.Document.Replace(start, Item.ReplacementLength, replacementText);
+        textArea.Document.Replace(start, Item.ReplacementLength + completionSegment.Length, replacementText);
         Debug.WriteLine($"Replacement length: {Item.ReplacementLength}");
     }
 }
