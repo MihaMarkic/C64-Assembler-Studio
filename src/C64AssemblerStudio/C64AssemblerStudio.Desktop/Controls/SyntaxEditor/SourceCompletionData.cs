@@ -13,7 +13,7 @@ public abstract class SourceCompletionData<T>: ICompletionData
     public IImage Image => null!;
     public string Text => Item.Text;
     public object Content => Item;
-    public object Description => "Description";
+    public object Description => Text;
     public double Priority => (double)Item.Suggestion.Priority;
     public bool IsDefault => Item.IsDefault;
     protected T Item { get; }
