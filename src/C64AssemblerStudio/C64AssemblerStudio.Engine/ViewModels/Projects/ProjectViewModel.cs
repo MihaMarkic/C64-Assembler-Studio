@@ -46,7 +46,7 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
     /// <summary>
     /// <see cref="SymbolsDefine"/> presented as set.
     /// </summary>
-    internal FrozenSet<string> SymbolsDefineSet
+    public FrozenSet<string> SymbolsDefineSet
     {
         get
         {

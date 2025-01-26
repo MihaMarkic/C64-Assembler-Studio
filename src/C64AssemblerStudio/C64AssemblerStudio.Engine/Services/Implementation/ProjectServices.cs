@@ -24,11 +24,20 @@ public class ProjectServices : IProjectServices
         _osDependent = osDependent;
     }
 
-    IEnumerable<string> IProjectServices.CollectSegments()
+    /// <summary>
+    /// Returns all project files.
+    /// </summary>
+    /// <returns></returns>
+    private IParsedFilesIndex<ParsedSourceFile> GetAllProjectFiles()
     {
         var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
         var parser = project.SourceCodeParser;
-        var allFiles = parser.AllFiles;
+        return parser.AllFiles;
+    }
+    /// <inheritdoc/>
+    IEnumerable<string> IProjectServices.CollectSegments()
+    {
+        var allFiles = GetAllProjectFiles();
         foreach (var k in allFiles.Keys)
         {
             Debug.WriteLine($"Looking at {k}");
@@ -53,6 +62,36 @@ public class ProjectServices : IProjectServices
                 }
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public FrozenSet<string> CollectPreprocessorSymbols()
+    {
+        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
+        var result = new HashSet<string>(project.SymbolsDefineSet);
+        var allFiles = GetAllProjectFiles();
+        foreach (var k in allFiles.Keys)
+        {
+            Debug.WriteLine($"Looking at {k}");
+            var fileWithSet = allFiles.GetValueOrDefault(k);
+            if (fileWithSet is not null)
+            {
+                foreach (var s in fileWithSet.AllDefineSets)
+                {
+                    Debug.WriteLine($"\tLooking at set {string.Join(", ", s)}");
+                    var parsedSourceFile = allFiles.GetFileOrDefault(k, s);
+                    if (parsedSourceFile is not null)
+                    {
+                        result.UnionWith(parsedSourceFile.OutDefines);
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Failed to get parsed source file");
+                    }
+                }
+            }
+        }
+        return result.ToFrozenSet();
     }
 
     /// <summary>
@@ -130,5 +169,4 @@ public class ProjectServices : IProjectServices
 
         return builder.ToFrozenDictionary();
     }
-
 }

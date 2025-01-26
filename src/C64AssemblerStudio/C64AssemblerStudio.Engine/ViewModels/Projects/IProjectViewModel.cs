@@ -12,6 +12,7 @@ public interface IProjectViewModel: IDisposable, IAsyncDisposable
     string? Path { get; set; }
     string? Caption { get; set; }
     string SymbolsDefine { get; set; }
+    FrozenSet<string> SymbolsDefineSet { get; }
     string? Directory { get; }
     Project? Configuration { get; }
     string? FullPrgPath { get; }

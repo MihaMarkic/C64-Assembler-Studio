@@ -216,11 +216,11 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             await _updateSyntaxCompletion.Task;
         }
 
-        Debug.WriteLine($"Caret column is at {CaretColumn}, using {CaretColumn - 2}");
+        Debug.WriteLine($"Caret column is at {CaretColumn}, using {CaretColumn - 1}");
         var (lineStart, lineLength) = Content.AsSpan().ExtractLinePosition(CaretLine - 1);
         var completionOptionContext = new CompletionOptionContext(_projectServices);
         var completionOption =
-            _sourceFile?.GetCompletionOption(trigger, triggerChar, CaretLine - 1, CaretColumn - 2, Content, lineStart, lineLength, completionOptionContext);
+            _sourceFile?.GetCompletionOption(trigger, triggerChar, CaretLine - 1, CaretColumn - 1, Content, lineStart, lineLength, completionOptionContext);
         if (completionOption is not null)
         {
             var builder = ImmutableArray.CreateBuilder<IEditorCompletionItem>();
