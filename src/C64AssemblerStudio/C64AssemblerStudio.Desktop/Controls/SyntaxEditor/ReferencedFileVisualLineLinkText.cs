@@ -15,7 +15,7 @@ public class ReferencedFileVisualLineLinkText : VisualLineLinkText
     {
         this._item = item;
         OnClick = onClick;
-        NavigateUri = new Uri($"referenced-file://{_item.ReferencedFile.RelativeFilePath}");
+        NavigateUri = new Uri($"referenced-file://{_item.ReferencedFile.RelativeFilePath.Replace('\\', '/')}");
         RequireControlModifierForClick = true;
     }
 

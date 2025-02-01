@@ -72,6 +72,10 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     /// but that could result in duplicate refreshes.
     /// </remarks>
     public event EventHandler? SyntaxColoringUpdated;
+    /// <summary>
+    /// Signals whether files is referenced from root project file (#import)
+    /// </summary>
+    public bool HasParsingInfo { get; private set; }
 
     private ParsedSourceFile? _sourceFile;
 
@@ -492,6 +496,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         var ct = _syntaxInfoUpdatesCts.Token;
         if (_sourceFileWithSets is not null && SelectedDefineSymbols is not null)
         {
+            HasParsingInfo = true;
             var singleFileSet = SelectedDefineSymbols;
             _sourceFile = _sourceFileWithSets.GetFile(singleFileSet);
             if (_sourceFile is not null)
@@ -499,7 +504,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 try
                 {
                     Debug.WriteLine("Refreshing syntax info");
-                    (Lines, var ignoredContent, Errors, _, _) = await _sourceFile.GetSyntaxInfoAsync(ct);
+                    (Lines, var ignoredContent, Errors, _) = await _sourceFile.GetSyntaxInfoAsync(ct);
                     var allErrors = Errors
                         .SelectMany(e => e.Value.Items)
                         .Select(se => new FileCompilerError(File, se));
@@ -525,6 +530,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
         else
         {
+            HasParsingInfo = false;
             SelectedDefineSymbols = null;
             DefineSymbols = ImmutableArray<FrozenSet<string>>.Empty;
             Logger.LogWarning("Opening {File} without parsed info", File.Name);

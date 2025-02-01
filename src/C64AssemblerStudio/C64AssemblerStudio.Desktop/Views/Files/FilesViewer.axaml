@@ -10,26 +10,34 @@
              x:DataType="fvm:FilesViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.Files.FilesViewer">
     <TabControl Name="Files" ItemsSource="{Binding Files}" SelectedItem="{Binding Selected}">
+      <TabControl.Styles>
+        <Style Selector="TextBlock.no_parse_info">
+          <Setter Property="Foreground">Orange</Setter>
+          <Setter Property="ToolTip.Tip">Not referenced</Setter>
+        </Style>
+      </TabControl.Styles>
+      <TabControl.DataTemplates>
+        <DataTemplate DataType="fvm:AssemblerFileViewModel">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock
+              Classes.no_parse_info="{Binding !HasParsingInfo}"
+              Text="{Binding Caption}" FontSize="15" VerticalAlignment="Center" />
+            <TextBlock Text="*" IsVisible="{Binding HasChanges}" VerticalAlignment="Center" />
+            <Button Command="{Binding $parent[TabControl].((fvm:FilesViewModel)DataContext).CloseFileCommand}"
+                    CommandParameter="{Binding}" VerticalAlignment="Top"
+                    Padding="4" Background="Transparent">
+              <Image Height="12">
+                <Image.Source>
+                  <SvgImage Source="/Assets/Icons/times.svg" />
+                </Image.Source>
+              </Image>
+            </Button>
+          </StackPanel>
+        </DataTemplate>
+      </TabControl.DataTemplates>
         <TabControl.KeyBindings>
             <KeyBinding Gesture="Ctrl+F4" Command="{Binding CloseFileCommand}" CommandParameter="{Binding #Files.SelectedItem}" />
         </TabControl.KeyBindings>
-        <TabControl.ItemTemplate>
-            <DataTemplate>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Caption}" FontSize="15" VerticalAlignment="Center" />
-                    <TextBlock Text="*" IsVisible="{Binding HasChanges}" VerticalAlignment="Center" />
-                    <Button Command="{Binding $parent[TabControl].((fvm:FilesViewModel)DataContext).CloseFileCommand}"
-                            CommandParameter="{Binding}" VerticalAlignment="Top"
-                            Padding="4" Background="Transparent">
-                        <Image Height="12">
-                            <Image.Source>
-                                <SvgImage Source="/Assets/Icons/times.svg" />
-                            </Image.Source>
-                        </Image>
-                    </Button>
-                </StackPanel>
-            </DataTemplate>
-        </TabControl.ItemTemplate>
         <TabControl.ContentTemplate>
             <v:DataContextTemplateSelector>
                 <v:DataContextTemplateSelector.Templates>
