@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Core.Services.Abstract;
+﻿using C64AssemblerStudio.Core.Extensions;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
@@ -16,12 +17,14 @@ public class ProjectServices : IProjectServices
     private readonly Globals _globals;
     private readonly Core.Services.Abstract.IFileService _fileService;
     private readonly IOsDependent _osDependent;
-    public ProjectServices(ILogger<ProjectServices> logger, Globals globals, Core.Services.Abstract.IFileService fileService, IOsDependent osDependent)
+    private readonly IDirectoryService _directoryService;
+    public ProjectServices(ILogger<ProjectServices> logger, Globals globals, Core.Services.Abstract.IFileService fileService, IOsDependent osDependent, IDirectoryService directoryService)
     {
         _logger = logger;
         _globals = globals;
         _fileService = fileService;
         _osDependent = osDependent;
+        _directoryService = directoryService;
     }
 
     /// <summary>
@@ -115,7 +118,7 @@ public class ProjectServices : IProjectServices
                 .Select(f => f.Substring(startDirectory.Length).TrimStart(Path.DirectorySeparatorChar))
                 .Where(f =>
                     !excludedFiles.Contains(f)
-                    && f.StartsWith(rootFileName, OsDependent.FileStringComparison)
+                    && f.PathStartsWithSeparatorAgnostic(rootFileName, OsDependent.FileStringComparison)
                     && (extensions.Count == 0 || extensions.Contains(Path.GetExtension(f))))
                 
         ];
@@ -147,10 +150,12 @@ public class ProjectServices : IProjectServices
         string searchPattern, string startDirectory, string relativeDirectory)
     {
         var path = Path.Combine(startDirectory, relativeDirectory);
-        var directories = Directory.GetDirectories(path, searchPattern);
-        var relativeDirectories = directories.Select(d => d.Substring(startDirectory.Length).TrimStart(Path.DirectorySeparatorChar));
-        builder.Add(new(origin, startDirectory), [.. relativeDirectories.Distinct(_osDependent.FileStringComparer)]);
-
+        if (_directoryService.Exists(path))
+        {
+            var directories = _directoryService.GetDirectories(path, searchPattern);
+            var relativeDirectories = directories.Select(d => d.Substring(startDirectory.Length).TrimStart(Path.DirectorySeparatorChar));
+            builder.Add(new(origin, startDirectory), [.. relativeDirectories.Distinct(_osDependent.FileStringComparer)]);
+        }
     }
     public FrozenDictionary<ProjectFileKey, FrozenSet<string>> GetMatchingDirectories(string filter)
     {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Frozen;
 using Antlr4.Runtime.Misc;
 using AutoFixture;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Implementation;
 using NSubstitute;
 using NUnit.Framework;
@@ -54,6 +55,26 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             Target.AddMatchingFiles(builder, ProjectFileOrigin.Project, td.RootFileName, td.SearchPattern, td.Extensions, td.StartDirectory, td.RelativeDirectory, td.ExcludedFilesSet);
             
             Assert.That(builder.Values.Single(), Is.EquivalentTo(td.Expected));
+        }
+    }
+    [TestFixture]
+    public class AddMatchingDirectories: ProjectServicesTest
+    {
+        [Test]
+        public void WhenBaseDirectoryDoesNotExist_BuilderIsEmpty()
+        {
+            var directoryService = Fixture.Freeze<IDirectoryService>();
+            directoryService.GetDirectories(default!, default!).ReturnsForAnyArgs(ci =>
+            {
+                throw new Exception("Directory does not exist");
+            });
+            directoryService.Exists(default!).ReturnsForAnyArgs(false);
+
+            Dictionary<ProjectFileKey, FrozenSet<string>> builder = [];
+
+            Target.AddMatchingDirectories(builder, ProjectFileOrigin.Project, "", "", "");
+
+            Assert.That(builder, Is.Empty);
         }
     }
 }

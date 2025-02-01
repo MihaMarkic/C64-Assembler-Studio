@@ -8,10 +8,12 @@ namespace C64AssemblerStudio.Core.Services.Implementation;
 public class FileService : IFileService
 {
     private readonly ILogger<FileService> _logger;
+    private readonly IDirectoryService _directoryService;
 
-    public FileService(ILogger<FileService> logger)
+    public FileService(ILogger<FileService> logger, IDirectoryService directoryService)
     {
         _logger = logger;
+        _directoryService = directoryService;
     }
 
     public ImmutableArray<string> ReadAllLines(string path) => [..File.ReadAllLines(path)];
@@ -30,7 +32,7 @@ public class FileService : IFileService
             string[] allFiles;
             try
             {
-                allFiles = Directory.GetFiles(path, searchPattern, SearchOption.TopDirectoryOnly);
+                allFiles = _directoryService.GetFiles(path, searchPattern, SearchOption.TopDirectoryOnly);
             }
             catch (DirectoryNotFoundException)
             {
