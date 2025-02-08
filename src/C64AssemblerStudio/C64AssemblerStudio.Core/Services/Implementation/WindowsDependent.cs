@@ -9,4 +9,5 @@ public class WindowsDependent : IOsDependent
     public string ViceExeName => "x64sc.exe";
     public string JavaExeName => "java.exe";
     public string FileAppOpenName => "explorer.exe";
+    public string NormalizePath(string path) => path.Replace('/', '\\');
 }

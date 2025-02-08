@@ -25,6 +25,8 @@ public class ProjectExplorerViewModel : ViewModel
     private readonly Globals _globals;
     private readonly ProjectFilesWatcherViewModel _projectFilesWatcher;
     private readonly IOsDependent _osDependent;
+    private readonly IDirectoryService _directoryService;
+    private readonly IFileService _fileService;
     public bool IsRefreshing => _projectFilesWatcher.IsRefreshing;
     public bool IsProjectOpen => _projectFilesWatcher.IsProjectOpen;
     public RelayCommandWithParameter<ProjectFile> OpenFileCommand { get; }
@@ -42,7 +44,7 @@ public class ProjectExplorerViewModel : ViewModel
 
     public ProjectExplorerViewModel(ILogger<ProjectExplorerViewModel> logger, IDispatcher dispatcher,
         IServiceScopeFactory serviceScopeFactory, Globals globals, ProjectFilesWatcherViewModel projectFilesWatcher,
-        IOsDependent osDependent)
+        IOsDependent osDependent, IDirectoryService directoryService, IFileService fileService)
     {
         _logger = logger;
         _dispatcher = dispatcher;
@@ -50,6 +52,8 @@ public class ProjectExplorerViewModel : ViewModel
         _globals = globals;
         _projectFilesWatcher = projectFilesWatcher;
         _osDependent = osDependent;
+        _directoryService = directoryService;
+        _fileService = fileService;
         _projectFilesWatcher.PropertyChanged += ProjectFilesWatcherOnPropertyChanged;
         OpenFileCommand = new RelayCommandWithParameter<ProjectFile>(OpenFile);
         AddFileCommand = new RelayCommand<ProjectDirectory>(AddFile);
@@ -134,7 +138,7 @@ public class ProjectExplorerViewModel : ViewModel
     {
         try
         {
-            Directory.Delete(directory.AbsolutePath, recursive: true);
+            _directoryService.Delete(directory.AbsolutePath, recursive: true);
         }
         catch (Exception ex)
         {
@@ -146,7 +150,7 @@ public class ProjectExplorerViewModel : ViewModel
     {
         try
         {
-            File.Delete(file.AbsolutePath);
+            _fileService.Delete(file.AbsolutePath);
         }
         catch (Exception ex)
         {

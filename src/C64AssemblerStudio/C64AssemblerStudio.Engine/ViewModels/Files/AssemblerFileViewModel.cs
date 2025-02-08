@@ -1,8 +1,4 @@
-﻿using System.Collections.Frozen;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
-using C64AssemblerStudio.Core.Common;
+﻿using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Common.Compiler;
 using C64AssemblerStudio.Core.Extensions;
 using C64AssemblerStudio.Core.Services.Abstract;
@@ -22,6 +18,10 @@ using Righthand.RetroDbgDataProvider.Models;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 using Righthand.RetroDbgDataProvider.Models.Program;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
+using System.Collections.Frozen;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Diagnostics;
 using IFileService = C64AssemblerStudio.Core.Services.Abstract.IFileService;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
@@ -35,6 +35,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private readonly ProjectExplorerViewModel _projectExplorer;
     private readonly IOsDependent _osDependent;
     private readonly IProjectServices _projectServices;
+    private Task? _reparseTask;
     public BreakpointsViewModel Breakpoints { get; }
     public event EventHandler? BreakpointsChanged;
     public FrozenDictionary<int, SyntaxLine> Lines { get; private set; } = FrozenDictionary<int, SyntaxLine>.Empty;
@@ -212,13 +213,20 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public async Task<(bool ShouldShow, ImmutableArray<IEditorCompletionItem> Items)> ShouldShowCompletionAsync(
         TextChangeTrigger trigger, TriggerChar triggerChar, CancellationToken ct = default)
     {
-        // when trigger is char typed, wait for parsing to be updated
-        // no need when trigger is CompletionRequested since it doesn't cause parsing as no text is changed
-        if (trigger == TextChangeTrigger.CharacterTyped)
+        Debug.WriteLine("ShouldShowCompletionAsync invoked");
+        // let parser finish whatever it is doing before starting suggestions
+        if (_reparseTask is not null)
         {
-            _updateSyntaxCompletion = new TaskCompletionSource();
-            await _updateSyntaxCompletion.Task;
+            await _reparseTask;
+            Debug.WriteLine("Reparser awaited");
         }
+        var parserTask = _parser.ParsingTask;
+        if (parserTask is not null)
+        {
+            await parserTask;
+            Debug.WriteLine("Parser awaited");
+        }
+        Debug.WriteLine("Parser idle");
 
         Debug.WriteLine($"Caret column is at {CaretColumn}, using {CaretColumn - 1}");
         var (lineStart, lineLength) = Content.AsSpan().ExtractLinePosition(CaretLine - 1);
@@ -286,7 +294,8 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         {
             _sourceFileWithSets = _parser.AllFiles.GetValueOrDefault(File.AbsolutePath);
             UpdateDefineSymbolsAndSelection();
-            UpdateSyntaxInfo();
+            var task = UpdateSyntaxInfoAsync(e.CancellationToken);
+            e.AddClientTask(task);
         }
     }
 
@@ -316,15 +325,14 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
     }
 
-    private TaskCompletionSource? _updateSyntaxCompletion;
-
     private void UpdateSyntaxInfo()
     {
-        _ = UpdateSyntaxInfoAsync();
+        _ = UpdateSyntaxInfoAsync(CancellationToken.None);
     }
 
-    private async Task UpdateSyntaxInfoAsync()
+    private async Task UpdateSyntaxInfoAsync(CancellationToken ct)
     {
+        Debug.WriteLine("Updating syntax info");
         if (_syntaxInfoUpdatesCts is not null)
         {
             await _syntaxInfoUpdatesCts.CancelAsync();
@@ -333,7 +341,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         }
 
         _syntaxInfoUpdatesCts = new();
-        var ct = _syntaxInfoUpdatesCts.Token;
+        var ctInternal = _syntaxInfoUpdatesCts.Token;
         if (_sourceFileWithSets is not null && SelectedDefineSymbols is not null)
         {
             HasParsingInfo = true;
@@ -344,23 +352,23 @@ public class AssemblerFileViewModel : ProjectFileViewModel
                 try
                 {
                     Debug.WriteLine("Refreshing syntax info");
-                    (Lines, var ignoredContent, Errors, _) = await _sourceFile.GetSyntaxInfoAsync(ct);
+                    (Lines, var ignoredContent, Errors, _) = await _sourceFile.GetSyntaxInfoAsync(ctInternal);
                     var allErrors = Errors
                         .SelectMany(e => e.Value.Items)
                         .Select(se => new FileCompilerError(File, se));
                     _errorsOutput.AddParserErrorsForFile(File.AbsolutePath, allErrors);
-                    ct.ThrowIfCancellationRequested();
+                    ctInternal.ThrowIfCancellationRequested();
                     IgnoredContent = ConvertIgnoredMultiLineStructureToSingleLine(ignoredContent);
                     RaiseSyntaxColoringUpdated(EventArgs.Empty);
                 }
                 catch (OperationCanceledException)
                 {
-                    _updateSyntaxCompletion?.SetCanceled(ct);
+                    return;
                 }
                 catch (Exception ex)
                 {
-                    _updateSyntaxCompletion?.SetException(ex);
                     Logger.LogError(ex, "Failed updating syntax info");
+                    return;
                 }
             }
             else
@@ -375,8 +383,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             DefineSymbols = ImmutableArray<FrozenSet<string>>.Empty;
             Logger.LogWarning("Opening {File} without parsed info", File.Name);
         }
-
-        _updateSyntaxCompletion?.TrySetResult();
+        Debug.WriteLine("Syntax updated");
     }
 
     /// <summary>
@@ -549,7 +556,8 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             case nameof(Content):
                 if (IsContentLoaded)
                 {
-                    _ = _parserManager.ReparseChangesAsync(CancellationToken.None);
+                    Logger.LogInformation("Starting reparse because content changed");
+                    _reparseTask = _parserManager.ReparseChangesAsync(CancellationToken.None);
                 }
 
                 break;

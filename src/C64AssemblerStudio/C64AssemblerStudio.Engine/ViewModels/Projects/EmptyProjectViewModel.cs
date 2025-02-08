@@ -20,6 +20,8 @@ public class EmptyProjectViewModel : ProjectViewModel<EmptyProject, ParsedSource
         /// <inheritdoc />
         public IParsedFilesIndex<ParsedSourceFile> AllFiles => ImmutableParsedFilesIndex<ParsedSourceFile>.Empty;
         /// <inheritdoc />
+        public Task ParsingTask => Task.CompletedTask;
+        /// <inheritdoc />
         public Task InitialParseAsync(string projectDirectory, FrozenDictionary<string, InMemoryFileContent> inMemoryFilesContent, FrozenSet<string> inDefines,
             ImmutableArray<string> libraryDirectories, CancellationToken ct = default)
         {

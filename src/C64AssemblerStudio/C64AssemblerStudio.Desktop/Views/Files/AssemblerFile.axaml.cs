@@ -50,7 +50,7 @@ public partial class AssemblerFile : UserControl
         // leftMargins.Add(_lineNumbers);
         Editor.TextChanged += EditorOnTextChanged;
         Editor.TextArea.Caret.PositionChanged += CaretOnPositionChanged;
-        Editor.TextArea.TextEntering += TextAreaOnTextEntering;
+        Editor.TextArea.TextEntered += TextAreaOnTextEntered;
         Editor.KeyDown += EditorOnKeyDown;
         _markerRenderer = new();
         Editor.TextArea.TextView.BackgroundRenderers.Add(_markerRenderer);
@@ -66,7 +66,7 @@ public partial class AssemblerFile : UserControl
         }
     }
 
-    private void TextAreaOnTextEntering(object? sender, TextInputEventArgs e)
+    private void TextAreaOnTextEntered(object? sender, TextInputEventArgs e)
     {
         if (!string.IsNullOrEmpty(e.Text))
         {

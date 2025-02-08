@@ -41,4 +41,27 @@
       <ProjectReference Include="..\..\C64AssemblerStudio.Engine\C64AssemblerStudio.Engine.csproj" />
       <ProjectReference Include="..\TestsBase\TestsBase.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <None Update="TestFileSystems\Default\Libraries\One\one_main.asm">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="TestFileSystems\Default\Libraries\One\Sub\InnerSubOne\inner_sub_one.asm">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="TestFileSystems\Default\Libraries\One\Sub\one_sub.asm">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="TestFileSystems\Default\Libraries\Two\two_main.asm">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="TestFileSystems\Default\Project\main.asm">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="TestFileSystems\Default\Project\Sub\Nested\xfile.asm">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="TestFileSystems\Default\Project\Sub\sub.asm">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 </Project>

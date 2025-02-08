@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -31,6 +32,7 @@ public class MainViewModel : ViewModel
     private readonly TaskFactory _uiFactory;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IParserManager _parserManager;
+    private readonly IDirectoryService _directoryService;
     public IVice Vice { get; }
 
     // subscriptions
@@ -98,7 +100,7 @@ public class MainViewModel : ViewModel
         ErrorsOutputViewModel errors, BreakpointsViewModel breakpoints,
         MemoryViewerViewModel memoryViewer,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment,
-        CallStackViewModel callStack, IParserManager parserManager)
+        CallStackViewModel callStack, IParserManager parserManager, IDirectoryService directoryService)
     {
         _logger = logger;
         _globals = globals;
@@ -111,6 +113,7 @@ public class MainViewModel : ViewModel
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _closeOverlaySubscription = dispatcher.Subscribe<CloseOverlayMessage>(CloseOverlay);
         _showModalDialogMessageSubscription = dispatcher.Subscribe<ShowModalDialogMessageCore>(OnShowModalDialog);
+        _directoryService = directoryService;
         ProjectExplorer = projectExplorer;
         Files = files;
         ErrorMessages = errorMessages;
@@ -148,7 +151,7 @@ public class MainViewModel : ViewModel
             _commandsManager.CreateRelayCommandAsync(StepIntoAsync, () => IsDebugging && IsDebuggingPaused);
         StepOverCommand =
             _commandsManager.CreateRelayCommandAsync(StepOverAsync, () => IsDebugging && IsDebuggingPaused);
-        if (!Directory.Exists(globals.Settings.VicePath))
+        if (!_directoryService.Exists(globals.Settings.VicePath))
         {
             SwitchOverlayContent<SettingsViewModel>();
         }

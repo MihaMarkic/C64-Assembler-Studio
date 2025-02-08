@@ -2,7 +2,7 @@
 
 namespace C64AssemblerStudio.Core.Extensions;
 
-public static class PathExtension
+public static partial class PathExtension
 {
     /// <summary>
     /// Dissects path to OS independent segments.
@@ -67,18 +67,5 @@ public static class PathExtension
         var startsWith = startsWithPath.AsSpan().PathAsSegmented();
 
         return source.PathSegmentsStartWith(startsWith, comparison);
-    }
-
-    public  ref struct SegmentedPath
-    {
-        public ReadOnlySpan<char> Path { get; }
-        public ReadOnlySpan<Range> Ranges { get; }
-        public SegmentedPath(ReadOnlySpan<char> path, ReadOnlySpan<Range> ranges)
-        {
-            Path = path;
-            Ranges = ranges;
-        }
-        public ReadOnlySpan<char> GetSegment(Range r) => Path[r];
-        public ReadOnlySpan<char> GetSegment(int rangeIndex) => Path[Ranges[rangeIndex]];
     }
 }

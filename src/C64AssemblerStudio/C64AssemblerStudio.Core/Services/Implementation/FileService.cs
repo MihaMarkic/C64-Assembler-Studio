@@ -1,19 +1,20 @@
-﻿using System.Collections;
-using System.Collections.Frozen;
-using C64AssemblerStudio.Core.Services.Abstract;
-using System.Collections.Immutable;
+﻿using C64AssemblerStudio.Core.Services.Abstract;
 using Microsoft.Extensions.Logging;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 
 namespace C64AssemblerStudio.Core.Services.Implementation;
 public class FileService : IFileService
 {
     private readonly ILogger<FileService> _logger;
     private readonly IDirectoryService _directoryService;
+    private readonly IOsDependent _osDependent;
 
-    public FileService(ILogger<FileService> logger, IDirectoryService directoryService)
+    public FileService(ILogger<FileService> logger, IDirectoryService directoryService, IOsDependent osDependent)
     {
         _logger = logger;
         _directoryService = directoryService;
+        _osDependent = osDependent;
     }
 
     public ImmutableArray<string> ReadAllLines(string path) => [..File.ReadAllLines(path)];
@@ -24,38 +25,5 @@ public class FileService : IFileService
     public Task WriteAllTextAsync(string path, string text, CancellationToken ct = default)
         => File.WriteAllTextAsync(path, text, ct);
 
-    /// <inheritdoc />
-    public IEnumerable<string> GetFilteredFiles(string path, string searchPattern, FrozenSet<string> excludedFiles)
-    {
-        if (Directory.Exists(path))
-        {
-            string[] allFiles;
-            try
-            {
-                allFiles = _directoryService.GetFiles(path, searchPattern, SearchOption.TopDirectoryOnly);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                _logger.LogError("Directory {Directory} does not exist", path);
-                yield break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Couldn't enumerate files in directory {Directory} with pattern {Pattern}", path,
-                    searchPattern);
-                yield break;
-            }
-
-            var validFiles = allFiles.AsEnumerable();
-            if (excludedFiles.Count > 0)
-            {
-                validFiles = validFiles.Where(f => !excludedFiles.Contains(f));
-            }
-
-            foreach (var f in validFiles)
-            {
-                yield return f;
-            }
-        }
-    }
+    public void Delete(string path) => File.Delete(path);
 }

@@ -112,52 +112,73 @@ public class ProjectServices : IProjectServices
         string rootFileName, string searchPattern, FrozenSet<string> extensions,
         string startDirectory, string relativeDirectory, FrozenSet<string> excludedFiles)
     {
-        var projectFiles = _fileService.GetFilteredFiles(Path.Combine(startDirectory, relativeDirectory), searchPattern, excludedFiles);
+        var startDirectoryPath = Path.Combine(startDirectory, relativeDirectory);
+        var projectFiles = _directoryService.GetFilteredFiles(startDirectoryPath, searchPattern, excludedFiles);
         FrozenSet<string> candidateProjectFiles = [
             ..projectFiles
                 .Select(f => f.Substring(startDirectory.Length).TrimStart(Path.DirectorySeparatorChar))
                 .Where(f =>
                     !excludedFiles.Contains(f)
-                    && f.PathStartsWithSeparatorAgnostic(rootFileName, OsDependent.FileStringComparison)
+                    && f.PathStartsWithSeparatorAgnostic(rootFileName, _osDependent.FileStringComparison)
                     && (extensions.Count == 0 || extensions.Contains(Path.GetExtension(f))))
                 
         ];
         builder.Add(new(origin, startDirectory), candidateProjectFiles);
     }
 
-    public FrozenDictionary<ProjectFileKey, FrozenSet<string>> GetMatchingFiles(string filter, FrozenSet<string> extensions, ICollection<string> excludedFiles)
+    public FrozenDictionary<ProjectFileKey, FrozenSet<string>> GetMatchingFiles(
+        string relativeFilePath, string filter, FrozenSet<string> extensions, ICollection<string> excludedFiles)
     {
         string? projectDirectory = _globals.Project.Directory;
         ArgumentNullException.ThrowIfNull(projectDirectory);
-        var searchDirectory = Path.GetDirectoryName(filter) ?? string.Empty;
+        var searchDirectory = GetSearchDirectoryForFileMatching(filter) ?? string.Empty;
         string directExtension = Path.GetExtension(filter);
-        string fileName = Path.GetFileNameWithoutExtension(filter);
+        string fileName = GetSearchFileNameForFileMatching(filter);
         //extension = directExtension.Length > 1 ? $"{directExtension}*" : $".{extension}";
         var searchPattern = $"{fileName}*";
         var excludedFilesSet = excludedFiles.ToFrozenSet(_osDependent.FileStringComparer);
         var builder = new Dictionary<ProjectFileKey, FrozenSet<string>>();
 
-        AddMatchingFiles(builder, ProjectFileOrigin.Project, filter, searchPattern, extensions, projectDirectory, searchDirectory, excludedFilesSet);
+        var projectDirectoryWithRelativeFilePath = Path.Combine(projectDirectory, relativeFilePath);
+        AddMatchingFiles(builder, ProjectFileOrigin.Project, filter, searchPattern, extensions,
+            projectDirectoryWithRelativeFilePath, searchDirectory, excludedFilesSet);
         foreach (var library in _globals.Settings.Libraries)
         {
-            string libraryPath = library.Value.Path;
+            string libraryPath = Path.Combine(library.Value.Path, relativeFilePath);
             AddMatchingFiles(builder, ProjectFileOrigin.Library, filter, searchPattern, extensions, libraryPath, searchDirectory, excludedFilesSet);
         }
 
         return builder.ToFrozenDictionary();
     }
-    internal void AddMatchingDirectories(Dictionary<ProjectFileKey, FrozenSet<string>> builder, ProjectFileOrigin origin,
-        string searchPattern, string startDirectory, string relativeDirectory)
+    internal string GetSearchDirectoryForFileMatching(string filter)
     {
-        var path = Path.Combine(startDirectory, relativeDirectory);
+        if (filter.EndsWith(".."))
+        {
+            return filter;
+        }
+        return Path.GetDirectoryName(filter) ?? string.Empty;
+    }
+    internal string GetSearchFileNameForFileMatching(string filter)
+    {
+        if (filter.EndsWith(".."))
+        {
+            return "";
+        }
+        return Path.GetFileNameWithoutExtension(filter);
+    }
+    internal void AddMatchingDirectories(Dictionary<ProjectFileKey, FrozenSet<string>> builder, ProjectFileOrigin origin,
+        string searchPattern, string startDirectory, string relativeDirectory, string searchDirectory)
+    {
+        var pathUpToRelative = Path.Combine(startDirectory, relativeDirectory);
+        var path = Path.Combine(pathUpToRelative, searchDirectory);
         if (_directoryService.Exists(path))
         {
             var directories = _directoryService.GetDirectories(path, searchPattern);
-            var relativeDirectories = directories.Select(d => d.Substring(startDirectory.Length).TrimStart(Path.DirectorySeparatorChar));
+            var relativeDirectories = directories.Select(d =>  d.Substring(pathUpToRelative.Length).TrimStart(Path.DirectorySeparatorChar));
             builder.Add(new(origin, startDirectory), [.. relativeDirectories.Distinct(_osDependent.FileStringComparer)]);
         }
     }
-    public FrozenDictionary<ProjectFileKey, FrozenSet<string>> GetMatchingDirectories(string filter)
+    public FrozenDictionary<ProjectFileKey, FrozenSet<string>> GetMatchingDirectories(string relativeFilePath, string filter)
     {
         string? projectDirectory = _globals.Project.Directory;
         ArgumentNullException.ThrowIfNull(projectDirectory);
@@ -165,11 +186,11 @@ public class ProjectServices : IProjectServices
         var relativeDirectory = Path.GetDirectoryName(filter) ?? "";
         var builder = new Dictionary<ProjectFileKey, FrozenSet<string>>();
 
-        AddMatchingDirectories(builder, ProjectFileOrigin.Project, searchPattern, projectDirectory, relativeDirectory);
+        AddMatchingDirectories(builder, ProjectFileOrigin.Project, searchPattern, projectDirectory, relativeFilePath, relativeDirectory);
         foreach (var library in _globals.Settings.Libraries)
         {
             string libraryPath = library.Value.Path;
-            AddMatchingDirectories(builder, ProjectFileOrigin.Library, searchPattern, libraryPath, relativeDirectory);
+            AddMatchingDirectories(builder, ProjectFileOrigin.Library, searchPattern, libraryPath, relativeFilePath, relativeDirectory);
         }
 
         return builder.ToFrozenDictionary();

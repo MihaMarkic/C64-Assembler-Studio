@@ -19,6 +19,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
     private readonly ILogger<ProjectFilesWatcherViewModel> _logger;
     private readonly IServiceFactory _serviceFactory;
     private readonly IOsDependent _osDependent;
+    private readonly IDirectoryService _directoryService;
     /// <summary>
     /// Keeps tracks of file watchers.
     /// </summary>
@@ -33,13 +34,14 @@ public class ProjectFilesWatcherViewModel: ViewModel
     public ProjectRoot? Root { get; private set; }
     private readonly ISubscription _projectChangedSubscription;
     public ProjectFilesWatcherViewModel(ILogger<ProjectFilesWatcherViewModel> logger, IServiceFactory serviceFactory,
-        Globals globals, IDispatcher dispatcher, IOsDependent osDependent)
+        Globals globals, IDispatcher dispatcher, IOsDependent osDependent, IDirectoryService directoryService)
     {
         _logger = logger;
         _serviceFactory = serviceFactory;
         _globals = globals;
         _settings = globals.Settings;
         _osDependent = osDependent;
+        _directoryService = directoryService;
         _globals.PropertyChanged += GlobalsOnPropertyChanged;
         _settings.PropertyChanged += SettingsOnPropertyChanged;
         _projectChangedSubscription = dispatcher.Subscribe<ProjectSettingsChangedMessage>(ProjectSettingsChanged);
@@ -232,7 +234,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
     {
         try
         {
-            if (Directory.Exists(rootDirectory.AbsolutePath))
+            if (_directoryService.Exists(rootDirectory.AbsolutePath))
             {
                 var newItems = await Task.Run(() =>
                 {
@@ -303,7 +305,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
     }
     IEnumerable<ProjectItem> CollectDirectoriesAndFiles(ProjectDirectory parent, string path)
     {
-        foreach (var d in Directory.GetDirectories(path))
+        foreach (var d in _directoryService.GetDirectories(path))
         {
             var directory = new ProjectDirectory(_osDependent.FileStringComparison) { Name = Path.GetFileName(d).ValueOrThrow(), Parent = parent };
             foreach (var i in CollectDirectoriesAndFiles(directory, d))
@@ -314,7 +316,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
             yield return directory;
         }
 
-        foreach (var f in Directory.GetFiles(path))
+        foreach (var f in _directoryService.GetFiles(path))
         {
             var fileType = ProjectFileClassificator.Classify(f);
             yield return new ProjectFile(_osDependent.FileStringComparison) { Name = Path.GetFileName(f), FileType = fileType, Parent = parent };

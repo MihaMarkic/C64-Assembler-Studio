@@ -9,4 +9,5 @@ public class NonWindowsDependent : IOsDependent
     public string ViceExeName => "x64sc";
     public string JavaExeName => "java";
     public string FileAppOpenName => "open";
+    public string NormalizePath(string path) => path.Replace('\\', '/');
 }
