@@ -1,14 +1,13 @@
-﻿using C64AssemblerStudio.Core.Extensions;
+﻿using System.Collections.Frozen;
+using System.Diagnostics;
+using C64AssemblerStudio.Core.Extensions;
 using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
-using Righthand.RetroDbgDataProvider;
 using Righthand.RetroDbgDataProvider.Models;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
-using System.Collections.Frozen;
-using System.Diagnostics;
 
 namespace C64AssemblerStudio.Engine.Services.Implementation;
 
@@ -41,23 +40,30 @@ public class ProjectServices : IProjectServices
     /// <inheritdoc/>
     IEnumerable<string> IProjectServices.CollectSegments()
     {
+        foreach (var f in IterateAllParsedSourceFiles())
+        {
+            foreach (var si in f.SegmentDefinitions)
+            {
+                yield return si.Name;
+            }
+        }
+    }
+    private IEnumerable<ParsedSourceFile> IterateAllParsedSourceFiles()
+    {
         var allFiles = GetAllProjectFiles();
         foreach (var k in allFiles.Keys)
         {
-            Debug.WriteLine($"Looking at {k}");
+            //Debug.WriteLine($"Looking at {k}");
             var fileWithSet = allFiles.GetValueOrDefault(k);
             if (fileWithSet is not null)
             {
                 foreach (var s in fileWithSet.AllDefineSets)
                 {
-                    Debug.WriteLine($"\tLooking at set {string.Join(", ", s)}");
+                    //Debug.WriteLine($"\tLooking at set {string.Join(", ", s)}");
                     var parsedSourceFile = allFiles.GetFileOrDefault(k, s);
                     if (parsedSourceFile is not null)
                     {
-                        foreach (var si in parsedSourceFile.SegmentDefinitions)
-                        {
-                            yield return si.Name;
-                        }
+                        yield return parsedSourceFile;
                     }
                     else
                     {
@@ -68,32 +74,15 @@ public class ProjectServices : IProjectServices
         }
     }
 
+
     /// <inheritdoc/>
     public FrozenSet<string> CollectPreprocessorSymbols()
     {
         var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
         var result = new HashSet<string>(project.SymbolsDefineSet);
-        var allFiles = GetAllProjectFiles();
-        foreach (var k in allFiles.Keys)
+        foreach (var f in IterateAllParsedSourceFiles())
         {
-            Debug.WriteLine($"Looking at {k}");
-            var fileWithSet = allFiles.GetValueOrDefault(k);
-            if (fileWithSet is not null)
-            {
-                foreach (var s in fileWithSet.AllDefineSets)
-                {
-                    Debug.WriteLine($"\tLooking at set {string.Join(", ", s)}");
-                    var parsedSourceFile = allFiles.GetFileOrDefault(k, s);
-                    if (parsedSourceFile is not null)
-                    {
-                        result.UnionWith(parsedSourceFile.OutDefines);
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"Failed to get parsed source file");
-                    }
-                }
-            }
+            result.UnionWith(f.OutDefines);
         }
         return [..result];
     }
@@ -201,25 +190,31 @@ public class ProjectServices : IProjectServices
     {
         var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
         var result = new HashSet<Label>();
-        var allFiles = GetAllProjectFiles();
-        foreach (var k in allFiles.Keys)
+        foreach (var f in IterateAllParsedSourceFiles())
         {
-            var fileWithSet = allFiles.GetValueOrDefault(k);
-            if (fileWithSet is not null)
-            {
-                foreach (var s in fileWithSet.AllDefineSets)
-                {
-                    var parsedSourceFile = allFiles.GetFileOrDefault(k, s);
-                    if (parsedSourceFile is not null)
-                    {
-                        result.UnionWith(parsedSourceFile.LabelDefinitions);
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"Failed to get parsed source file");
-                    }
-                }
-            }
+            result.UnionWith(f.LabelDefinitions);
+        }
+        return [.. result];
+    }
+    /// <inheritdoc/>
+    public ImmutableList<string> CollectVariables()
+    {
+        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
+        var result = new HashSet<string>();
+        foreach (var f in IterateAllParsedSourceFiles())
+        {
+            result.UnionWith(f.VariableDefinitions);
+        }
+        return [.. result];
+    }
+    /// <inheritdoc/>
+    public ImmutableList<Constant> CollectConstants()
+    {
+        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
+        var result = new HashSet<Constant>();
+        foreach (var f in IterateAllParsedSourceFiles())
+        {
+            result.UnionWith(f.ConstantDefinitions);
         }
         return [.. result];
     }
