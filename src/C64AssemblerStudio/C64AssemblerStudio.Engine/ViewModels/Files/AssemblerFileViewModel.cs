@@ -217,7 +217,14 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         // let parser finish whatever it is doing before starting suggestions
         if (_reparseTask is not null)
         {
-            await _reparseTask;
+            try
+            {
+                await _reparseTask;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed reparser awaiting because {ex.Message}");
+            }
             Debug.WriteLine("Reparser awaited");
         }
         var parserTask = _parser.ParsingTask;
@@ -236,7 +243,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         if (completionOption is not null)
         {
             var builder = ImmutableArray.CreateBuilder<IEditorCompletionItem>();
-            foreach (var s in completionOption.Value.Suggestions)
+            foreach (var s in completionOption.Value.Suggestions.OrderBy(s => s.Text))
             {
                 var (rootText, replacementLength, prependText, appendText) = completionOption.Value;
                 switch (s)

@@ -5,6 +5,7 @@ using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
 using Righthand.RetroDbgDataProvider;
 using Righthand.RetroDbgDataProvider.Models;
+using Righthand.RetroDbgDataProvider.Models.Parsing;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
 using System.Collections.Frozen;
 using System.Diagnostics;
@@ -94,7 +95,7 @@ public class ProjectServices : IProjectServices
                 }
             }
         }
-        return result.ToFrozenSet();
+        return [..result];
     }
 
     /// <summary>
@@ -194,5 +195,32 @@ public class ProjectServices : IProjectServices
         }
 
         return builder.ToFrozenDictionary();
+    }
+    /// <inheritdoc/>
+    public ImmutableList<Label> CollectLabels()
+    {
+        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
+        var result = new HashSet<Label>();
+        var allFiles = GetAllProjectFiles();
+        foreach (var k in allFiles.Keys)
+        {
+            var fileWithSet = allFiles.GetValueOrDefault(k);
+            if (fileWithSet is not null)
+            {
+                foreach (var s in fileWithSet.AllDefineSets)
+                {
+                    var parsedSourceFile = allFiles.GetFileOrDefault(k, s);
+                    if (parsedSourceFile is not null)
+                    {
+                        result.UnionWith(parsedSourceFile.LabelDefinitions);
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Failed to get parsed source file");
+                    }
+                }
+            }
+        }
+        return [.. result];
     }
 }
