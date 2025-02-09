@@ -218,4 +218,15 @@ public class ProjectServices : IProjectServices
         }
         return [.. result];
     }
+
+    public ImmutableList<EnumValues> CollectEnumValues()
+    {
+        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
+        var result = new List<EnumValues>();
+        foreach (var f in IterateAllParsedSourceFiles())
+        {
+            result.AddRange(f.EnumValuesDefinitions);
+        }
+        return [.. result];
+    }
 }
