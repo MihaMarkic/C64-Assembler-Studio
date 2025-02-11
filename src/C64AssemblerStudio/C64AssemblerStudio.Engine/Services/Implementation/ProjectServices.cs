@@ -229,4 +229,15 @@ public class ProjectServices : IProjectServices
         }
         return [.. result];
     }
+
+    public ImmutableList<Macro> CollectMacros()
+    {
+        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
+        var result = new List<Macro>();
+        foreach (var f in IterateAllParsedSourceFiles())
+        {
+            result.AddRange(f.MacroDefinitions);
+        }
+        return [.. result];
+    }
 }
