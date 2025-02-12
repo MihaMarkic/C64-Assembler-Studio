@@ -218,7 +218,7 @@ public class ProjectServices : IProjectServices
         }
         return [.. result];
     }
-
+    /// <inheritdoc/>
     public ImmutableList<EnumValues> CollectEnumValues()
     {
         var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
@@ -229,7 +229,7 @@ public class ProjectServices : IProjectServices
         }
         return [.. result];
     }
-
+    /// <inheritdoc/>
     public ImmutableList<Macro> CollectMacros()
     {
         var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
@@ -237,6 +237,17 @@ public class ProjectServices : IProjectServices
         foreach (var f in IterateAllParsedSourceFiles())
         {
             result.AddRange(f.MacroDefinitions);
+        }
+        return [.. result];
+    }
+    /// <inheritdoc/>
+    public ImmutableList<Function> CollectFunctions()
+    {
+        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
+        var result = new List<Function>();
+        foreach (var f in IterateAllParsedSourceFiles())
+        {
+            result.AddRange(f.FunctionDefinitions);
         }
         return [.. result];
     }
