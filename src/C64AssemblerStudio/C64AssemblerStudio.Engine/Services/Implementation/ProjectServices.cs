@@ -197,10 +197,10 @@ public class ProjectServices : IProjectServices
         return [.. result];
     }
     /// <inheritdoc/>
-    public ImmutableList<string> CollectVariables()
+    public ImmutableList<Variable> CollectVariables()
     {
         var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
-        var result = new HashSet<string>();
+        var result = new HashSet<Variable>();
         foreach (var f in IterateAllParsedSourceFiles())
         {
             result.UnionWith(f.VariableDefinitions);
