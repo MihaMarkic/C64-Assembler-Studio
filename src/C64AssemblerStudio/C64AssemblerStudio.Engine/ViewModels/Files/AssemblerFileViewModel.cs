@@ -234,34 +234,36 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             Debug.WriteLine("Parser awaited");
         }
         Debug.WriteLine("Parser idle");
-
-        Debug.WriteLine($"Caret column is at {CaretColumn}, using {CaretColumn - 1}");
-        var (lineStart, lineLength) = Content.AsSpan().ExtractLinePosition(CaretLine - 1);
-        var completionOptionContext = new CompletionOptionContext(_projectServices);
-        var completionOption =
-            _sourceFile?.GetCompletionOption(trigger, triggerChar, CaretLine - 1, CaretColumn - 1, Content, lineStart, lineLength, completionOptionContext);
-        if (completionOption is not null)
+        if (_sourceFile is not null)
         {
-            var builder = ImmutableArray.CreateBuilder<IEditorCompletionItem>();
-            foreach (var s in completionOption.Value.Suggestions.OrderBy(s => s.Text))
+            Debug.WriteLine($"Caret column is at {CaretColumn}, using {CaretColumn - 1}");
+            var (lineStart, lineLength) = Content.AsSpan().ExtractLinePosition(CaretLine - 1);
+            var completionOptionContext = new CompletionOptionContext(_projectServices, _sourceFile);
+            var completionOption =
+                _sourceFile.GetCompletionOption(trigger, triggerChar, CaretLine - 1, CaretColumn - 1, Content, lineStart, lineLength, completionOptionContext);
+            if (completionOption is not null)
             {
-                var (rootText, replacementLength, prependText, appendText) = completionOption.Value;
-                switch (s)
+                var builder = ImmutableArray.CreateBuilder<IEditorCompletionItem>();
+                foreach (var s in completionOption.Value.Suggestions.OrderBy(s => s.Text))
                 {
-                    case StandardSuggestion standardSuggestion:
-                        builder.Add(new StandardCompletionItem(rootText, replacementLength, prependText, appendText, standardSuggestion));
-                        break;
-                    case FileSuggestion fileSuggestion:
-                        builder.Add(new FileReferenceCompletionItem(rootText, replacementLength, prependText, appendText, fileSuggestion));
-                        break;
-                    case DirectorySuggestion directorySuggestion:
-                        builder.Add(new DirectoryReferenceCompletionItem(rootText, replacementLength, prependText, appendText, directorySuggestion));
-                        break;
+                    var (rootText, replacementLength, prependText, appendText) = completionOption.Value;
+                    switch (s)
+                    {
+                        case StandardSuggestion standardSuggestion:
+                            builder.Add(new StandardCompletionItem(rootText, replacementLength, prependText, appendText, standardSuggestion));
+                            break;
+                        case FileSuggestion fileSuggestion:
+                            builder.Add(new FileReferenceCompletionItem(rootText, replacementLength, prependText, appendText, fileSuggestion));
+                            break;
+                        case DirectorySuggestion directorySuggestion:
+                            builder.Add(new DirectoryReferenceCompletionItem(rootText, replacementLength, prependText, appendText, directorySuggestion));
+                            break;
+                    }
                 }
-            }
-            if (builder.Count > 0)
-            {
-                return (true, builder.ToImmutable());
+                if (builder.Count > 0)
+                {
+                    return (true, builder.ToImmutable());
+                }
             }
         }
         return (false, ImmutableArray<IEditorCompletionItem>.Empty);
