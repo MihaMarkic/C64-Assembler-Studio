@@ -37,17 +37,7 @@ public class ProjectServices : IProjectServices
         var parser = project.SourceCodeParser;
         return parser.AllFiles;
     }
-    /// <inheritdoc/>
-    IEnumerable<string> IProjectServices.CollectSegments()
-    {
-        foreach (var f in IterateAllParsedSourceFiles())
-        {
-            foreach (var si in f.SegmentDefinitions)
-            {
-                yield return si.Name;
-            }
-        }
-    }
+    
     private IEnumerable<ParsedSourceFile> IterateAllParsedSourceFiles()
     {
         var allFiles = GetAllProjectFiles();
@@ -185,70 +175,9 @@ public class ProjectServices : IProjectServices
 
         return builder.ToFrozenDictionary();
     }
-    /// <inheritdoc/>
-    public ImmutableList<Label> CollectLabels()
+    public ImmutableList<Scope> CollectDefaultScopes()
     {
         var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
-        var result = new HashSet<Label>();
-        foreach (var f in IterateAllParsedSourceFiles())
-        {
-            result.UnionWith(f.LabelDefinitions);
-        }
-        return [.. result];
-    }
-    /// <inheritdoc/>
-    public ImmutableList<Variable> CollectVariables()
-    {
-        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
-        var result = new HashSet<Variable>();
-        foreach (var f in IterateAllParsedSourceFiles())
-        {
-            result.UnionWith(f.VariableDefinitions);
-        }
-        return [.. result];
-    }
-    /// <inheritdoc/>
-    public ImmutableList<Constant> CollectConstants()
-    {
-        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
-        var result = new HashSet<Constant>();
-        foreach (var f in IterateAllParsedSourceFiles())
-        {
-            result.UnionWith(f.ConstantDefinitions);
-        }
-        return [.. result];
-    }
-    /// <inheritdoc/>
-    public ImmutableList<EnumValues> CollectEnumValues()
-    {
-        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
-        var result = new List<EnumValues>();
-        foreach (var f in IterateAllParsedSourceFiles())
-        {
-            result.AddRange(f.EnumValuesDefinitions);
-        }
-        return [.. result];
-    }
-    /// <inheritdoc/>
-    public ImmutableList<Macro> CollectMacros()
-    {
-        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
-        var result = new List<Macro>();
-        foreach (var f in IterateAllParsedSourceFiles())
-        {
-            result.AddRange(f.MacroDefinitions);
-        }
-        return [.. result];
-    }
-    /// <inheritdoc/>
-    public ImmutableList<Function> CollectFunctions()
-    {
-        var project = (IProjectViewModel<ParsedSourceFile>)_globals.Project;
-        var result = new List<Function>();
-        foreach (var f in IterateAllParsedSourceFiles())
-        {
-            result.AddRange(f.FunctionDefinitions);
-        }
-        return [.. result];
+        return [.. IterateAllParsedSourceFiles().Select(f => f.DefaultScope)];
     }
 }
