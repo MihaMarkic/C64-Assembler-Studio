@@ -1,5 +1,10 @@
 # C64 Assembler Studio Changelog
 
+## [0.4.0-alpha](https://github.com/MihaMarkic/C64-Assembler-Studio/releases/tag/0.4.0-alpha)
+
+### Updates
+* a lot of effort put into code completion which now handles much more complex syntax
+
 ## [0.3.0-alpha](https://github.com/MihaMarkic/C64-Assembler-Studio/releases/tag/0.3.0-alpha) (30.11.2024)
 
 ### Breaking changes
