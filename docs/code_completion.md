@@ -22,4 +22,4 @@ Code completion suggestions starts implicitly (when typing one of " # . , = char
  ```
  ##import c64 "|
  ```
-would should available file and directory names relative to the project or libraries used. When selecting a file it would also and double quotes. When selecting a directory, type / and invoke code completion again.
+would show available file and directory names relative to the project or libraries used. When selecting a file it would also and double quotes. When selecting a directory, type / and invoke code completion again.
