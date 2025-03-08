@@ -6,13 +6,14 @@ using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Logging;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.Services.Implementation;
 
 public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
 {
     private readonly ILogger<ProjectFileWatcher> _logger;
-    private readonly IOsDependent _osDependent;
+    private readonly IOSDependent _osDependent;
     /// <summary>
     /// Watches for target directory in case it gets deleted or renamed.
     /// </summary>
@@ -20,7 +21,7 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
     private readonly FileSystemWatcher _directoryWatcher;
     private readonly ProjectRootDirectory _rootDirectory;
 
-    public ProjectFileWatcher(ProjectRootDirectory rootDirectory, ILogger<ProjectFileWatcher> logger, IOsDependent osDependent)
+    public ProjectFileWatcher(ProjectRootDirectory rootDirectory, ILogger<ProjectFileWatcher> logger, IOSDependent osDependent)
     {
         _logger = logger;
         _osDependent = osDependent;
@@ -141,7 +142,7 @@ public class ProjectFileWatcher: DisposableObject, IProjectFileWatcher
     }
 
     internal static ProjectDirectory FindMatchingDirectory(ProjectRootDirectory rootDirectory,
-        string directoryRelativePath, ILogger logger, IOsDependent osDependent)
+        string directoryRelativePath, ILogger logger, IOSDependent osDependent)
     {
         var parts = directoryRelativePath.Split(Path.DirectorySeparatorChar);
         ProjectDirectory? current = null;

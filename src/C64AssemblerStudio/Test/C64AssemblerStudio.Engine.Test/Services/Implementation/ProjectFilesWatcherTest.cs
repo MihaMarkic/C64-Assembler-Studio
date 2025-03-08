@@ -4,6 +4,7 @@ using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Implementation;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 using TestsBase;
 
 namespace C64AssemblerStudio.Engine.Test.Services.Implementation;

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Frozen;
 using System.Diagnostics;
 using C64AssemblerStudio.Core;
-using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Services.Abstract;
@@ -10,6 +9,7 @@ using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 using Righthand.ViceMonitor.Bridge;
 using Righthand.ViceMonitor.Bridge.Commands;
 using Righthand.ViceMonitor.Bridge.Responses;
@@ -24,7 +24,7 @@ public class Vice : NotifiableObject, IVice
     private readonly Globals _globals;
     private readonly IDispatcher _dispatcher;
     private readonly TaskFactory _uiFactory;
-    private readonly IOsDependent _osDependent;
+    private readonly IOSDependent _osDependent;
     public RegistersViewModel Registers { get; }
     public ViceMemoryViewModel Memory { get; }
     public CallStackViewModel CallStack { get; }
@@ -50,7 +50,7 @@ public class Vice : NotifiableObject, IVice
 
     public Vice(ILogger<Vice> logger, IViceBridge bridge, Globals globals, IDispatcher dispatcher,
         RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack,
-        IOsDependent osDependent)
+        IOSDependent osDependent)
     {
         _logger = logger;
         _bridge = bridge;

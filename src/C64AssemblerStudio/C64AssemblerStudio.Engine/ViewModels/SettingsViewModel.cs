@@ -11,6 +11,7 @@ using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -20,7 +21,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     private readonly Globals _globals;
     private readonly ISettingsManager _settingsManager;
     private readonly ISystemDialogs _systemDialogs;
-    private readonly IOsDependent _osDependent;
+    private readonly IOSDependent _osDependent;
     public Settings Settings => _globals.Settings;
     private readonly ErrorHandler _errorHandler;
     public bool IsVicePathGood { get; private set; }
@@ -46,7 +47,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     public SettingsViewModel(ILogger<SettingsViewModel> logger, Globals globals,
         LibrariesEditorViewModel librariesEditor, IDispatcher dispatcher,
         ISettingsManager settingsManager, ISystemDialogs systemDialogs, IServiceScope serviceScope,
-        IOsDependent osDependent) : base(dispatcher)
+        IOSDependent osDependent) : base(dispatcher)
     {
         _logger = logger;
         _globals = globals;

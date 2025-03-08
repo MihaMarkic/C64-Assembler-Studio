@@ -2,6 +2,7 @@
 using C64AssemblerStudio.Core.Services.Abstract;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 

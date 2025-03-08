@@ -23,17 +23,8 @@ public static class IoC
     {
         services
             .AddSingleton<EnumDisplayTextMapper>()
-            .AddSingleton<IFileService, FileService>()
             .AddSingleton<IDirectoryService, DirectoryService>()
             .AddScoped<IServiceCreator, ServiceCreator>();
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            services.AddSingleton<IOsDependent, WindowsDependent>();
-        }
-        else
-        {
-            services.AddSingleton<IOsDependent, NonWindowsDependent>();
-        }
         return services;
     }
 }

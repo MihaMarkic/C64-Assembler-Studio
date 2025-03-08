@@ -8,6 +8,7 @@ using NSubstitute;
 using NUnit.Framework;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
 using System.Collections.Frozen;
+using Righthand.RetroDbgDataProvider.Services.Implementation;
 using TestsBase;
 
 namespace C64AssemblerStudio.Engine.Test.Services.Implementation;
@@ -54,9 +55,8 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
                 .Returns([..td.FoundFiles.Select(f => Path.Combine(td.StartDirectory, f))]);
             var logger = Fixture.Create<ILogger<ProjectServices>>();
             var globals = Fixture.Create<Globals>();
-            var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
             var fileServiceLogger = Fixture.Create<ILogger<FileService>>();
-            var fileService = new FileService(fileServiceLogger, directoryService, osDependent);
+            var fileService = new FileService(fileServiceLogger, osDependent);
             var target = new ProjectServices(logger, globals, fileService, osDependent, directoryService);
             Dictionary<ProjectFileKey, FrozenSet<string>> builder = new();
 
@@ -78,7 +78,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
             var directoryService = new DirectoryService(directoryServiceLogger, osDependent);
             var fileServiceLogger = Fixture.Create<ILogger<FileService>>();
-            var fileService = new FileService(fileServiceLogger, directoryService, osDependent);
+            var fileService = new FileService(fileServiceLogger, osDependent);
             var target = new ProjectServices(logger, globals, fileService, osDependent, directoryService);
             Dictionary<ProjectFileKey, FrozenSet<string>> builder = new();
             FrozenSet<string> expected = [.. expectedText.Split(',').Select(p => osDependent.NormalizePath(p))];
@@ -130,7 +130,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             IOsDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new NonWindowsDependent();
             var directoryService = new DirectoryService(directoryServiceLogger, osDependent);
             var fileServiceLogger = Fixture.Create<ILogger<FileService>>();
-            var fileService = new FileService(fileServiceLogger, directoryService, osDependent);
+            var fileService = new FileService(fileServiceLogger, osDependent);
             var target = new ProjectServices(logger, globals, fileService, osDependent, directoryService);
             Dictionary<ProjectFileKey, FrozenSet<string>> builder = new();
             FrozenSet<string> expected = [.. expectedText.Split(',').Select(p => osDependent.NormalizePath(p))];

@@ -22,7 +22,6 @@ using System.Collections.Frozen;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
-using IFileService = C64AssemblerStudio.Core.Services.Abstract.IFileService;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -33,7 +32,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private readonly CallStackViewModel _callStack;
     private readonly IParserManager _parserManager;
     private readonly ProjectExplorerViewModel _projectExplorer;
-    private readonly IOsDependent _osDependent;
+    private readonly IOSDependent _osDependent;
     private readonly IProjectServices _projectServices;
     private Task? _reparseTask;
     public BreakpointsViewModel Breakpoints { get; }
@@ -123,7 +122,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         IVice vice, CallStackViewModel callStack,
         Globals globals, ErrorsOutputViewModel errorsOutput,
         IParserManager parserManager, ProjectExplorerViewModel projectExplorer,
-        ProjectFile file, IOsDependent osDependent, IProjectServices projectServices,
+        ProjectFile file, IOSDependent osDependent, IProjectServices projectServices,
         NullableArgument<FrozenSet<string>> selectedDefineSymbols) : base(
         logger, fileService, dispatcher, statusInfo, globals, file)
     {

@@ -1,15 +1,16 @@
-﻿using C64AssemblerStudio.Core.Services.Abstract;
-using Microsoft.Extensions.Logging;
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using C64AssemblerStudio.Core.Services.Abstract;
+using Microsoft.Extensions.Logging;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Core.Services.Implementation;
 
 public class DirectoryService : IDirectoryService
 {
     private readonly ILogger<DirectoryService> _logger;
-    private readonly IOsDependent _osDependent;
-    public DirectoryService(ILogger<DirectoryService> logger, IOsDependent osDependent)
+    private readonly IOSDependent _osDependent;
+    public DirectoryService(ILogger<DirectoryService> logger, IOSDependent osDependent)
     {
         _logger = logger;
         _osDependent = osDependent;

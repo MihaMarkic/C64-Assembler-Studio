@@ -3,6 +3,7 @@ using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.Services.Implementation;
 
@@ -18,7 +19,7 @@ public class ServiceFactory : IServiceFactory
     public IProjectFileWatcher CreateProjectFileWatcher(ProjectRootDirectory rootDirectory)
     {
         var logger = _serviceProvider.GetRequiredService<ILogger<ProjectFileWatcher>>();
-        var osDependent = _serviceProvider.GetRequiredService<IOsDependent>();
+        var osDependent = _serviceProvider.GetRequiredService<IOSDependent>();
         return new ProjectFileWatcher(rootDirectory, logger, osDependent);
     }
 }
