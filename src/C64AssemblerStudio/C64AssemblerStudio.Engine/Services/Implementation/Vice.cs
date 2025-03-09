@@ -3,6 +3,7 @@ using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
+using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
@@ -309,6 +310,32 @@ public class Vice : NotifiableObject, IVice
 
     private Process? StartVice()
     {
+        var startMode = _globals.Settings.ViceStartMode;
+        return startMode switch
+        {
+            ViceStartMode.Executable => StartViceFromExecutable(),
+            ViceStartMode.Flatpak => StartViceFromFlatpak(),
+            _ => throw new Exception($"Vice start mode not supported {startMode}"),
+        };
+    }
+
+    private Process? StartViceFromFlatpak()
+    {
+        try
+        {
+            string arguments = $"run  net.sf.VICE {_globals.Settings.BinaryMonitorArgument}";
+            var process = Process.Start("flatpak", arguments);
+            process.EnableRaisingEvents = true;
+            return process;
+        }
+        catch (Exception ex)
+        {
+            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE from flatpak", ex.Message));
+            return null;
+        }
+    }
+    private Process? StartViceFromExecutable()
+    {
         string? realVicePath = _globals.Settings.RealVicePath;
         if (!string.IsNullOrWhiteSpace(realVicePath))
         {
@@ -322,13 +349,13 @@ public class Vice : NotifiableObject, IVice
             }
             catch (Exception ex)
             {
-                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE", ex.Message));
+                _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE from executable", ex.Message));
                 return null;
             }
         }
         else
         {
-            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE",
+            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE from executable",
                 "VICE path is not set in settings"));
             return null;
         }

@@ -11,6 +11,11 @@ public class Settings : NotifiableObject
     public const int DefaultViceAddressPort = 6802;
 
     /// <summary>
+    /// Defines VICE process start mode.
+    /// </summary>
+    public ViceStartMode ViceStartMode { get; set; } = ViceStartMode.Executable;
+    
+    /// <summary>
     /// User selected path to VICE files.
     /// </summary>
     public string? VicePath { get; set; }
@@ -30,6 +35,7 @@ public class Settings : NotifiableObject
     public ObservableCollection<string> RecentProjects { get; set; } = new();
     [JsonIgnore]
     public string? LastAccessedDirectory => RecentProjects.Count > 0 ? RecentProjects[0] : null;
+    public bool IsVicePathEnabled => ViceStartMode == ViceStartMode.Executable;
 
     /// <summary>
     /// Libraries projects use.

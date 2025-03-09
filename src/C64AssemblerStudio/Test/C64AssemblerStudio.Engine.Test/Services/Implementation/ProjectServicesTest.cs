@@ -49,7 +49,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
         [TestCaseSource(nameof(Source))]
         public void GivenTestCase_ReturnsCorrectFiles(TestItem td)
         {
-            IOsDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new NonWindowsDependent();
+            IOSDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new LinuxDependent();
             var directoryService = Fixture.Freeze<IDirectoryService>();
             directoryService.GetFilteredFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FrozenSet<string>>())
                 .Returns([..td.FoundFiles.Select(f => Path.Combine(td.StartDirectory, f))]);
@@ -72,7 +72,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             string excludedFileNames,
             string expectedText)
         {
-            IOsDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent() : new NonWindowsDependent();
+            IOSDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent() : new LinuxDependent();
             var logger = Fixture.Create<ILogger<ProjectServices>>();
             var globals = Fixture.Create<Globals>();
             var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
@@ -127,7 +127,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             var logger = Fixture.Create<ILogger<ProjectServices>>();
             var globals = Fixture.Create<Globals>();
             var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
-            IOsDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new NonWindowsDependent();
+            IOSDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new LinuxDependent();
             var directoryService = new DirectoryService(directoryServiceLogger, osDependent);
             var fileServiceLogger = Fixture.Create<ILogger<FileService>>();
             var fileService = new FileService(fileServiceLogger, osDependent);

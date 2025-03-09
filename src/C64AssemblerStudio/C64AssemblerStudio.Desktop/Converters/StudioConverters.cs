@@ -1,14 +1,29 @@
 ﻿using System.Collections;
 using System.Collections.Frozen;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Core.Common;
+using C64AssemblerStudio.Desktop.Behaviors;
+using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 
 namespace C64AssemblerStudio.Desktop.Converters;
 
 public static class StudioConverters
 {
+    private static readonly EnumDisplayTextMapper _mapper;
+
+    static StudioConverters()
+    {
+        _mapper = IoC.Host.Services.GetRequiredService<EnumDisplayTextMapper>();
+    }
+    
     public static readonly IValueConverter IsBuildStatusVisible =
         new FuncValueConverter<BuildStatus, bool>(x => x != BuildStatus.Idle);
 

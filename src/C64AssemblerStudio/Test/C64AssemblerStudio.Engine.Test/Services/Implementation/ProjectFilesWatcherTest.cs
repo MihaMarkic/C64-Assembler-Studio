@@ -24,7 +24,7 @@ public class ProjectFilesWatcherTest : BaseTest<ProjectFileWatcher>
                 Parent = null,
             };
             var logger = Fixture.Freeze<ILogger>();
-            var osDependant = Fixture.Freeze<IOsDependent>();
+            var osDependant = Fixture.Freeze<IOSDependent>();
 
             var actual = ProjectFileWatcher.FindMatchingDirectory(rootDirectory, "", logger, osDependant);
 
@@ -47,7 +47,7 @@ public class ProjectFilesWatcherTest : BaseTest<ProjectFileWatcher>
             };
             rootDirectory.Items.Add(library);
             var logger = Fixture.Freeze<ILogger>();
-            var osDependant = Fixture.Freeze<IOsDependent>();
+            var osDependant = Fixture.Freeze<IOSDependent>();
 
             Assert.Throws<Exception>(() =>
                 ProjectFileWatcher.FindMatchingDirectory(rootDirectory, "Libraries", logger, osDependant));
@@ -76,7 +76,7 @@ public class ProjectFilesWatcherTest : BaseTest<ProjectFileWatcher>
             };
             rootDirectory.Items.Add(relativeLibraries);
             var logger = Fixture.Freeze<ILogger>();
-            var osDependant = Fixture.Freeze<IOsDependent>();
+            var osDependant = Fixture.Freeze<IOSDependent>();
 
             var actual = ProjectFileWatcher.FindMatchingDirectory(rootDirectory, "Libraries", logger, osDependant);
 
