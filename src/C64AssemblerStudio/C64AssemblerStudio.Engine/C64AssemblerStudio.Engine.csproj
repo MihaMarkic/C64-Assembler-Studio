@@ -24,8 +24,8 @@
     <ProjectReference Include="..\..\..\..\vice-bridge-net\source\ViceMonitor.Bridge\Righthand.ViceMonitor.Bridge\Righthand.ViceMonitor.Bridge.csproj" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Local Debug' ">
-    <PackageReference Include="Retro.Debug.Data.Provider" Version="0.2.0-alpha" />
-    <PackageReference Include="Righthand.Vice.Bridge" Version="1.0.3" />
+    <PackageReference Include="Retro.Debug.Data.Provider" Version="0.3.0-alpha" />
+    <PackageReference Include="Righthand.Vice.Bridge" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>
