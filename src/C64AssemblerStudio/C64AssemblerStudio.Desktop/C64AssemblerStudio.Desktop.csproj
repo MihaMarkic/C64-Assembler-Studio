@@ -102,23 +102,23 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.2.1" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.1" />
-    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.1" />
+    <PackageReference Include="Avalonia" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.5" />
     <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
-    <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.2.1" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.1" />
-    <PackageReference Condition="'$(Configuration)' != 'Release'" Include="Avalonia.Diagnostics" Version="11.2.1" />
-    <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.0" />
-    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.0.1" />
-    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.3.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.15" />
-    <PackageReference Include="Velopack" Version="0.0.942" />
+    <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.5" />
+    <PackageReference Condition="'$(Configuration)' != 'Release'" Include="Avalonia.Diagnostics" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.0.2" />
+    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.0.14" />
+    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.4.0" />
+    <PackageReference Include="Velopack" Version="0.0.1053" />
   </ItemGroup>
   
   <ItemGroup>
