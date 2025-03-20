@@ -3,6 +3,7 @@ using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Desktop.Services.Implementation;
 using C64AssemblerStudio.Engine;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using Dock.Model.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,7 @@ public static class ContainerConfiguration
         services.AddCore();
         services.AddSingleton<ISystemInfo, SystemInfo>();
         services.AddSingleton<ISystemDialogs, SystemDialogs>();
+        services.AddSingleton<IFactory, DockFactory>();
         //services.AddAcme();
         //services.AddOscar64();
         return services;

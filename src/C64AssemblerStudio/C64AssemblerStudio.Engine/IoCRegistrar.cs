@@ -43,13 +43,13 @@ public static class IoCRegistrar
             .AddSingleton<BreakpointsViewModel>()
             .AddSingleton<ViceMemoryViewModel>()
             .AddSingleton<CallStackViewModel>()
-            .AddScoped<MemoryViewerViewModel>()
+            .AddSingleton<MemoryViewerViewModel>()
             .AddTransient<AboutViewModel>()
             .AddTransient<LibrariesEditorViewModel>()
             // Tools
-            .AddScoped<ErrorMessagesViewModel>()
-            .AddScoped<BuildOutputViewModel>()
-            .AddScoped<DebugOutputViewModel>()
+            .AddSingleton<ErrorMessagesViewModel>()
+            .AddSingleton<BuildOutputViewModel>()
+            .AddSingleton<DebugOutputViewModel>()
             .AddSingleton<ErrorsOutputViewModel>()
             // Misc
             .AddTransient<AddressEntryValidator>()
