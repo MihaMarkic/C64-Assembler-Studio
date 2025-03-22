@@ -2,7 +2,7 @@
 
 namespace C64AssemblerStudio.Engine.ViewModels.Docks;
 
-public class CustomDocumentDock: DocumentDock
+public class FilesDocumentDockViewModel: DocumentDock
 {
     
 }

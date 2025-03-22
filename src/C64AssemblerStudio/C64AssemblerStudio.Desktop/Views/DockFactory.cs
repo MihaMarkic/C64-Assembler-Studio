@@ -28,7 +28,7 @@ public class DockFactory: Factory, IDockFactory
     private readonly MemoryViewerViewModel _memoryViewerViewModel;
     private readonly CallStackViewModel _callStackViewModel;
     private readonly ProjectExplorerViewModel _projectExplorerViewModel;
-    public override IDocumentDock CreateDocumentDock() => new CustomDocumentDock();
+    public override IDocumentDock CreateDocumentDock() => new FilesDocumentDockViewModel();
 
     public DockFactory(IServiceProvider serviceProvider, ErrorsOutputViewModel errorsOutputViewModel,
         ErrorMessagesViewModel errorMessagesViewModel, BuildOutputViewModel buildOutputViewModel,
@@ -95,10 +95,10 @@ public class DockFactory: Factory, IDockFactory
                 })
         };
 
-        var documentDock = new CustomDocumentDock
+        var documentDock = new FilesDocumentDockViewModel
         {
             IsCollapsable = false,
-            CanCreateDocument = true
+            CanCreateDocument = false
         };
         rootDock.IsCollapsable = false;
 
