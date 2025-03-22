@@ -1,4 +1,5 @@
-﻿using C64AssemblerStudio.Core.Common;
+﻿using System.Diagnostics;
+using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Services.Implementation;

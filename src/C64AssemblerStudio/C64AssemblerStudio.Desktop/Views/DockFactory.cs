@@ -53,24 +53,23 @@ public class DockFactory: Factory, IDockFactory
         var rootDock = CreateRootDock();
 
         var projectExplorer = new Tool
-            { Id = nameof(Navigation.ProjectExplorer), Title = "Project Explorer", Context = _projectExplorerViewModel };
+            { Id = nameof(Navigation.ProjectExplorer), Title = "Project Explorer" };
         var errorMessages = new Tool
-            { Id = nameof(Navigation.ErrorMessages), Title = "Error messages", Context = _errorMessagesViewModel };
+            { Id = nameof(Navigation.ErrorMessages), Title = "Error messages" };
         var errorsOutput = new Tool
-            { Id = nameof(Navigation.ErrorsOutput), Title = "Errors Output", Context = _errorsOutputViewModel };
+            { Id = nameof(Navigation.ErrorsOutput), Title = "Errors Output" };
         var buildOutput = new Tool
-            { Id = nameof(Navigation.BuildOutput), Title = "Build Output", Context = _buildOutputViewModel };
+            { Id = nameof(Navigation.BuildOutput), Title = "Build Output" };
         var debugOutput = new Tool 
-            { Id = nameof(Navigation.DebugOutput), Title = "Debug Output", Context = _debugOutputViewModel };
+            { Id = nameof(Navigation.DebugOutput), Title = "Debug Output" };
         var registers = new Tool
-            { Id = nameof(Navigation.Registers), Title = "Registers", Context = _registersViewModel };
+            { Id = nameof(Navigation.Registers), Title = "Registers" };
         var breakpoints = new Tool
-            { Id = nameof(Navigation.Breakpoints), Title = "Breakpoints", Context = _breakpointsViewModel };
+            { Id = nameof(Navigation.Breakpoints), Title = "Breakpoints" };
         var memoryViewer = new Tool
-            { Id = nameof(Navigation.MemoryViewer), Title = "Memory Viewer", Context = _memoryViewerViewModel };
+            { Id = nameof(Navigation.MemoryViewer), Title = "Memory Viewer" };
         var callStack = new Tool
-            { Id = nameof(Navigation.CallStack), Title = "Call Stack", Context = _callStackViewModel };
-        
+            { Id = nameof(Navigation.CallStack), Title = "Call Stack" };        
         var leftDock = new ProportionalDock
         {
             Proportion = 0.20,
@@ -139,7 +138,6 @@ public class DockFactory: Factory, IDockFactory
         {
             Id = nameof(Navigation.StartPage),
             Title = "Start Page",
-            Context = CreateStartPage(),
         };
         
         rootDock.IsCollapsable = false;
@@ -174,7 +172,16 @@ public class DockFactory: Factory, IDockFactory
     {
         ContextLocator = new Dictionary<string, Func<object?>>
         {
-            ["ErrorMessages"] = () => _serviceProvider.GetRequiredService<ErrorMessagesViewModel>(),
+            [nameof(Navigation.ProjectExplorer)] = () => _projectExplorerViewModel,
+            [nameof(Navigation.ErrorMessages)] = () => _errorMessagesViewModel,
+            [nameof(Navigation.ErrorsOutput)] = () => _errorsOutputViewModel,
+            [nameof(Navigation.BuildOutput)] = () => _buildOutputViewModel,
+            [nameof(Navigation.DebugOutput)] = () => _debugOutputViewModel,
+            [nameof(Navigation.Registers)] = () => _registersViewModel,
+            [nameof(Navigation.Breakpoints)] = () => _breakpointsViewModel,
+            [nameof(Navigation.MemoryViewer)] = () => _memoryViewerViewModel,
+            [nameof(Navigation.CallStack)] = () => _callStackViewModel,
+            [nameof(Navigation.StartPage)] = CreateStartPage,
         };
         
         DockableLocator = new Dictionary<string, Func<IDockable?>>()
