@@ -39,7 +39,8 @@
         <mv:MainMenu DockPanel.Dock="Top" />
         <mv:MainToolbar DockPanel.Dock="Top" />
         <Grid>
-            <DockPanel IsVisible="{Binding OverlayContent, Converter={x:Static ObjectConverters.IsNull}}">
+            <DockControl Layout="{Binding Layout}" IsVisible="{Binding OverlayContent, Converter={x:Static ObjectConverters.IsNull}}" />
+            <DockPanel IsVisible="false"> <!-- IsVisible="{Binding OverlayContent, Converter={x:Static ObjectConverters.IsNull}}" -->
                 <ctl:DockTool DockPanel.Dock="Bottom" Height="200"
                               Title="{Binding #BottomTabs.((tvm:IToolView)SelectedItem).Header}"
                               HorizontalContentAlignment="Stretch">

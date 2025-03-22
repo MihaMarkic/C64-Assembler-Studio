@@ -7,13 +7,13 @@ using Dock.Model.Mvvm;
 using Dock.Model.Mvvm.Controls;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace C64AssemblerStudio.Desktop.Services.Implementation;
+namespace C64AssemblerStudio.Desktop.Views;
 
 public class DockFactory: Factory
 {
+    private readonly IServiceProvider _serviceProvider;
     private IRootDock? _rootDock;
     private IDocumentDock? _documentDock;
-    private IServiceProvider _serviceProvider;
     
     public override IDocumentDock CreateDocumentDock() => new CustomDocumentDock();
 
@@ -43,6 +43,21 @@ public class DockFactory: Factory
         // rootDock.DefaultDockable = homeView;
         // rootDock.VisibleDockables = CreateList<IDockable>(dashboardView, homeView);
 
+        var mainLayout = new ProportionalDock
+        {
+            Orientation = Orientation.Horizontal,
+            VisibleDockables = CreateList<IDockable>
+            (
+                leftDock,
+                new ProportionalDockSplitter(),
+                documentDock,
+                new ProportionalDockSplitter()
+                // rightDock
+            )
+        };
+        rootDock.ActiveDockable = dashboardView;
+        rootDock.DefaultDockable = homeView;
+        rootDock.VisibleDockables = CreateList<IDockable>(dashboardView, homeView);
         _documentDock = documentDock;
         _rootDock = rootDock;
             

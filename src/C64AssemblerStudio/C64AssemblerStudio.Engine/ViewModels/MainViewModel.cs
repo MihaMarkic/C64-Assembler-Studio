@@ -11,6 +11,8 @@ using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
+using Dock.Model.Controls;
+using Dock.Model.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -33,6 +35,7 @@ public class MainViewModel : ViewModel
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IParserManager _parserManager;
     private readonly IDirectoryService _directoryService;
+    private readonly IFactory? _dockFactory;
     public IVice Vice { get; }
 
     // subscriptions
@@ -69,6 +72,8 @@ public class MainViewModel : ViewModel
     public RegistersViewModel Registers { get; }
     public BreakpointsViewModel Breakpoints { get; }
     public MemoryViewerViewModel MemoryViewer { get; }
+    
+    public IRootDock Layout { get; }
 
     public CallStackViewModel CallStack { get; }
 
@@ -100,7 +105,8 @@ public class MainViewModel : ViewModel
         ErrorsOutputViewModel errors, BreakpointsViewModel breakpoints,
         MemoryViewerViewModel memoryViewer,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment,
-        CallStackViewModel callStack, IParserManager parserManager, IDirectoryService directoryService)
+        CallStackViewModel callStack, IParserManager parserManager, IDirectoryService directoryService,
+        IFactory dockFactory)
     {
         _logger = logger;
         _globals = globals;
@@ -127,6 +133,9 @@ public class MainViewModel : ViewModel
         CallStack = callStack;
         BottomTools =
             [ErrorMessages, Errors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer, CallStack];
+        _dockFactory = dockFactory;
+        Layout = _dockFactory.CreateLayout()!;
+        _dockFactory.InitLayout(Layout);
         CreateStartPage();
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
@@ -678,6 +687,10 @@ public class MainViewModel : ViewModel
     {
         if (disposing)
         {
+            if (Layout.Close.CanExecute(null))
+            {
+                Layout.Close.Execute(null);
+            }
             _closeOverlaySubscription.Dispose();
             _showModalDialogMessageSubscription.Dispose();
         }

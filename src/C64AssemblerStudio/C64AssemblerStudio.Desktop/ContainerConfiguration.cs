@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Desktop.Services.Implementation;
+using C64AssemblerStudio.Desktop.Views;
 using C64AssemblerStudio.Engine;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Dock.Model.Core;
