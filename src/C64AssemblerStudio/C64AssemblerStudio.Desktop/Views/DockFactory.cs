@@ -163,7 +163,8 @@ public class DockFactory: Factory, IDockFactory
 
         if (window is not null)
         {
-            window.Title = "Dock Avalonia Demo";
+            // TODO update with consistent name
+            window.Title = "C64 Assembler Studio";
         }
         return window;
     }
