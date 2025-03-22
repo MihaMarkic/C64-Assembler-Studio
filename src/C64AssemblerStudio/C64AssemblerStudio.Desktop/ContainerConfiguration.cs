@@ -33,7 +33,7 @@ public static class ContainerConfiguration
         services.AddCore();
         services.AddSingleton<ISystemInfo, SystemInfo>();
         services.AddSingleton<ISystemDialogs, SystemDialogs>();
-        services.AddSingleton<IFactory, DockFactory>();
+        services.AddSingleton<IDockFactory, DockFactory>();
         //services.AddAcme();
         //services.AddOscar64();
         return services;

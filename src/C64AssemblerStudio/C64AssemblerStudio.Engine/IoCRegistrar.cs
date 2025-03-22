@@ -61,6 +61,7 @@ public static class IoCRegistrar
             .AddSingleton<EmptyProjectViewModel>()
             .AddScoped<SaveFileDialogViewModel>()
             // System
+            .AddSingleton<INavigationManager, NavigationManager>()
             .AddTransient(sp => sp.CreateScope())
             .AddSingleton<IDispatcher>(
             // uses dispatching from within same thread to all subscriptions by default as most subscribers are running on UI thread

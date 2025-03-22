@@ -5,8 +5,10 @@ using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
+using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
@@ -35,18 +37,20 @@ public class MainViewModel : ViewModel
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IParserManager _parserManager;
     private readonly IDirectoryService _directoryService;
-    private readonly IFactory? _dockFactory;
+    private readonly IDockFactory _dockFactory;
+    private readonly INavigationManager _navigationManager;
     public IVice Vice { get; }
 
     // subscriptions
     private readonly ISubscription _closeOverlaySubscription;
     private readonly ISubscription _showModalDialogMessageSubscription;
+    private readonly ISubscription _loadProjectSubscription;
     public ObservableCollection<string> RecentProjects => _globals.Settings.RecentProjects;
     public Func<OpenFileDialogModel, CancellationToken, Task<string?>>? ShowCreateProjectFileDialogAsync { get; set; }
     public Func<OpenFileDialogModel, CancellationToken, Task<string?>>? ShowOpenProjectFileDialogAsync { get; set; }
     public RelayCommandAsync NewProjectCommand { get; }
     public RelayCommand OpenProjectCommand { get; }
-    public RelayCommand<string> OpenProjectFromPathCommand { get; }
+    public RelayCommandAsync<string> OpenProjectFromPathCommand { get; }
     public RelayCommandAsync CloseProjectCommand { get; }
     public RelayCommand ShowSettingsCommand { get; }
     public RelayCommand ShowAboutCommand { get; }
@@ -106,7 +110,7 @@ public class MainViewModel : ViewModel
         MemoryViewerViewModel memoryViewer,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment,
         CallStackViewModel callStack, IParserManager parserManager, IDirectoryService directoryService,
-        IFactory dockFactory)
+        IDockFactory dockFactory, INavigationManager navigationManager)
     {
         _logger = logger;
         _globals = globals;
@@ -119,6 +123,7 @@ public class MainViewModel : ViewModel
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _closeOverlaySubscription = dispatcher.Subscribe<CloseOverlayMessage>(CloseOverlay);
         _showModalDialogMessageSubscription = dispatcher.Subscribe<ShowModalDialogMessageCore>(OnShowModalDialog);
+        _loadProjectSubscription = dispatcher.Subscribe<LoadProjectMessage>(OnLoadProject);
         _directoryService = directoryService;
         ProjectExplorer = projectExplorer;
         Files = files;
@@ -134,13 +139,14 @@ public class MainViewModel : ViewModel
         BottomTools =
             [ErrorMessages, Errors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer, CallStack];
         _dockFactory = dockFactory;
+        _navigationManager = navigationManager;
         Layout = _dockFactory.CreateLayout()!;
         _dockFactory.InitLayout(Layout);
-        CreateStartPage();
+        _navigationManager.Navigate(Navigation.StartPage);
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
         OpenProjectFromPathCommand =
-            _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);
+            _commandsManager.CreateRelayCommandAsync<string>(OpenProjectFromPathAsync, _ => !IsBusy && !IsDebugging);
         OpenProjectCommand = _commandsManager.CreateRelayCommand(OpenProject, () => !IsBusy && !IsDebugging);
         ShowProjectSettingsCommand =
             _commandsManager.CreateRelayCommand(ShowProjectSettings, () => !IsShowingProject && IsProjectOpen);
@@ -167,15 +173,6 @@ public class MainViewModel : ViewModel
 
         Vice.PropertyChanged += ViceOnPropertyChanged;
         globals.PropertyChanged += Globals_PropertyChanged;
-    }
-
-    private void CreateStartPage()
-    {
-        StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
-        var mostRecent = RecentProjects.FirstOrDefault();
-        StartPage.HasRecentProjects = mostRecent is not null;
-        StartPage.FullPath = mostRecent;
-        StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
     }
 
     private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -303,17 +300,6 @@ public class MainViewModel : ViewModel
         finally
         {
             IsDebuggingStarting = false;
-        }
-    }
-
-    private void StartPage_LoadLastProjectRequest(object? sender, EventArgs e)
-    {
-        if (StartPage is not null)
-        {
-            OpenProjectFromPath(RecentProjects.First());
-            StartPage.LoadLastProjectRequest -= StartPage_LoadLastProjectRequest;
-            StartPage.Dispose();
-            StartPage = null;
         }
     }
 
@@ -466,7 +452,7 @@ public class MainViewModel : ViewModel
         }
     }
 
-    private async void OpenProjectFromPath(string? path)
+    private async Task OpenProjectFromPathAsync(string? path)
     {
         // runs async because it manipulates most recent list
         await Task.Delay(1);
@@ -533,7 +519,7 @@ public class MainViewModel : ViewModel
         {
             Files.RemoveProjectFiles();
             _globals.ResetProject();
-            CreateStartPage();
+            _navigationManager.Navigate(Navigation.StartPage);
             return true;
         }
 
@@ -587,6 +573,15 @@ public class MainViewModel : ViewModel
     void OnShowModalDialog(ShowModalDialogMessageCore message)
     {
         ShowModalDialog?.Invoke(message);
+    }
+
+    /// <summary>
+    /// Handles <see cref="LoadProjectMessage"/> from start page usually.
+    /// </summary>
+    /// <param name="message"></param>
+    async Task OnLoadProject(LoadProjectMessage message, CancellationToken ct)
+    {
+        await OpenProjectFromPathAsync(message.Path);
     }
 
     internal void ShowSettings()
