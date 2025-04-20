@@ -22,6 +22,7 @@ using System.Collections.Frozen;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using IFileService = C64AssemblerStudio.Core.Services.Abstract.IFileService;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
@@ -112,7 +113,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     /// <param name="projectExplorer"></param>
     /// <param name="file"></param>
     /// <param name="osDependent"></param>
+    /// <param name="serviceScopeFactory"></param>
     /// <param name="selectedDefineSymbols">Preselected define symbols</param>
+    /// <param name="projectServices"></param>
     /// <remarks>
     /// Instance of <see cref="AssemblerFileViewModel"/> are created through
     /// <see cref="Activator.CreateInstance{T}"/> and manually injected arguments can not be
@@ -124,8 +127,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         Globals globals, ErrorsOutputViewModel errorsOutput,
         IParserManager parserManager, ProjectExplorerViewModel projectExplorer,
         ProjectFile file, IOsDependent osDependent, IProjectServices projectServices,
+        IServiceScopeFactory serviceScopeFactory,
         NullableArgument<FrozenSet<string>> selectedDefineSymbols) : base(
-        logger, fileService, dispatcher, statusInfo, globals, file)
+        logger, fileService, dispatcher, statusInfo, globals, file, serviceScopeFactory)
     {
         Breakpoints = breakpoints;
         _errorsOutput = errorsOutput;

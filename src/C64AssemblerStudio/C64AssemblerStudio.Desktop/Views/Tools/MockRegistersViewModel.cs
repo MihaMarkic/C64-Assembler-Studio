@@ -1,0 +1,14 @@
+using C64AssemblerStudio.Engine.Models;
+using C64AssemblerStudio.Engine.ViewModels.Tools;
+
+namespace C64AssemblerStudio.Desktop.Views.Tools;
+
+public class MockRegistersViewModel : IRegistersViewModel
+{
+    public Registers6510 Current { get; } = new (0x4500, 0x01, 0x00, 0x5f, 0x9a, 
+        0x00, 0x01, 0b00110011, 0x1000, 0x0201, 
+        0x3, 0x4, 0x5, 0x6, 0x7,
+        0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0xAA, 0xAB);
+
+    public bool IsEditable => false;
+}

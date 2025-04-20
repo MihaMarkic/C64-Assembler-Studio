@@ -31,6 +31,7 @@ public class AboutViewModel: OverlayContentViewModel
         new ("NUnit", "https://nunit.org/"),
         new ("NUnit/Visual Studio Test Adapter", "https://docs.nunit.org/articles/vs-test-adapter/Index.html"),
         new ("Humanizer", "https://github.com/Humanizer/Humanizer"),
+        new ("Dock", "https://https://github.com/wieslawsoltes/Dock"),
     ];
 
     // ReSharper disable once MemberCanBeProtected.Global

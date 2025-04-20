@@ -10,9 +10,16 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:ProjectExplorerViewModel"
              x:Class="C64AssemblerStudio.Desktop.Views.ProjectExplorer">
-    <Grid>
+    <Grid RowDefinitions="Auto,*">
         <TextBlock IsVisible="{Binding !IsProjectOpen}">No project open</TextBlock>
-        <TreeView x:Name="Tree" ItemsSource="{Binding Items}" IsVisible="{Binding IsProjectOpen}">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" IsVisible="{Binding IsProjectOpen}">
+            <Button Classes="docktool" Command="{Binding RefreshCommand}">
+                <Image Width="12" Height="12">
+                    <SvgImage Source="/Assets/Icons/sync.svg" />
+                </Image>
+            </Button>
+        </StackPanel>
+        <TreeView Grid.Row="1" x:Name="Tree" ItemsSource="{Binding Items}" IsVisible="{Binding IsProjectOpen}">
             <i:Interaction.Behaviors>
                 <ia:EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #Tree}">
                     <ia:InvokeCommandAction Command="{Binding OpenFileCommand}" 

@@ -1,0 +1,26 @@
+<Styles xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:docks="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Docks;assembly=C64AssemblerStudio.Engine">
+    <Style Selector="DockControl">
+        <Setter Property="(ControlRecyclingDataTemplate.ControlRecycling)" Value="{StaticResource ControlRecyclingKey}" />
+    </Style>
+    <!-- unless this is set to a non-transparent value, dock tool window is transparent -->
+    <Style Selector="ToolChromeControl">
+        <Setter Property="Background" Value="White" />
+    </Style>
+    <Style Selector="TextBlock.changed">
+        <Setter Property="Foreground" Value="{DynamicResource UnsavedTabForeground}" />
+    </Style>
+    <Style Selector="DocumentControl">
+        <Setter Property="HeaderTemplate">
+            <DataTemplate DataType="docks:FileDocumentViewModel">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Classes.changed="{Binding Context.HasChanges}"
+                               Text="{Binding Title}"
+                               VerticalAlignment="Center"
+                               Padding="4,0,0,0" />
+                </StackPanel>
+            </DataTemplate>
+        </Setter>
+    </Style>
+</Styles>

@@ -7,7 +7,13 @@ using Righthand.ViceMonitor.Bridge.Responses;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Tools;
 
-public class RegistersViewModel : NotifiableObject, IToolView
+
+public interface IRegistersViewModel
+{
+    Registers6510 Current { get; }
+    bool IsEditable { get; }
+}
+public class RegistersViewModel : NotifiableObject, IRegistersViewModel, IToolView
 {
     private readonly ILogger<RegistersViewModel> _logger;
 
@@ -17,6 +23,7 @@ public class RegistersViewModel : NotifiableObject, IToolView
     public event EventHandler? RegistersUpdated;
     public Registers6510 Current { get; private set; } = Registers6510.Empty;
     public Registers6510 Previous { get; private set; } = Registers6510.Empty;
+    public bool IsEditable => false;
 
     // public bool IsLoadingRegisters { get; private set; }
     public byte? PcRegisterId { get; private set; }

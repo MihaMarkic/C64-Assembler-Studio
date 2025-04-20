@@ -44,6 +44,9 @@
       <MenuItem Header="_Build">
         <MenuItem Header="_Build Project" Command="{Binding BuildCommand}" HotKey="F6" />  
       </MenuItem>
+      <MenuItem Header="_View">
+        <MenuItem Header="_Reset Layout" Command="{Binding ResetLayoutCommand}" />
+      </MenuItem>
       <MenuItem Header="_Help">
         <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
       </MenuItem>

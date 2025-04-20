@@ -116,7 +116,7 @@
                     <DataTemplate>
                         <TextBlock Margin="2,0" 
                                    Classes.notfile="{Binding !BelongsToFile}"
-                                   Text="{Binding Address, Converter={x:Static converters:StudioConverters.ValueToHexAddress}}"
+                                   Text="{Binding Address, Converter={x:Static converters:StudioConverters.UShortToHexAddress}}"
                                    HorizontalAlignment="Right" />
                     </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>

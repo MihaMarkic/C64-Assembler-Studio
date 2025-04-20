@@ -21,8 +21,10 @@ public static class StudioConverters
     public static readonly IValueConverter DebuggingStatusToString =
         new FuncValueConverter<DebuggingStatus, string?>(bs => bs.DebugStatusToString());
 
-    public static readonly IValueConverter ValueToHexAddress =
+    public static readonly IValueConverter UShortToHexAddress =
         new FuncValueConverter<ushort?, string?>(s => s?.ToString("X4"));
+    public static readonly IValueConverter ByteToHexAddress =
+        new FuncValueConverter<byte?, string?>(s => s?.ToString("X2"));
 
     public static readonly IValueConverter AppendDirectorySeparator =
         new FuncValueConverter<string?, string?>(s =>

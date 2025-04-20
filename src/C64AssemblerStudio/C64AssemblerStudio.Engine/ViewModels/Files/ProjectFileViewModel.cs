@@ -3,6 +3,7 @@ using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using Righthand.MessageBus;
@@ -23,14 +24,17 @@ public abstract class ProjectFileViewModel : FileViewModel
     public ushort? ExecutionAddress { get; set; }
     public event EventHandler<MoveCaretEventArgs>? MoveCaretRequest;
     protected bool IsContentLoaded { get; private set; }
+
     protected ProjectFileViewModel(ILogger<ProjectFileViewModel> logger, IFileService fileService,
-        IDispatcher dispatcher, StatusInfoViewModel statusInfo, Globals globals, ProjectFile file) :
-        base(logger, fileService, dispatcher, statusInfo)
+        IDispatcher dispatcher, StatusInfoViewModel statusInfo, Globals globals, ProjectFile file,
+        IServiceScopeFactory serviceScopeFactory) :
+        base(logger, fileService, dispatcher, statusInfo, serviceScopeFactory)
     {
         File = file;
         Globals = globals;
         Caption = file.Name;
     }
+
     void RaiseMoveCaret(MoveCaretEventArgs e) => MoveCaretRequest?.Invoke(this, e);
 
     public async Task LoadContentAsync(CancellationToken ct = default)
@@ -91,5 +95,32 @@ public abstract class ProjectFileViewModel : FileViewModel
                 ErrorText = ex.Message;
             }
         }
+    }
+    /// <inheritdoc />
+    internal override async Task<bool> HandlesCloseFileAsync()
+    {
+        if (HasChanges)
+        {
+            var resultCode = await ShowDialogForClosingFiles([File], CancellationToken.None);
+            switch (resultCode)
+            {
+                case SaveFilesDialogResultCode.Save:
+                    try
+                    {
+                        await SaveContentAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, "Failed to save {File}", File.Name);
+                    }
+                    break;
+                case SaveFilesDialogResultCode.DoNotSave:
+                    break;
+                default:
+                    return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -6,8 +6,8 @@ using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.ViewModels.Docks;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
-using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
@@ -27,15 +27,16 @@ public class FilesViewModel : ViewModel
     private readonly Globals _globals;
     private readonly ProjectExplorerViewModel _projectExplorer;
     private readonly StatusInfoViewModel _statusInfo;
-    public ObservableCollection<FileViewModel> Files { get; }
+    private readonly FilesDocumentDockViewModel _filesDocumentDockViewModel;
     public BusyIndicator BusyIndicator { get; } = new();
     public FileViewModel? Selected { get; set; }
-    public RelayCommandWithParameterAsync<FileViewModel> CloseFileCommand { get; }
+    public RelayCommandWithParameter<ProjectFileViewModel> CloseFileCommand { get; }
     public RelayCommandAsync SaveAllCommand { get; }
     public int? FocusedFileCaretLine => Selected?.CaretLine; 
     public int? FocusedFileCaretColumn => Selected?.CaretColumn;
 
     private DbgData? _debugData;
+
     /// <summary>
     /// Current selected. Used for tracking previous when <see cref="Selected"/> changes.
     /// </summary>
@@ -43,7 +44,8 @@ public class FilesViewModel : ViewModel
 
     public FilesViewModel(ILogger<FilesViewModel> logger, IDispatcher dispatcher, IServiceProvider serviceProvider,
         IServiceScopeFactory serviceScopeFactory,
-        IVice vice, Globals globals, ProjectExplorerViewModel projectExplorer, StatusInfoViewModel statusInfo)
+        IVice vice, Globals globals, ProjectExplorerViewModel projectExplorer, StatusInfoViewModel statusInfo,
+        FilesDocumentDockViewModel filesDocumentDockViewModel)
     {
         _logger = logger;
         _dispatcher = dispatcher;
@@ -53,16 +55,16 @@ public class FilesViewModel : ViewModel
         _globals = globals;
         _projectExplorer = projectExplorer;
         _statusInfo = statusInfo;
+        _filesDocumentDockViewModel = filesDocumentDockViewModel;
         _openFileMessage = dispatcher.Subscribe<OpenFileMessage>(OpenFile);
         
-        Files = new();
-        CloseFileCommand = new RelayCommandWithParameterAsync<FileViewModel>(CloseFileAsync);
+        CloseFileCommand = new RelayCommandWithParameter<ProjectFileViewModel>(CloseFile);
         SaveAllCommand = new RelayCommandAsync(SaveAllAsync);
         _vice.PropertyChanged += ViceOnPropertyChanged;
         _vice.RegistersUpdated += ViceOnRegistersUpdated;
     }
 
-    public bool HasChanges => Files.Any(f => f.HasChanges);
+    public bool HasChanges => _filesDocumentDockViewModel.Files.Any(f => f.HasChanges);
 
     private void ViceOnRegistersUpdated(object? sender, RegistersEventArgs e)
     {
@@ -116,13 +118,7 @@ public class FilesViewModel : ViewModel
         }
     }
 
-    public void RemoveProjectFiles()
-    {
-        foreach (var f in Files.ToImmutableArray())
-        {
-            Files.Remove(f);
-        }
-    }
+    public void RemoveProjectFiles() => _filesDocumentDockViewModel.RemoveAllDocuments();
 
     private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -163,7 +159,7 @@ public class FilesViewModel : ViewModel
 
     internal void UnsetExecutionPaused()
     {
-        foreach (var projectFile in Files.OfType<ProjectFileViewModel>())
+        foreach (var projectFile in _filesDocumentDockViewModel.Files)
         {
             projectFile.ExecutionLineRange = null;
             projectFile.ExecutionAddress = null;
@@ -176,7 +172,7 @@ public class FilesViewModel : ViewModel
         {
             try
             {
-                var allFiles = Files.Where(f => f.HasChanges)
+                var allFiles = _filesDocumentDockViewModel.Files.Where(f => f.HasChanges)
                     .Select(f => f.SaveContentAsync());
                 await Task.WhenAll(allFiles);
             }
@@ -189,7 +185,7 @@ public class FilesViewModel : ViewModel
     }
     internal async Task<bool> CloseAllFilesAsync(CancellationToken ct = default)
     {
-        var files = Files.OfType<ProjectFileViewModel>().Select(f => f.File).ToImmutableArray();
+        var files = _filesDocumentDockViewModel.Files.Select(f => f.File).ToImmutableArray();
         var resultCode = await ShowDialogForClosingFiles(files, ct);
         switch (resultCode)
         {
@@ -210,34 +206,6 @@ public class FilesViewModel : ViewModel
                 return false;
         }
     }
-
-    internal async Task CloseFileAsync(FileViewModel file)
-    {
-        if (file.HasChanges && file is ProjectFileViewModel projectFile)
-        {
-            var resultCode = await ShowDialogForClosingFiles([projectFile.File], CancellationToken.None);
-            switch (resultCode)
-            {
-                case SaveFilesDialogResultCode.Save:
-                    try
-                    {
-                        await file.SaveContentAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to save {File}", projectFile.File.Name);
-                    }
-                    break;
-                case SaveFilesDialogResultCode.DoNotSave:
-                    break;
-                default:
-                    return;
-            }
-        }
-
-        Files.Remove(file);
-    }
-
     internal async Task<SaveFilesDialogResultCode> ShowDialogForClosingFiles(ImmutableArray<ProjectFile> files, CancellationToken ct = default)
     {
         using (var scope = _serviceScopeFactory.CreateScope())
@@ -255,10 +223,21 @@ public class FilesViewModel : ViewModel
             return result.Code;
         }
     }
+    internal void CloseFile(ProjectFileViewModel file)
+    {
+        // var canRemove = await file.HandlesCloseFileAsync();
+        // if (canRemove)
+        // {
+        //     Files.Remove(file);
+        // }
+        _filesDocumentDockViewModel.CloseFile(file);
+    }
 
     internal FrozenDictionary<string, InMemoryFileContent> CollectAllOpenContent()
     {
-        var files = Files.OfType<AssemblerFileViewModel>().Where(f => f.HasChanges)
+        var files =  _filesDocumentDockViewModel
+            .Files.OfType<AssemblerFileViewModel>()
+            .Where(f => f.HasChanges)
             .ToFrozenDictionary(f => f.File.AbsolutePath,
                 f => new InMemoryFileContent(f.File.AbsolutePath, f.Content, f.LastChangeTime));
         return files;
@@ -266,7 +245,7 @@ public class FilesViewModel : ViewModel
 
     ProjectFileViewModel? FindOpenFile(ProjectFile file)
     {
-        return Files.OfType<ProjectFileViewModel>().FirstOrDefault(vm => vm.File.IsSame(file));
+        return  _filesDocumentDockViewModel.Files.FirstOrDefault(vm => vm.File.IsSame(file));
     }
 
     internal void OpenFile(OpenFileMessage message)
@@ -287,6 +266,7 @@ public class FilesViewModel : ViewModel
             if (viewModel is AssemblerFileViewModel assemblerFileViewModel)
             {
                 assemblerFileViewModel.SelectedDefineSymbols = message.DefineSymbols;
+                _filesDocumentDockViewModel.SetFocused(assemblerFileViewModel);
             }
             if (message is { MoveCaret: true, Line: not null, Column: not null })
             {
@@ -301,12 +281,12 @@ public class FilesViewModel : ViewModel
                     new(message.DefineSymbols)),
                 _ => (ProjectFileViewModel?)null
             };
-            if (viewModel is not null)
+            if (viewModel is AssemblerFileViewModel assemblerFileViewModel)
             {
                 try
                 {
-                    _ = viewModel.LoadContentAsync();
-                    Files.Add(viewModel);
+                    _ = assemblerFileViewModel.LoadContentAsync();
+                    _filesDocumentDockViewModel.AddDocument(assemblerFileViewModel);
                     Selected = viewModel;
                     if (message is { MoveCaret: true, Line: not null, Column: not null })
                     {

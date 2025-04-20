@@ -1,14 +1,37 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cc="clr-namespace:AvaloniaEdit.CodeCompletion;assembly=AvaloniaEdit"
-             xmlns:breakpoints="clr-namespace:C64AssemblerStudio.Desktop.Views.Dialogs.Breakpoints"
              xmlns:bvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Breakpoints;assembly=C64AssemblerStudio.Engine"
              xmlns:syntaxEditor="clr-namespace:C64AssemblerStudio.Engine.Models.SyntaxEditor;assembly=C64AssemblerStudio.Engine"
              xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             xmlns:dockControls="clr-namespace:Dock.Model.Mvvm.Controls;assembly=Dock.Model.Mvvm"
+             xmlns:tools="clr-namespace:C64AssemblerStudio.Desktop.Views.Tools"
+             xmlns:tvm="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
+             xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
+             xmlns:views="clr-namespace:C64AssemblerStudio.Desktop.Views"
+             xmlns:docks="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Docks;assembly=C64AssemblerStudio.Engine"
+             xmlns:main="clr-namespace:C64AssemblerStudio.Desktop.Views.Main"
+             xmlns:files="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Files;assembly=C64AssemblerStudio.Engine"
+             xmlns:fv="clr-namespace:C64AssemblerStudio.Desktop.Views.Files"
              x:Class="C64AssemblerStudio.Desktop.App"
              RequestedThemeVariant="Default">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
     <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <ResourceDictionary.MergedDictionaries>
+                        <MergeResourceInclude Source="/Styles/LightResources.axaml" />
+                    </ResourceDictionary.MergedDictionaries>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <ResourceDictionary.MergedDictionaries>
+                        <MergeResourceInclude Source="/Styles/DarkResources.axaml" />
+                    </ResourceDictionary.MergedDictionaries>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+        <ControlRecycling x:Key="ControlRecyclingKey" />
         <!-- default font family for code -->
         <FontFamily x:Key="CodeFont">resm:C64AssemblerStudio.Desktop.Assets.Fonts.?assembly=C64AssemblerStudio.Desktop#Fira Code</FontFamily>
         <FontFamily x:Key="C64Mono">resm:C64AssemblerStudio.Desktop.Assets.Fonts.?assembly=C64AssemblerStudio.Desktop#C64 Pro Mono</FontFamily>
@@ -37,9 +60,11 @@
     </Application.Resources>
     <Application.Styles>
         <FluentTheme />
+        <DockFluentTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
         <StyleInclude Source="/Styles/AppStyles.xaml" />
+        <StyleInclude Source="/Styles/DockStyles.axaml" />
     </Application.Styles>
     <Application.DataTemplates>
         <!-- template for breakpoint condition completion suggestion -->
@@ -84,6 +109,47 @@
                            Margin="4,0,0,0" />
                 <TextBlock Classes.isDefault="{Binding IsDefault}" Text="{Binding Text}" VerticalAlignment="Center" />
             </DockPanel>
+        </DataTemplate>
+
+        <!-- docking ViewModels and their matching Controls -->
+        <DataTemplate x:DataType="dockControls:Tool">
+            <ContentControl Content="{Binding Context}" />
+        </DataTemplate>
+        <DataTemplate DataType="tvm:ErrorMessagesViewModel">
+            <tools:ErrorMessages />
+        </DataTemplate>
+        <DataTemplate DataType="tvm:BuildOutputViewModel">
+            <tools:BuildOutput />
+        </DataTemplate>
+        <DataTemplate DataType="tvm:DebugOutputViewModel">
+            <tools:DebugOutput />
+        </DataTemplate>
+        <DataTemplate DataType="tvm:ErrorsOutputViewModel">
+            <tools:ErrorsOutput />
+        </DataTemplate>
+        <DataTemplate DataType="tvm:RegistersViewModel">
+            <tools:VerticalRegisters />
+        </DataTemplate>
+        <DataTemplate DataType="bvm:BreakpointsViewModel">
+            <tools:Breakpoints />
+        </DataTemplate>
+        <DataTemplate DataType="tvm:MemoryViewerViewModel">
+            <tools:MemoryViewer />
+        </DataTemplate>
+        <DataTemplate DataType="tvm:CallStackViewModel">
+            <tools:CallStack />
+        </DataTemplate>
+        <DataTemplate x:DataType="vm:ProjectExplorerViewModel">
+            <views:ProjectExplorer />
+        </DataTemplate>
+        <DataTemplate x:DataType="docks:StartPageDockViewModel">
+            <main:StartPage DataContext="{Binding Context}" />
+        </DataTemplate>
+        <DataTemplate x:DataType="docks:FileDocumentViewModel">
+            <ContentControl Content="{Binding Context}" />
+        </DataTemplate>
+        <DataTemplate x:DataType="files:AssemblerFileViewModel">
+            <fv:AssemblerFile />
         </DataTemplate>
     </Application.DataTemplates>
 </Application>

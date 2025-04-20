@@ -1,23 +1,24 @@
-﻿using System.Collections.Frozen;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
+using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
+using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
+using Dock.Model.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
-using Righthand.RetroDbgDataProvider.Models;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -33,17 +34,20 @@ public class MainViewModel : ViewModel
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IParserManager _parserManager;
     private readonly IDirectoryService _directoryService;
+    private readonly IDockFactory _dockFactory;
+    private readonly INavigationManager _navigationManager;
     public IVice Vice { get; }
 
     // subscriptions
     private readonly ISubscription _closeOverlaySubscription;
     private readonly ISubscription _showModalDialogMessageSubscription;
+    private readonly ISubscription _loadProjectSubscription;
     public ObservableCollection<string> RecentProjects => _globals.Settings.RecentProjects;
     public Func<OpenFileDialogModel, CancellationToken, Task<string?>>? ShowCreateProjectFileDialogAsync { get; set; }
     public Func<OpenFileDialogModel, CancellationToken, Task<string?>>? ShowOpenProjectFileDialogAsync { get; set; }
     public RelayCommandAsync NewProjectCommand { get; }
     public RelayCommand OpenProjectCommand { get; }
-    public RelayCommand<string> OpenProjectFromPathCommand { get; }
+    public RelayCommandAsync<string> OpenProjectFromPathCommand { get; }
     public RelayCommandAsync CloseProjectCommand { get; }
     public RelayCommand ShowSettingsCommand { get; }
     public RelayCommand ShowAboutCommand { get; }
@@ -55,6 +59,8 @@ public class MainViewModel : ViewModel
     public RelayCommandAsync StopCommand { get; }
     public RelayCommandAsync StepIntoCommand { get; }
     public RelayCommandAsync StepOverCommand { get; }
+    // View menu
+    public RelayCommand ResetLayoutCommand { get; }
     public IProjectViewModel Project => _globals.Project;
     public ProjectExplorerViewModel ProjectExplorer { get; }
     public FilesViewModel Files { get; }
@@ -69,6 +75,8 @@ public class MainViewModel : ViewModel
     public RegistersViewModel Registers { get; }
     public BreakpointsViewModel Breakpoints { get; }
     public MemoryViewerViewModel MemoryViewer { get; }
+    
+    public IRootDock Layout { get; private set; }
 
     public CallStackViewModel CallStack { get; }
 
@@ -100,7 +108,8 @@ public class MainViewModel : ViewModel
         ErrorsOutputViewModel errors, BreakpointsViewModel breakpoints,
         MemoryViewerViewModel memoryViewer,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment,
-        CallStackViewModel callStack, IParserManager parserManager, IDirectoryService directoryService)
+        CallStackViewModel callStack, IParserManager parserManager, IDirectoryService directoryService,
+        IDockFactory dockFactory, INavigationManager navigationManager)
     {
         _logger = logger;
         _globals = globals;
@@ -113,6 +122,7 @@ public class MainViewModel : ViewModel
         _uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
         _closeOverlaySubscription = dispatcher.Subscribe<CloseOverlayMessage>(CloseOverlay);
         _showModalDialogMessageSubscription = dispatcher.Subscribe<ShowModalDialogMessageCore>(OnShowModalDialog);
+        _loadProjectSubscription = dispatcher.Subscribe<LoadProjectMessage>(OnLoadProject);
         _directoryService = directoryService;
         ProjectExplorer = projectExplorer;
         Files = files;
@@ -127,11 +137,15 @@ public class MainViewModel : ViewModel
         CallStack = callStack;
         BottomTools =
             [ErrorMessages, Errors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer, CallStack];
-        CreateStartPage();
+        _dockFactory = dockFactory;
+        _navigationManager = navigationManager;
+        Layout = _dockFactory.CreateLayout()!;
+        _dockFactory.InitLayout(Layout);
+        _navigationManager.Navigate(Navigation.StartPage);
         _commandsManager = new CommandsManager(this, _uiFactory);
         NewProjectCommand = _commandsManager.CreateRelayCommandAsync(CreateProjectAsync, () => !IsBusy && !IsDebugging);
         OpenProjectFromPathCommand =
-            _commandsManager.CreateRelayCommand<string>(OpenProjectFromPath, _ => !IsBusy && !IsDebugging);
+            _commandsManager.CreateRelayCommandAsync<string>(OpenProjectFromPathAsync, _ => !IsBusy && !IsDebugging);
         OpenProjectCommand = _commandsManager.CreateRelayCommand(OpenProject, () => !IsBusy && !IsDebugging);
         ShowProjectSettingsCommand =
             _commandsManager.CreateRelayCommand(ShowProjectSettings, () => !IsShowingProject && IsProjectOpen);
@@ -151,6 +165,8 @@ public class MainViewModel : ViewModel
             _commandsManager.CreateRelayCommandAsync(StepIntoAsync, () => IsDebugging && IsDebuggingPaused);
         StepOverCommand =
             _commandsManager.CreateRelayCommandAsync(StepOverAsync, () => IsDebugging && IsDebuggingPaused);
+        // View menu
+        ResetLayoutCommand = new RelayCommand(ResetLayout, () => IsProjectOpen);
         if (!_directoryService.Exists(globals.Settings.VicePath))
         {
             SwitchOverlayContent<SettingsViewModel>();
@@ -158,15 +174,6 @@ public class MainViewModel : ViewModel
 
         Vice.PropertyChanged += ViceOnPropertyChanged;
         globals.PropertyChanged += Globals_PropertyChanged;
-    }
-
-    private void CreateStartPage()
-    {
-        StartPage = _scope.ServiceProvider.CreateScopedContent<StartPageViewModel>();
-        var mostRecent = RecentProjects.FirstOrDefault();
-        StartPage.HasRecentProjects = mostRecent is not null;
-        StartPage.FullPath = mostRecent;
-        StartPage.LoadLastProjectRequest += StartPage_LoadLastProjectRequest;
     }
 
     private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -269,7 +276,14 @@ public class MainViewModel : ViewModel
                     {
                         DebugOutput.AddLine("Timeout while waiting for connection");
                         _logger.LogError(ex, "Failed debugging");
-                        StatusInfo.BuildingStatus = BuildStatus.Idle;
+                        StatusInfo.BuildingStatus = BuildStatus.Failure;
+                        return;
+                    }
+
+                    if (!Vice.IsConnected)
+                    {
+                        _logger.LogInformation("Failed connecting to VICE");
+                        StatusInfo.BuildingStatus = BuildStatus.Failure;
                         return;
                     }
 
@@ -294,17 +308,6 @@ public class MainViewModel : ViewModel
         finally
         {
             IsDebuggingStarting = false;
-        }
-    }
-
-    private void StartPage_LoadLastProjectRequest(object? sender, EventArgs e)
-    {
-        if (StartPage is not null)
-        {
-            OpenProjectFromPath(RecentProjects.First());
-            StartPage.LoadLastProjectRequest -= StartPage_LoadLastProjectRequest;
-            StartPage.Dispose();
-            StartPage = null;
         }
     }
 
@@ -457,7 +460,7 @@ public class MainViewModel : ViewModel
         }
     }
 
-    private async void OpenProjectFromPath(string? path)
+    private async Task OpenProjectFromPathAsync(string? path)
     {
         // runs async because it manipulates most recent list
         await Task.Delay(1);
@@ -524,7 +527,7 @@ public class MainViewModel : ViewModel
         {
             Files.RemoveProjectFiles();
             _globals.ResetProject();
-            CreateStartPage();
+            _navigationManager.Navigate(Navigation.StartPage);
             return true;
         }
 
@@ -578,6 +581,15 @@ public class MainViewModel : ViewModel
     void OnShowModalDialog(ShowModalDialogMessageCore message)
     {
         ShowModalDialog?.Invoke(message);
+    }
+
+    /// <summary>
+    /// Handles <see cref="LoadProjectMessage"/> from start page usually.
+    /// </summary>
+    /// <param name="message"></param>
+    async Task OnLoadProject(LoadProjectMessage message, CancellationToken ct)
+    {
+        await OpenProjectFromPathAsync(message.Path);
     }
 
     internal void ShowSettings()
@@ -674,10 +686,31 @@ public class MainViewModel : ViewModel
         }
     }
 
+    public async Task LoadLayoutAsync()
+    {
+        _dockFactory.ResetLayout();
+        var layout = await _settingsManager.LoadToolsAsync(CancellationToken.None);
+        layout ??= _dockFactory.CreateLayout();
+        _dockFactory.InitLayout(layout);
+        Layout = layout;
+    }
+
+    private void ResetLayout()
+    {
+        _dockFactory.ResetLayout();
+        var layout = _dockFactory.CreateLayout();
+        _dockFactory.InitLayout(layout);
+        Layout = layout;
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
+            if (Layout.Close.CanExecute(null))
+            {
+                Layout.Close.Execute(null);
+            }
             _closeOverlaySubscription.Dispose();
             _showModalDialogMessageSubscription.Dispose();
         }

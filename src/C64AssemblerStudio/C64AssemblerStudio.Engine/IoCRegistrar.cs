@@ -4,6 +4,7 @@ using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Dialogs;
+using C64AssemblerStudio.Engine.ViewModels.Docks;
 using C64AssemblerStudio.Engine.ViewModels.Files;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
@@ -43,14 +44,17 @@ public static class IoCRegistrar
             .AddSingleton<BreakpointsViewModel>()
             .AddSingleton<ViceMemoryViewModel>()
             .AddSingleton<CallStackViewModel>()
-            .AddScoped<MemoryViewerViewModel>()
+            .AddSingleton<MemoryViewerViewModel>()
             .AddTransient<AboutViewModel>()
             .AddTransient<LibrariesEditorViewModel>()
             // Tools
-            .AddScoped<ErrorMessagesViewModel>()
-            .AddScoped<BuildOutputViewModel>()
-            .AddScoped<DebugOutputViewModel>()
+            .AddSingleton<ErrorMessagesViewModel>()
+            .AddSingleton<BuildOutputViewModel>()
+            .AddSingleton<DebugOutputViewModel>()
             .AddSingleton<ErrorsOutputViewModel>()
+            // Docking
+            .AddSingleton<FilesDocumentDockViewModel>()
+            .AddTransient<FilesDocumentDockViewModelConverter>()
             // Misc
             .AddTransient<AddressEntryValidator>()
             // Dialogs
@@ -61,6 +65,7 @@ public static class IoCRegistrar
             .AddSingleton<EmptyProjectViewModel>()
             .AddScoped<SaveFileDialogViewModel>()
             // System
+            .AddSingleton<INavigationManager, NavigationManager>()
             .AddTransient(sp => sp.CreateScope())
             .AddSingleton<IDispatcher>(
             // uses dispatching from within same thread to all subscriptions by default as most subscribers are running on UI thread
