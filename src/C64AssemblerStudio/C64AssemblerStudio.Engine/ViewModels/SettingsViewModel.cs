@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Frozen;
 using System.ComponentModel;
+using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Services.Abstract;
@@ -24,6 +25,9 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     public Settings Settings => _globals.Settings;
     private readonly ErrorHandler _errorHandler;
     public bool IsVicePathGood { get; private set; }
+    public bool IsFlatpakInstallationGood { get; private set; }
+    public bool IsVerifyingConfig => IsVerifyingFlatpakInstallation;
+    public bool IsVerifyingFlatpakInstallation { get; private set; }
     public bool AreLibrariesGood { get; private set; }
 
     public string? ViceAddress
@@ -31,7 +35,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         get => _ipAddressValidator.Text; 
         set => _ipAddressValidator.Update(value);
     }
-    public RelayCommand VerifyValuesCommand { get; }
+    public RelayCommandAsync VerifyValuesCommand { get; }
     public RelayCommandAsync OpenViceDirectoryCommand { get; }
     private readonly IpAddressValidator _ipAddressValidator;
     bool INotifyDataErrorInfo.HasErrors => _errorHandler.HasErrors;
@@ -57,8 +61,8 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         LibrariesEditor = librariesEditor;
         LibrariesEditor.Init(Settings.Libraries.Values);
 
-        VerifyValues();
-        VerifyValuesCommand = new RelayCommand(VerifyValues);
+        _ = VerifyValues();
+        VerifyValuesCommand = new RelayCommandAsync(VerifyValues);
         _ipAddressValidator = serviceScope.CreateIpAddressValidator(nameof(ViceAddress));
         _ipAddressValidator.Update(Settings.ViceAddress);
         var errorHandlerBuilder = ErrorHandler.CreateBuilder()
@@ -72,7 +76,21 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     {
         CloseCommand.RaiseCanExecuteChanged();
     }
-    
+
+    protected override void OnPropertyChanged(string name = null)
+    {
+        switch (name)
+        {
+            case nameof(IsVerifyingConfig):
+                if (!IsVerifyingConfig)
+                {
+                    CloseCommand.RaiseCanExecuteChanged();
+                }
+                break;
+        }
+        base.OnPropertyChanged(name);
+    }
+
     private async Task OpenViceDirectoryAsync()
     {
         if (Settings is null)
@@ -95,12 +113,29 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
             case nameof(Settings.VicePath):
                 VerifyVicePath();
                 break;
+            case nameof(Settings.StartType):
+                _ = VerifyViceInstallation();
+                break;
         }
     }
 
-    private void VerifyValues()
+    private async Task VerifyValues()
     {
-        VerifyVicePath();
+        await VerifyViceInstallation();
+    }
+
+    private async Task VerifyViceInstallation()
+    {
+        switch (Settings.StartType)
+        {
+            case ViceStartType.File:
+                VerifyVicePath();
+                break;
+            case ViceStartType.Flatpak:
+                await VerifyFlatpakViceInstallationAsync();
+                break;
+        }
+
         AreLibrariesGood = LibrariesEditor.VerifyLibraries();
     }
 
@@ -125,9 +160,39 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         }
     }
 
+    private async Task VerifyFlatpakViceInstallationAsync()
+    {
+        IsVerifyingFlatpakInstallation = true;
+        var psi = new ProcessStartInfo("flatpak", "info net.sf.VICE");
+        psi.RedirectStandardError = psi.RedirectStandardOutput = true;
+        psi.UseShellExecute = false;
+        try
+        {
+            using var proc = Process.Start(psi);
+            if (proc is null)
+            {
+                IsFlatpakInstallationGood = false;
+                return;
+            }
+
+            var error = await proc.StandardError.ReadToEndAsync();
+            var output = await proc.StandardOutput.ReadToEndAsync();
+            await proc.WaitForExitAsync();
+            IsFlatpakInstallationGood = proc.ExitCode == 0;
+        }
+        catch (Exception ex)
+        {
+            IsFlatpakInstallationGood = false;
+        }
+        finally
+        {
+            IsVerifyingFlatpakInstallation = false;
+        }
+    }
+
     protected override bool CanClose()
     {
-        return !_errorHandler.HasErrors;
+        return !_errorHandler.HasErrors && !IsVerifyingConfig;
     }
 
     protected override async Task ClosingAsync(CancellationToken ct = default)

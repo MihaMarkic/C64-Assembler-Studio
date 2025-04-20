@@ -2,6 +2,7 @@
 using System.Collections.Frozen;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.ViewModels;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 
@@ -88,4 +89,9 @@ public static class StudioConverters
 
             return null;
         });
+    
+    public static readonly IValueConverter IsVicePathSelectorVisible = 
+        new FuncValueConverter<ViceStartType, bool>(st => st == ViceStartType.File);
+    public static readonly IValueConverter IsFlatpakSelectorVisible = 
+        new FuncValueConverter<ViceStartType, bool>(st => st == ViceStartType.Flatpak);
 }

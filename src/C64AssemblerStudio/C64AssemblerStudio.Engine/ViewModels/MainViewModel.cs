@@ -5,6 +5,7 @@ using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
+using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Implementation;
@@ -167,7 +168,8 @@ public class MainViewModel : ViewModel
             _commandsManager.CreateRelayCommandAsync(StepOverAsync, () => IsDebugging && IsDebuggingPaused);
         // View menu
         ResetLayoutCommand = new RelayCommand(ResetLayout, () => IsProjectOpen);
-        if (!_directoryService.Exists(globals.Settings.VicePath))
+        var settings = globals.Settings;
+        if (settings.StartType == ViceStartType.File && !_directoryService.Exists(settings.VicePath))
         {
             SwitchOverlayContent<SettingsViewModel>();
         }
