@@ -488,12 +488,14 @@ public class MainViewModel : ViewModel
                 await _dispatcher.DispatchAsync(
                     new ErrorMessage(ErrorMessageLevel.Error, errorTitle, $"Project file {path} does not exist."),
                     ct: ct);
+                _logger.LogInformation("Project at {path} does not exist", path);
                 return false;
             }
 
             var projectConfiguration = await _settingsManager.LoadAsync<Project>(path, ct);
             if (projectConfiguration is null)
             {
+                _logger.LogError("Project configuration at {path} can not be loaded", path);
                 return false;
             }
 
@@ -507,6 +509,7 @@ public class MainViewModel : ViewModel
             }
             else
             {
+                _logger.LogError("Project at {path} is not supported", path);
                 throw new Exception("Not supported project");
             }
 
@@ -514,6 +517,7 @@ public class MainViewModel : ViewModel
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to open project at {path} is not supported", path);
             await _dispatcher.DispatchAsync(new ErrorMessage(ErrorMessageLevel.Error, errorTitle, ex.Message), ct: ct);
         }
         finally
