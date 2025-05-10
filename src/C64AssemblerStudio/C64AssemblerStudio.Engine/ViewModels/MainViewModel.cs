@@ -503,6 +503,7 @@ public class MainViewModel : ViewModel
                 projectViewModel.Init(kickAssConfiguration, path);
                 await _globals.SetProjectAsync(projectViewModel, ct);
                 _ = _parserManager.RunInitialParseAsync(CancellationToken.None);
+                _navigationManager.Navigate(Navigation.Home);
             }
             else
             {

@@ -26,7 +26,6 @@ public class StartPageViewModel: ScopedViewModel
     {
         var message = new LoadProjectMessage(FullPath!);
         await _dispatcher.DispatchAsync(message);
-        _navigationManager.Navigate(Navigation.Home);
     }
 }
 
