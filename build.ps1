@@ -28,7 +28,7 @@ Param(
 	[string]$Target,
 	[ValidateSet("WinX64", "LinuxX64", "OSXArm64", "Dependent")]
 	[string]$Architecture,
-	[ValidateSet("Scoop", "Archive")]
+	[ValidateSet("Scoop", "Flapak", "Archive")]
 	[string]$BuildType,
 	[ValidateSet("Quiet", "Minimal", "Normal", "Verbose", "Diagnostic")]
 	[string]$Verbosity,

@@ -1,0 +1,37 @@
+{
+    "app-id": "com.rthand.C64AssemblerStudio",
+    "runtime": "org.freedesktop.Platform",
+    "runtime-version": "23.08",
+    "sdk": "org.freedesktop.Sdk",
+    "command": "C64AssemblerStudio",
+    "finish-args": [
+        "--device=dri", 
+        "--socket=x11", 
+        "--share=ipc",
+        "--filesystem=home"],
+    "modules": [
+        {
+            "name": "C64AssemblerStudio",
+            "buildsystem": "simple",
+            "build-commands": [
+                "install -v -D ./binaries/KickAss/* -t /app/bin/binaries/KickAss/",
+                "install -v  ./C64AssemblerStudio -t /app/bin/",
+                "install -v  ./C64AssemblerStudio.pdb -t /app/bin/",
+                "install -v  ./C64AssemblerStudio.Engine.pdb -t /app/bin/",
+                "install -v  ./C64AssemblerStudio.Core.pdb -t /app/bin/",
+                "install -v  ./AvaloniaEdit.TextMate.pdb -t /app/bin/",
+                "install -v  ./AvaloniaEdit.pdb -t /app/bin/",
+                "install -v  ./libSkiaSharp.so.116.0.0 -t /app/bin/",
+                "install -v  ./libSkiaSharp.so -t /app/bin/",
+                "install -v  ./libHarfBuzzSharp.so -t /app/bin/",
+                "install -v  ./NLog.config -t /app/bin/"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "../../../src/C64AssemblerStudio/publish/linux_x64"
+                }
+            ]
+        }
+    ]
+}

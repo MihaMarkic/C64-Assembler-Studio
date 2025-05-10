@@ -12,5 +12,8 @@ public class DefaultTask: FrostingTask
     {
         context.Log.Information("C64 Assembler Studio builder");
         context.Log.Information(@"Sample command: .\build.ps1 -Target ");
+        context.Log.Information("Important commands:");
+        context.Log.Information("\tFlatpakPublish ... builds flatpak application");
+        context.Log.Information("\tTestFlatpak ... tests flatpak application built with FlatpakPublish");
     }
 }

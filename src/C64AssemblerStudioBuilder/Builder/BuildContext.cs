@@ -83,5 +83,6 @@ public enum TargetArchitecture
 public enum BuildType
 {
     Scoop,
+    Flatpak,
     Archive,
 }
