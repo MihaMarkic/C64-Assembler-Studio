@@ -77,7 +77,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
         CloseCommand.RaiseCanExecuteChanged();
     }
 
-    protected override void OnPropertyChanged(string name = null)
+    protected override void OnPropertyChanged(string? name = null)
     {
         switch (name)
         {
@@ -180,7 +180,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
             await proc.WaitForExitAsync();
             IsFlatpakInstallationGood = proc.ExitCode == 0;
         }
-        catch (Exception ex)
+        catch
         {
             IsFlatpakInstallationGood = false;
         }

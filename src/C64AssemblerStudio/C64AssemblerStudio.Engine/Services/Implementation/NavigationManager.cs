@@ -18,7 +18,8 @@ public class NavigationManager : INavigationManager
     public void Navigate(Navigation target)
     {
         var id = target.ToString();
-        var cmd = _factory.RootDock.Navigate;
+        var cmd = _factory.RootDock?.Navigate
+	        ?? throw new NullReferenceException("RootDock should not be null");
         if (cmd.CanExecute(id))
         {
             cmd.Execute(id);

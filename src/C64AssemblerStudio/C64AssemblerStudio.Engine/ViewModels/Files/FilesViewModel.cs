@@ -79,7 +79,7 @@ public class FilesViewModel : ViewModel
         }
     }
 
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = default!)
     {
         switch (name)
         {

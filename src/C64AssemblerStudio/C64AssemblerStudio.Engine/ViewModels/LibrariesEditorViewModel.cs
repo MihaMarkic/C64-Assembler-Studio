@@ -56,7 +56,7 @@ public class LibrariesEditorViewModel: ViewModel, ILibrariesEditorViewModel
         SelectDirectoryCommand = _commandsManager.CreateRelayCommandAsync(SelectDirectory);
     }
 
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = default!)
     {
         switch (name)
         {

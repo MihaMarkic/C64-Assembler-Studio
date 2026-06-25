@@ -103,17 +103,19 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="Avalonia.Controls.DataGrid" />
     <PackageReference Include="Avalonia.Controls.ItemsRepeater" />
-    <PackageReference Include="Avalonia.Controls.TreeDataGrid" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
-    <PackageReference Condition="'$(Configuration)' != 'Release'" Include="Avalonia.Diagnostics" />
     <PackageReference Include="Avalonia.Svg.Skia" />
     <PackageReference Include="Avalonia.Xaml.Behaviors" />
+    <PackageReference Include="AvaloniaEdit.TextMate" />
+    <PackageReference Condition="'$(Configuration)' != 'Release'"  Include="AvaloniaUI.DiagnosticsSupport" />
     <PackageReference Include="CommunityToolkit.Diagnostics" />
     <PackageReference Include="Dock.Avalonia" />
+    <PackageReference Include="Dock.Avalonia.Themes.Fluent" />
     <PackageReference Include="Dock.Model.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
@@ -122,6 +124,7 @@
     <PackageReference Include="NLog.Extensions.Logging" />
     <!-- this guy is required because Avalonia references an older version -->
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
+    <PackageReference Include="System.Reactive" />
     <PackageReference Include="Velopack" />
   </ItemGroup>
   
@@ -134,13 +137,4 @@
     <EmbeddedResource Include="Resources\breakpoint-condition.xshd" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- Temporary solution to have latest code for AvaloniaEdit -->
-    <Reference Include="AvaloniaEdit">
-      <HintPath>..\Libraries\AvaloniaEdit\AvaloniaEdit.dll</HintPath>
-    </Reference>
-    <Reference Include="AvaloniaEdit.TextMate">
-      <HintPath>..\Libraries\AvaloniaEdit\AvaloniaEdit.TextMate.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

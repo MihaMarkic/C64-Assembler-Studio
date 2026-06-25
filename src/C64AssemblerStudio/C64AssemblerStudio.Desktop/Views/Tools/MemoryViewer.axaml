@@ -16,7 +16,7 @@
   <DockPanel LastChildFill="True">
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
       <CheckBox IsChecked="{Binding ShowOnlyRowsWithChanges}">Only Changes</CheckBox>
-      <TextBox VerticalAlignment="Center" Margin="8,0,2,0" Watermark="To $address" Width="100" Text="{Binding GoToAddressText}">
+      <TextBox VerticalAlignment="Center" Margin="8,0,2,0" PlaceholderText="To $address" Width="100" Text="{Binding GoToAddressText}">
         <TextBox.KeyBindings>
           <KeyBinding Gesture="Enter" Command="{Binding GoToAddressCommand}" />
         </TextBox.KeyBindings>

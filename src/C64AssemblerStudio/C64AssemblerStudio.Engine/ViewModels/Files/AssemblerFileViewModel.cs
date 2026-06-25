@@ -1,4 +1,8 @@
-﻿using C64AssemblerStudio.Core.Common;
+﻿using System.Collections.Frozen;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Diagnostics;
+using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Common.Compiler;
 using C64AssemblerStudio.Core.Extensions;
 using C64AssemblerStudio.Core.Services.Abstract;
@@ -11,6 +15,7 @@ using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using CommunityToolkit.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Services.CompletionOptionCollectors;
@@ -18,11 +23,6 @@ using Righthand.RetroDbgDataProvider.Models;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 using Righthand.RetroDbgDataProvider.Models.Program;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
-using System.Collections.Frozen;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
 using IFileService = C64AssemblerStudio.Core.Services.Abstract.IFileService;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
@@ -554,7 +554,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         return null;
     }
 
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = null!)
     {
         // OnPropertyChanged has to happen before _parserManager is invoked
         // because it updates LastChangedTime has HasChanges

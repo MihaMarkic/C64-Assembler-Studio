@@ -50,7 +50,7 @@ public abstract class FileViewModel : ScopedViewModel
         HasChanges = false;
     }
 
-    protected override void OnPropertyChanged(string name = null!)
+    protected override void OnPropertyChanged(string? name = null!)
     {
         switch (name)
         {

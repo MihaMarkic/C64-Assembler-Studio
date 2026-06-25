@@ -434,7 +434,7 @@ public class Vice : NotifiableObject, IVice
         return await checkpointsListCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, checkpointsListCommand, ct: ct);
     }
 
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = null!)
     {
         switch (name)
         {

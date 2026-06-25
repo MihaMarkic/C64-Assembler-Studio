@@ -697,7 +697,8 @@ public class MainViewModel : ViewModel
     {
         _dockFactory.ResetLayout();
         var layout = await _settingsManager.LoadToolsAsync(CancellationToken.None);
-        layout ??= _dockFactory.CreateLayout();
+        layout ??= _dockFactory.CreateLayout()
+	        ?? throw new Exception("Layout should not be null");
         _dockFactory.InitLayout(layout);
         Layout = layout;
     }
@@ -705,7 +706,8 @@ public class MainViewModel : ViewModel
     private void ResetLayout()
     {
         _dockFactory.ResetLayout();
-        var layout = _dockFactory.CreateLayout();
+        var layout = _dockFactory.CreateLayout()
+	        ?? throw new NullReferenceException("Layout should not be null");
         _dockFactory.InitLayout(layout);
         Layout = layout;
     }

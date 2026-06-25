@@ -48,9 +48,8 @@
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="PropertyChanged.Fody" />
+    <PackageReference Include="PropertyChanged.Fody" PrivateAssets="All" />
     <PackageReference Include="Righthand.MessageBus" />
-    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\main.template" />

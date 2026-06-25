@@ -41,7 +41,7 @@ public class AddDirectoryDialogViewModel : NotifiableObject, IDialogViewModel<Si
         {
             Error = ex.Message;
         }
-    }protected override void OnPropertyChanged(string name = default!)
+    }protected override void OnPropertyChanged(string? name = default!)
     {
         switch (name)
         {

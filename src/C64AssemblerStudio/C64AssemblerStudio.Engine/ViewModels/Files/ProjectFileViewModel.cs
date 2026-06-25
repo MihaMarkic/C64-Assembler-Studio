@@ -61,7 +61,7 @@ public abstract class ProjectFileViewModel : FileViewModel
         RaiseMoveCaret(new MoveCaretEventArgs(row, col));
     }
 
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = null!)
     {
         switch (name)
         {

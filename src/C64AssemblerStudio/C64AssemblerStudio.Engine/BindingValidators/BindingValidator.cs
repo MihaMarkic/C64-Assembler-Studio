@@ -24,7 +24,7 @@ public abstract class BindingValidator : NotifiableObject, IBindingValidator
             OnHasErrorsChanged(EventArgs.Empty);
         }
     }
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = null!)
     {
         switch (name)
         {

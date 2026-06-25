@@ -275,7 +275,7 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
         Close?.Invoke(new SimpleDialogResult(DialogResultCode.Cancel));
     }
 
-    protected override void OnPropertyChanged(string name = null!)
+    protected override void OnPropertyChanged(string? name = null!)
     {
         base.OnPropertyChanged(name);
         switch (name)

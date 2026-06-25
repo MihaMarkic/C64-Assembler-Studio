@@ -55,7 +55,7 @@ public class AddFileDialogViewModel: NotifiableObject, IDialogViewModel<SimpleDi
         }
     }
 
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = default!)
     {
         switch (name)
         {

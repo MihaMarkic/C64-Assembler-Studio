@@ -46,7 +46,7 @@ public class RenameItemDialogViewModel: NotifiableObject, IDialogViewModel<Simpl
         }
     }
 
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = default!)
     {
         switch (name)
         {

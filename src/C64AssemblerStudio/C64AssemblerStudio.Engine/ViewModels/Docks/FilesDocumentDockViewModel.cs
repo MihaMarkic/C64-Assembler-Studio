@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Files;
+using CommunityToolkit.Diagnostics;
 using Dock.Model.Core.Events;
 using Dock.Model.Mvvm.Controls;
 
@@ -35,6 +36,7 @@ public class FilesDocumentDockViewModel: DocumentDock
     {
         if (_map.TryGetValue(viewModel, out var document))
         {
+	        Guard.IsNotNull(Factory);
             Factory.SetActiveDockable(document);
             Factory.SetFocusedDockable(this, document);
         }
