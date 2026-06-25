@@ -3,9 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:mp="clr-namespace:C64AssemblerStudio.Engine.Models.Projects;assembly=C64AssemblerStudio.Engine"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
-             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:vm="clr-namespace:C64AssemblerStudio.Engine.ViewModels;assembly=C64AssemblerStudio.Engine"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:ProjectExplorerViewModel"
@@ -20,12 +17,12 @@
             </Button>
         </StackPanel>
         <TreeView Grid.Row="1" x:Name="Tree" ItemsSource="{Binding Items}" IsVisible="{Binding IsProjectOpen}">
-            <i:Interaction.Behaviors>
-                <ia:EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #Tree}">
-                    <ia:InvokeCommandAction Command="{Binding OpenFileCommand}" 
+            <Interaction.Behaviors>
+                <EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #Tree}">
+                    <InvokeCommandAction Command="{Binding OpenFileCommand}" 
                                             CommandParameter="{Binding #Tree.SelectedItem}"/>
-                </ia:EventTriggerBehavior>
-            </i:Interaction.Behaviors>
+                </EventTriggerBehavior>
+            </Interaction.Behaviors>
             <TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Add">

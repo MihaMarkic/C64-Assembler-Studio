@@ -109,8 +109,6 @@
     <PackageReference Include="Avalonia.Controls.ItemsRepeater" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
-    <PackageReference Include="Avalonia.Svg.Skia" />
-    <PackageReference Include="Avalonia.Xaml.Behaviors" />
     <PackageReference Include="AvaloniaEdit.TextMate" />
     <PackageReference Condition="'$(Configuration)' != 'Release'"  Include="AvaloniaUI.DiagnosticsSupport" />
     <PackageReference Include="CommunityToolkit.Diagnostics" />
@@ -122,10 +120,10 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="NLog.Extensions.Logging" />
-    <!-- this guy is required because Avalonia references an older version -->
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
+    <PackageReference Include="Svg.Controls.Skia.Avalonia" />
     <PackageReference Include="System.Reactive" />
     <PackageReference Include="Velopack" />
+    <PackageReference Include="Xaml.Behaviors.Avalonia" />
   </ItemGroup>
   
   <ItemGroup>
