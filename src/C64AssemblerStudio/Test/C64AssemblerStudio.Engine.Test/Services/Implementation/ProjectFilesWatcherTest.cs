@@ -4,6 +4,7 @@ using C64AssemblerStudio.Engine.Models.Projects;
 using C64AssemblerStudio.Engine.Services.Implementation;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 using TestsBase;
 
 namespace C64AssemblerStudio.Engine.Test.Services.Implementation;
@@ -23,7 +24,7 @@ public class ProjectFilesWatcherTest : BaseTest<ProjectFileWatcher>
                 Parent = null,
             };
             var logger = Fixture.Freeze<ILogger>();
-            var osDependant = Fixture.Freeze<IOsDependent>();
+            var osDependant = Fixture.Freeze<IOSDependent>();
 
             var actual = ProjectFileWatcher.FindMatchingDirectory(rootDirectory, "", logger, osDependant);
 
@@ -46,7 +47,7 @@ public class ProjectFilesWatcherTest : BaseTest<ProjectFileWatcher>
             };
             rootDirectory.Items.Add(library);
             var logger = Fixture.Freeze<ILogger>();
-            var osDependant = Fixture.Freeze<IOsDependent>();
+            var osDependant = Fixture.Freeze<IOSDependent>();
 
             Assert.Throws<Exception>(() =>
                 ProjectFileWatcher.FindMatchingDirectory(rootDirectory, "Libraries", logger, osDependant));
@@ -75,7 +76,7 @@ public class ProjectFilesWatcherTest : BaseTest<ProjectFileWatcher>
             };
             rootDirectory.Items.Add(relativeLibraries);
             var logger = Fixture.Freeze<ILogger>();
-            var osDependant = Fixture.Freeze<IOsDependent>();
+            var osDependant = Fixture.Freeze<IOSDependent>();
 
             var actual = ProjectFileWatcher.FindMatchingDirectory(rootDirectory, "Libraries", logger, osDependant);
 

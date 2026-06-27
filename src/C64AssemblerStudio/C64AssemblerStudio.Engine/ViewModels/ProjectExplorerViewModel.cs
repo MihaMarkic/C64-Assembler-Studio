@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -24,7 +25,7 @@ public class ProjectExplorerViewModel : ViewModel
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly Globals _globals;
     private readonly ProjectFilesWatcherViewModel _projectFilesWatcher;
-    private readonly IOsDependent _osDependent;
+    private readonly IOSDependent _osDependent;
     private readonly IDirectoryService _directoryService;
     private readonly IFileService _fileService;
     public bool IsRefreshing => _projectFilesWatcher.IsRefreshing;
@@ -44,7 +45,7 @@ public class ProjectExplorerViewModel : ViewModel
 
     public ProjectExplorerViewModel(ILogger<ProjectExplorerViewModel> logger, IDispatcher dispatcher,
         IServiceScopeFactory serviceScopeFactory, Globals globals, ProjectFilesWatcherViewModel projectFilesWatcher,
-        IOsDependent osDependent, IDirectoryService directoryService, IFileService fileService)
+        IOSDependent osDependent, IDirectoryService directoryService, IFileService fileService)
     {
         _logger = logger;
         _dispatcher = dispatcher;

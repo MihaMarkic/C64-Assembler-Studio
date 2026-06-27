@@ -8,6 +8,7 @@ using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Dock.Model.Controls;
 using Microsoft.Extensions.Logging;
 using Righthand.RetroDbgDataProvider;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 

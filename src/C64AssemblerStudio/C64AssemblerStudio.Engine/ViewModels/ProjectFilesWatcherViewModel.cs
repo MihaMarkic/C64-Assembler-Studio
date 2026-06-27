@@ -11,6 +11,7 @@ using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -18,7 +19,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
 {
     private readonly ILogger<ProjectFilesWatcherViewModel> _logger;
     private readonly IServiceFactory _serviceFactory;
-    private readonly IOsDependent _osDependent;
+    private readonly IOSDependent _osDependent;
     private readonly IDirectoryService _directoryService;
     /// <summary>
     /// Keeps tracks of file watchers.
@@ -34,7 +35,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
     public ProjectRoot? Root { get; private set; }
     private readonly ISubscription _projectChangedSubscription;
     public ProjectFilesWatcherViewModel(ILogger<ProjectFilesWatcherViewModel> logger, IServiceFactory serviceFactory,
-        Globals globals, IDispatcher dispatcher, IOsDependent osDependent, IDirectoryService directoryService)
+        Globals globals, IDispatcher dispatcher, IOSDependent osDependent, IDirectoryService directoryService)
     {
         _logger = logger;
         _serviceFactory = serviceFactory;

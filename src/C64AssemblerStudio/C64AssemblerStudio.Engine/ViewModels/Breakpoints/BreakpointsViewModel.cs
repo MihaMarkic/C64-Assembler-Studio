@@ -18,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 using Righthand.ViceMonitor.Bridge.Responses;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Breakpoints;
@@ -58,7 +59,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     private readonly CommandsManager _commandsManager;
     private readonly DebugOutputViewModel _debugOutput;
     private readonly IAddressEntryGrammarService _addressEntryGrammar;
-    private readonly IOsDependent _osDependent;
+    private readonly IOSDependent _osDependent;
     public ObservableCollection<BreakpointViewModel> Breakpoints { get; }
 
     /// <summary>
@@ -89,7 +90,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     public BreakpointsViewModel(ILogger<BreakpointsViewModel> logger, IVice vice, IDispatcher dispatcher,
         Globals globals,
         IServiceScopeFactory serviceScopeFactory, ISettingsManager settingsManager, DebugOutputViewModel debugOutput,
-        IAddressEntryGrammarService addressEntryGrammar, IOsDependent osDependent)
+        IAddressEntryGrammarService addressEntryGrammar, IOSDependent osDependent)
     {
         _logger = logger;
         _dispatcher = dispatcher;

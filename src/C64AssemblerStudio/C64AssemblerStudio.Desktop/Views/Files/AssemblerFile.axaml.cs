@@ -210,7 +210,9 @@ public partial class AssemblerFile : UserControl
             fileViewModel.PropertyChanged += FileViewModelOnPropertyChanged;
             fileViewModel.MoveCaretRequest += FileViewModelOnMoveCaretRequest;
             fileViewModel.SyntaxColoringUpdated += FileViewModelOnSyntaxColoringUpdated;
+            _ignoreTextChange = true;
             Editor.Text = fileViewModel.Content;
+            _ignoreTextChange = false;
             _breakpointsMargin = new BreakpointsMargin(fileViewModel);
             Editor.TextArea.LeftMargins.Add(_breakpointsMargin);
             UpdateCurrentLine();
@@ -366,9 +368,11 @@ public partial class AssemblerFile : UserControl
 
     private void EditorOnTextChanged(object? sender, EventArgs e)
     {
-        if (ViewModel is not null)
+	    // _ignoreTextChange tells do not fire when setting Editor.Text
+        if (ViewModel is not null && !_ignoreTextChange)
         {
             // _lineNumbers.InvalidateMeasure();
+            // _ignoreTextChange prevents re-entrancy 
             _ignoreTextChange = true;
             try
             {

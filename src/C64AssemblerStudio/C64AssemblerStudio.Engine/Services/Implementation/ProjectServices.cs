@@ -15,10 +15,10 @@ public class ProjectServices : IProjectServices
 {
     private readonly ILogger<ProjectServices> _logger;
     private readonly Globals _globals;
-    private readonly Core.Services.Abstract.IFileService _fileService;
-    private readonly IOsDependent _osDependent;
+    private readonly IFileService _fileService;
+    private readonly IOSDependent _osDependent;
     private readonly IDirectoryService _directoryService;
-    public ProjectServices(ILogger<ProjectServices> logger, Globals globals, Core.Services.Abstract.IFileService fileService, IOsDependent osDependent, IDirectoryService directoryService)
+    public ProjectServices(ILogger<ProjectServices> logger, Globals globals, IFileService fileService, IOSDependent osDependent, IDirectoryService directoryService)
     {
         _logger = logger;
         _globals = globals;

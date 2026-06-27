@@ -1,5 +1,4 @@
 ﻿using C64AssemblerStudio.Core.Common;
-using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PropertyChanged;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -45,7 +45,7 @@ public abstract class ProjectFileViewModel : FileViewModel
                 File.Name);
             try
             {
-                Content = await FileService.ReadAllTextAsync(path, ct);
+                Content = await FileService.ReadAllTextAsync(path, ReadAllTextOption.FixLineEndings, ct);
                 HasChanges = false;
                 IsContentLoaded = true;
             }

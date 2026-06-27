@@ -1,4 +1,6 @@
-﻿using C64AssemblerStudio.Engine.BindingValidators;
+﻿using C64AssemblerStudio.Core.Services.Abstract;
+using C64AssemblerStudio.Core.Services.Implementation;
+using C64AssemblerStudio.Engine.BindingValidators;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels;
@@ -52,6 +54,7 @@ public static class IoCRegistrar
             .AddSingleton<BuildOutputViewModel>()
             .AddSingleton<DebugOutputViewModel>()
             .AddSingleton<ErrorsOutputViewModel>()
+            .AddSingleton<IDirectoryService, DirectoryService>()
             // Docking
             .AddSingleton<FilesDocumentDockViewModel>()
             .AddTransient<FilesDocumentDockViewModelConverter>()

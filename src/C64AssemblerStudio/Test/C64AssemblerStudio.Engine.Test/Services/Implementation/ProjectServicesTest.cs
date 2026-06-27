@@ -8,6 +8,7 @@ using NSubstitute;
 using NUnit.Framework;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
 using System.Collections.Frozen;
+using Righthand.RetroDbgDataProvider.Services.Implementation;
 using TestsBase;
 
 namespace C64AssemblerStudio.Engine.Test.Services.Implementation;
@@ -48,7 +49,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
         [TestCaseSource(nameof(Source))]
         public void GivenTestCase_ReturnsCorrectFiles(TestItem td)
         {
-            IOsDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new NonWindowsDependent();
+	        IOSDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new NonWindowsDependent();
             var directoryService = Fixture.Freeze<IDirectoryService>();
             directoryService.GetFilteredFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FrozenSet<string>>())
                 .Returns([..td.FoundFiles.Select(f => Path.Combine(td.StartDirectory, f))]);
@@ -56,7 +57,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             var globals = Fixture.Create<Globals>();
             var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
             var fileServiceLogger = Fixture.Create<ILogger<FileService>>();
-            var fileService = new FileService(fileServiceLogger, directoryService, osDependent);
+            var fileService = new FileService(fileServiceLogger, osDependent);
             var target = new ProjectServices(logger, globals, fileService, osDependent, directoryService);
             Dictionary<ProjectFileKey, FrozenSet<string>> builder = new();
 
@@ -72,13 +73,13 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             string excludedFileNames,
             string expectedText)
         {
-            IOsDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent() : new NonWindowsDependent();
+	        IOSDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent() : new NonWindowsDependent();
             var logger = Fixture.Create<ILogger<ProjectServices>>();
             var globals = Fixture.Create<Globals>();
             var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
             var directoryService = new DirectoryService(directoryServiceLogger, osDependent);
             var fileServiceLogger = Fixture.Create<ILogger<FileService>>();
-            var fileService = new FileService(fileServiceLogger, directoryService, osDependent);
+            var fileService = new FileService(fileServiceLogger, osDependent);
             var target = new ProjectServices(logger, globals, fileService, osDependent, directoryService);
             Dictionary<ProjectFileKey, FrozenSet<string>> builder = new();
             FrozenSet<string> expected = [.. expectedText.Split(',').Select(p => osDependent.NormalizePath(p))];
@@ -127,10 +128,10 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             var logger = Fixture.Create<ILogger<ProjectServices>>();
             var globals = Fixture.Create<Globals>();
             var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
-            IOsDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new NonWindowsDependent();
+            IOSDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new NonWindowsDependent();
             var directoryService = new DirectoryService(directoryServiceLogger, osDependent);
             var fileServiceLogger = Fixture.Create<ILogger<FileService>>();
-            var fileService = new FileService(fileServiceLogger, directoryService, osDependent);
+            var fileService = new FileService(fileServiceLogger, osDependent);
             var target = new ProjectServices(logger, globals, fileService, osDependent, directoryService);
             Dictionary<ProjectFileKey, FrozenSet<string>> builder = new();
             FrozenSet<string> expected = [.. expectedText.Split(',').Select(p => osDependent.NormalizePath(p))];
