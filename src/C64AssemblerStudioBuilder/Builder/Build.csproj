@@ -7,7 +7,7 @@
         <ImplicitUsings>true</ImplicitUsings>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Cake.Flatpak" Version="1.0.0" />
+        <PackageReference Include="Cake.Flatpak" Version="1.1.1" />
         <PackageReference Include="Cake.Frosting" Version="6.2.0" />
     </ItemGroup>
 </Project>
