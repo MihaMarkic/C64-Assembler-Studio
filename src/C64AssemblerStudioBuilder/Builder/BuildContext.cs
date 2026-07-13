@@ -18,6 +18,7 @@ public class BuildContext : FrostingContext
     public DirectoryPath PublishRootDirectory { get; }
     public DirectoryPath PublishDirectory { get; }
     public DirectoryPath SolutionScriptsDirectory { get; }
+    public FilePath? FlatpakConfiguration { get; }
     public BuildContext(ICakeContext context)
         : base(context)
     {
@@ -32,13 +33,15 @@ public class BuildContext : FrostingContext
         Architecture = context.Argument("architecture", TargetArchitecture.WinX64);
         PublishDirectory = PublishRootDirectory + this.Directory(Architecture switch
         {
-            TargetArchitecture.WinX64 => "win_x64",
-            TargetArchitecture.LinuxX64 => "linux_x64",
-            TargetArchitecture.OSXArm64 => "osx_arm64",
-            TargetArchitecture.Dependent => "dependent",
-            _ => throw new Exception($"Unknown architecture {Architecture}")
+	        TargetArchitecture.WinX64 => "win_x64",
+	        TargetArchitecture.LinuxX64 => "linux_x64",
+	        TargetArchitecture.OSXArm64 => "osx_arm64",
+	        TargetArchitecture.Dependent => "dependent",
+	        _ => throw new Exception($"Unknown architecture {Architecture}")
         });
         BuildType = context.Argument("buildType", BuildType.Scoop);
+        FlatpakConfiguration = context.Argument("flatpak_config",
+	        SolutionDirectory + context.File(("Configurations/com.rthand.C64AssemblerStudio.yml")));
         // verify arguments validity
         switch (BuildType)
         {

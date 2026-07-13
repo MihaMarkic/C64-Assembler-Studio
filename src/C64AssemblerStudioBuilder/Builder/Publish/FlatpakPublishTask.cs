@@ -14,10 +14,8 @@ public class FlatpakPublishTask: FrostingTask<BuildContext>
     public override void Run(BuildContext context)
     {
         var buildDir = context.PublishRootDirectory.Combine("flatpak");
-        var manifest =
-            context.SolutionDirectory.CombineWithFilePath("Configurations/com.rthand.C64AssemblerStudio.json");
-        context.Information($"Flatpak building to {buildDir} with manifest {manifest}");
+        context.Information($"Flatpak building to {buildDir} with manifest {context.FlatpakConfiguration}");
         //context.CleanDirectory(buildDir);
-        context.FlatpakBuilder(buildDir, manifest, new FlatpakBuilderSettings { ForceClean = true });
+        context.FlatpakBuilder(buildDir, context.FlatpakConfiguration, new FlatpakBuilderSettings { ForceClean = true, User = true });
     }
 }
