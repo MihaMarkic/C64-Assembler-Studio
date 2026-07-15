@@ -18,7 +18,7 @@
     </description>
     <content_rating type="oars-1.1" />
 
-    <launchable type="desktop-id">com.rthand.C64AssemblerStudio.desktop</launchable>
+    <launchable type="desktop-id">eu.rthand.C64AssemblerStudio.desktop</launchable>
     <screenshots>
         <screenshot type="default">
             <image>https://github.com/MihaMarkic/C64-Assembler-Studio/blob/main/docs/paused_on_breakpoint.png</image>
