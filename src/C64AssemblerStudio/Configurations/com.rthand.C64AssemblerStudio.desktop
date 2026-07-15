@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+
+Name=C64 Assembler Studio
+Comment=An IDE for developing C64 applications in assembler.
+Categories=Development;IDE;
+
+Icon=c64assemblerstudio
+Exec=C64AssemblerStudio
+Terminal=false

@@ -1,4 +1,4 @@
-    app-id: com.rthand.C64AssemblerStudio
+    app-id: eu.rthand.C64AssemblerStudio
     runtime: org.freedesktop.Platform
     runtime-version: '25.08'
     sdk: org.freedesktop.Sdk
