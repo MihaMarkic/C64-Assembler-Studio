@@ -1,11 +1,8 @@
-﻿using System;
-using Cake.Common;
-using Cake.Common.IO;
-using Cake.Core;
+﻿using Cake.Common.IO;
 using Cake.Core.IO;
-using Cake.Frosting;
 
 namespace Build;
+// ReSharper disable once ClassNeverInstantiated.Global
 public class BuildContext : FrostingContext
 {
     public TargetArchitecture Architecture { get; }
@@ -18,7 +15,10 @@ public class BuildContext : FrostingContext
     public DirectoryPath PublishRootDirectory { get; }
     public DirectoryPath PublishDirectory { get; }
     public DirectoryPath SolutionScriptsDirectory { get; }
-    public FilePath? FlatpakConfiguration { get; }
+    public FilePath FlatpakConfiguration { get; }
+    public FilePath FlatpakManifest { get; }
+    public FilePath FlatpakDesktop { get; }
+    public const string FlatpakId = "com.rthand.C64AssemblerStudio";
     public BuildContext(ICakeContext context)
         : base(context)
     {
@@ -41,7 +41,11 @@ public class BuildContext : FrostingContext
         });
         BuildType = context.Argument("buildType", BuildType.Scoop);
         FlatpakConfiguration = context.Argument("flatpak_config",
-	        SolutionDirectory + context.File(("Configurations/com.rthand.C64AssemblerStudio.yml")));
+	        SolutionDirectory + context.File($"Configurations/{FlatpakId}.yml"));
+        FlatpakManifest = context.Argument("flatpak_manifest",
+	        SolutionDirectory + context.File($"Configurations/{FlatpakId}.metainfo.xml"));
+        FlatpakDesktop = context.Argument("flatpak_desktop",
+	        SolutionDirectory + context.File($"Configurations/{FlatpakId}.desktop"));
         // verify arguments validity
         switch (BuildType)
         {

@@ -1,11 +1,9 @@
-﻿using System;
-using Cake.Common.Diagnostics;
+﻿using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNet;
 using Cake.Common.Tools.DotNet.Publish;
 using Cake.Common.Tools.SignTool;
 using Cake.Core.IO;
-using Cake.Frosting;
 
 namespace Build.Publish;
 

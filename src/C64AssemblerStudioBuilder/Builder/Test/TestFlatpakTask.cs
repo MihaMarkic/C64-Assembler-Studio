@@ -1,5 +1,4 @@
 using Cake.Flatpak;
-using Cake.Frosting;
 
 namespace Build.Test;
 
