@@ -1,10 +1,10 @@
-using Cake.Common.Diagnostics;
 using Cake.Flatpak;
 
 namespace Build.Publish;
 
 [TaskName("FlatpakPublish")]
 [IsDependentOn(typeof(VerifyFlatpakManifestTask))]
+[IsDependentOn(typeof(VerifyFlatpakDesktopTask))]
 [IsDependentOn(typeof(SelfContainedPublishTask))]
 public class FlatpakPublishTask: FrostingTask<BuildContext>
 {
