@@ -3,7 +3,7 @@ using Cake.Flatpak;
 namespace Build.Publish;
 
 [TaskName("FlatpakPublish")]
-[IsDependentOn(typeof(VerifyFlatpakManifestTask))]
+[IsDependentOn(typeof(VerifyFlatpakMetainfoTask))]
 [IsDependentOn(typeof(VerifyFlatpakDesktopTask))]
 [IsDependentOn(typeof(SelfContainedPublishTask))]
 public class FlatpakPublishTask: FrostingTask<BuildContext>

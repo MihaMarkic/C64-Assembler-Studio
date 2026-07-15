@@ -3,8 +3,8 @@ using Cake.Core.IO;
 
 namespace Build.Publish;
 
-[TaskName("VerifyFlatpakManifest")]
-public class VerifyFlatpakManifestTask : FrostingTask<BuildContext>
+[TaskName("VerifyFlatpakMetainfo")]
+public class VerifyFlatpakMetainfoTask : FrostingTask<BuildContext>
 {
 	public override void Run(BuildContext context)
 	{

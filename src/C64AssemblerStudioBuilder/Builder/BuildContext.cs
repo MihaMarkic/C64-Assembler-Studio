@@ -18,7 +18,7 @@ public class BuildContext : FrostingContext
     public FilePath FlatpakConfiguration { get; }
     public FilePath FlatpakManifest { get; }
     public FilePath FlatpakDesktop { get; }
-    public const string FlatpakId = "com.rthand.C64AssemblerStudio";
+    public const string FlatpakId = "eu.rthand.C64AssemblerStudio";
     public BuildContext(ICakeContext context)
         : base(context)
     {
