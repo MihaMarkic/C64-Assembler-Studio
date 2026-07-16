@@ -1,0 +1,35 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Local Debug" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Folder Name="/External/">
+    <Project Path="../../../retro-dbg-data-provider/src/Righthand.RetroDbgDataProvider/Righthand.RetroDbgDataProvider/Righthand.RetroDbgDataProvider.csproj">
+      <BuildType Solution="Local Debug|*" Project="Debug" />
+    </Project>
+    <Project Path="../../../vice-bridge-net/source/ViceMonitor.Bridge/Righthand.ViceMonitor.Bridge/Righthand.ViceMonitor.Bridge.csproj">
+      <BuildType Solution="Local Debug|*" Project="Debug" />
+    </Project>
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="../../CHANGELOG.md" />
+    <File Path="../../README.md" />
+    <File Path=".gitignore" />
+    <File Path="Configurations/eu.rthand.C64AssemblerStudio.yml" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Solution Items/Flatpak/">
+    <File Path="Configurations/eu.rthand.C64AssemblerStudio.desktop" />
+    <File Path="Configurations/eu.rthand.C64AssemblerStudio.metainfo.xml" />
+    <File Path="Configurations/eu.rthand.C64AssemblerStudio.yml" />
+  </Folder>
+  <Folder Name="/Test/">
+    <Project Path="Test/C64AssemblerStudio.Core.Test/C64AssemblerStudio.Core.Test.csproj" />
+    <Project Path="Test/C64AssemblerStudio.Engine.Test/C64AssemblerStudio.Engine.Test.csproj" />
+    <Project Path="Test/TestsBase/TestsBase.csproj" />
+  </Folder>
+  <Project Path="C64AssemblerStudio.Core/C64AssemblerStudio.Core.csproj" />
+  <Project Path="C64AssemblerStudio.Desktop/C64AssemblerStudio.Desktop.csproj" />
+  <Project Path="C64AssemblerStudio.Engine/C64AssemblerStudio.Engine.csproj" />
+</Solution>
