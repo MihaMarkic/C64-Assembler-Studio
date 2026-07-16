@@ -7,10 +7,11 @@
    viewBox="0 0 512 512"
    version="1.1"
    id="svg1"
-   inkscape:version="1.3 (0e150ed, 2023-07-21)"
-   sodipodi:docname="logo.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   sodipodi:docname="app_icon.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
@@ -23,56 +24,75 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="px"
-     inkscape:zoom="0.69830555"
-     inkscape:cx="373.04587"
-     inkscape:cy="110.26692"
-     inkscape:window-width="1712"
-     inkscape:window-height="955"
+     inkscape:zoom="0.8717992"
+     inkscape:cx="-182.95497"
+     inkscape:cy="227.69005"
+     inkscape:window-width="2560"
+     inkscape:window-height="1368"
      inkscape:window-x="0"
-     inkscape:window-y="39"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
   <defs
-     id="defs1" />
+     id="defs1">
+    <linearGradient
+       id="linearGradient1"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#f9f9f9;stop-opacity:1;"
+         offset="0"
+         id="stop1" />
+      <stop
+         style="stop-color:#f9f9f9;stop-opacity:0;"
+         offset="1"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1"
+       id="linearGradient2"
+       x1="41.776352"
+       y1="385.26059"
+       x2="476.42245"
+       y2="385.26059"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <text
-       xml:space="preserve"
-       style="font-size:330.457px;font-family:Tahoma;-inkscape-font-specification:Tahoma;fill:none;stroke:#000001;stroke-width:33.4546;stroke-linejoin:round"
-       x="54.263535"
-       y="315.90582"
-       id="text1"><tspan
-         sodipodi:role="line"
-         id="tspan1"
-         x="54.263535"
-         y="315.90582"
-         style="stroke-width:33.4546">C</tspan></text>
     <g
-       id="g2"
-       transform="matrix(1.0562587,0,0,0.99922376,-18.561558,23.677463)">
+       id="g3"
+       transform="translate(19.967503)">
       <path
          id="rect1"
-         style="fill:none;stroke:#000001;stroke-width:3.77953;stroke-linejoin:round"
-         d="m 279.59829,110.72092 h 136.44395 l -40.26215,55.91965 h -96.1818 z"
+         style="fill:#014c77;fill-opacity:1;stroke:#000001;stroke-width:10.3064;stroke-linejoin:round"
+         d="M 26.344948,59.966656 H 344.70428 L 250.76218,238.17878 H 26.344948 Z"
          sodipodi:nodetypes="ccccc" />
       <path
          id="path2"
-         style="fill:none;stroke:#000001;stroke-width:3.77953;stroke-linejoin:round"
-         d="M 279.59829,233.74415 H 416.04224 L 375.78009,177.8245 h -96.1818 z"
+         style="fill:#c91e56;fill-opacity:1;stroke:#000001;stroke-width:10.3064;stroke-linejoin:round"
+         d="M 26.344948,452.03335 H 344.70428 L 250.76218,273.82121 H 26.344948 Z"
          sodipodi:nodetypes="ccccc" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:86.4947px;font-family:'C64 Pro';-inkscape-font-specification:'C64 Pro';writing-mode:lr-tb;direction:ltr;fill:#f9f9f9;stroke-width:6.12955"
+         x="43.332027"
+         y="437.32016"
+         id="text1"><tspan
+           sodipodi:role="line"
+           id="tspan1"
+           x="43.332027"
+           y="437.32016"
+           style="fill:#f9f9f9;stroke-width:6.12955">STUDIO</tspan></text>
+      <path
+         style="fill:none;stroke-width:3.77953"
+         d="M 8.9997285,326.32349 285.69271,328.95868 348.18799,447.94008 7.0708545,446.17092 Z"
+         id="path1" />
+      <path
+         id="text2"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:86.4947px;font-family:'C64 Pro';-inkscape-font-specification:'C64 Pro';writing-mode:lr-tb;direction:ltr;fill:#014c77;fill-opacity:1;stroke-width:6.12955"
+         d="m 302.85742,361.63672 28.39453,54.06055 h 4 v -32.43555 h -10.8125 v -10.8125 h -10.81054 v -10.8125 z m 43.20508,0 v 10.8125 h 10.8125 v 54.05859 h -10.8125 v 10.8125 h 43.24805 v -10.8125 h -10.8125 v -54.05859 h 10.8125 v -10.8125 z m 64.87109,0 v 10.8125 h -10.81054 v 54.05859 h 10.81054 v 10.8125 h 43.24805 v -10.8125 h 10.8125 v -54.05859 h -10.8125 v -10.8125 z m 10.8125,10.8125 h 21.62305 v 54.05859 h -21.62305 z" />
     </g>
-    <text
-       xml:space="preserve"
-       style="font-size:112.786px;font-family:Tahoma;-inkscape-font-specification:Tahoma;fill:none;stroke:#000001;stroke-width:11.4182;stroke-linejoin:round"
-       x="60.710747"
-       y="450.02081"
-       id="text2"><tspan
-         sodipodi:role="line"
-         id="tspan2"
-         x="60.710747"
-         y="450.02081"
-         style="stroke-width:11.4182">STUDIO</tspan></text>
   </g>
 </svg>

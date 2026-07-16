@@ -6,6 +6,6 @@ Name=C64 Assembler Studio
 Comment=An IDE for developing C64 applications in assembler.
 Categories=Development;IDE;
 
-Icon=c64assemblerstudio
+Icon=eu.rthand.C64AssemblerStudio
 Exec=C64AssemblerStudio
 Terminal=false

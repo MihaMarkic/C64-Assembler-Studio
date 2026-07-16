@@ -18,6 +18,7 @@ public class BuildContext : FrostingContext
     public FilePath FlatpakConfiguration { get; }
     public FilePath FlatpakManifest { get; }
     public FilePath FlatpakDesktop { get; }
+    public bool InstallFlatpak { get; }
     public const string FlatpakId = "eu.rthand.C64AssemblerStudio";
     public BuildContext(ICakeContext context)
         : base(context)
@@ -46,6 +47,7 @@ public class BuildContext : FrostingContext
 	        SolutionDirectory + context.File($"Configurations/{FlatpakId}.metainfo.xml"));
         FlatpakDesktop = context.Argument("flatpak_desktop",
 	        SolutionDirectory + context.File($"Configurations/{FlatpakId}.desktop"));
+        InstallFlatpak = context.Argument("flatpak_install", false);
         // verify arguments validity
         switch (BuildType)
         {

@@ -32,3 +32,20 @@
         sources:
           - type: dir
             path: ../../../src/C64AssemblerStudio/publish/linux_x64
+            
+      - name: C64AssemblerStudio_flatpak_config
+        buildsystem: simple
+        build-commands:
+          - mkdir -p /app/share/metainfo
+          - mkdir -p /app/share/applications
+          - mkdir -p /app/share/icons/hicolor/scalable/apps
+          - cp eu.rthand.C64AssemblerStudio.metainfo.xml /app/share/metainfo/
+          - cp eu.rthand.C64AssemblerStudio.desktop /app/share/applications/
+          - cp app_icon.svg /app/share/icons/hicolor/scalable/apps/eu.rthand.C64AssemblerStudio.svg
+        sources:
+          - type: file
+            path: ../../../src/C64AssemblerStudio/Configurations/eu.rthand.C64AssemblerStudio.metainfo.xml
+          - type: file
+            path: ../../../src/C64AssemblerStudio/Configurations/eu.rthand.C64AssemblerStudio.desktop
+          - type: file
+            path: ../../../art/app_icon.svg
