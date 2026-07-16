@@ -17,9 +17,6 @@ partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-#if !RELEASE
-        this.AttachDevTools();
-#endif
     }
     public new MainViewModel? DataContext
     {

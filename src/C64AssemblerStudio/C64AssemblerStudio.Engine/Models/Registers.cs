@@ -17,10 +17,10 @@ public record Registers6510(ushort? PC, byte? A, byte? X, byte? Y, byte? SP, byt
     byte? R15,
     byte? Acm, byte? Yxm)
 {
-    public readonly static Registers6510 Empty = new(default, default, default, default, 
-        default, default, default, default, default, default, default, default,
-        default, default, default, default, default, default, default, default, 
-        default, default, default, default, default);
+    public static readonly Registers6510 Empty = new(null, null, null, null, 
+        null, null, null, null, 0, 0, null, null,
+        null, null, null, null, null, null, null, null, 
+        null, null, null, null, null);
 }
 
 public enum Register6510

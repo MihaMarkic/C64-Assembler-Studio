@@ -1,11 +1,9 @@
-﻿using System;
-using Cake.Common.Diagnostics;
+﻿using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNet;
 using Cake.Common.Tools.DotNet.Publish;
 using Cake.Common.Tools.SignTool;
 using Cake.Core.IO;
-using Cake.Frosting;
 
 namespace Build.Publish;
 
@@ -21,7 +19,7 @@ public class ScoopPublishTask : FrostingTask<BuildContext>
 public class ScoopPublishWinX64Task : FrostingTask<BuildContext>
 {
     public override bool ShouldRun(BuildContext context) =>
-        context.BuildType == BuildType.Scoop && context.Architecture == TargetArchitecture.WinX64;
+        context is { BuildType: BuildType.Scoop, Architecture: TargetArchitecture.WinX64 };
 
     public override void Run(BuildContext context)
     {
@@ -39,7 +37,7 @@ public class ScoopPublishWinX64Task : FrostingTask<BuildContext>
 public class SignWinX64Task : FrostingTask<BuildContext>
 {
     public override bool ShouldRun(BuildContext context) =>
-        context.BuildType == BuildType.Scoop && context.Architecture == TargetArchitecture.WinX64;
+        context is { BuildType: BuildType.Scoop, Architecture: TargetArchitecture.WinX64 };
 
     public override void Run(BuildContext context)
     {

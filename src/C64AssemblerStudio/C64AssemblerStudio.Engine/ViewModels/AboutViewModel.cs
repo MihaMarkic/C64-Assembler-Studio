@@ -4,13 +4,14 @@ using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
 public class AboutViewModel: OverlayContentViewModel
 {
     private readonly ISystemInfo _systemInfo;
-    private readonly IOsDependent _osDependent;
+    private readonly IOSDependent _osDependent;
     public RelayCommandWithParameter<ThirdPartyLibrary> OpenLinkCommand { get; }
     public ImmutableArray<ThirdPartyLibrary> Libraries { get; } =
     [
@@ -31,10 +32,11 @@ public class AboutViewModel: OverlayContentViewModel
         new ("NUnit", "https://nunit.org/"),
         new ("NUnit/Visual Studio Test Adapter", "https://docs.nunit.org/articles/vs-test-adapter/Index.html"),
         new ("Humanizer", "https://github.com/Humanizer/Humanizer"),
+        new ("Dock", "https://https://github.com/wieslawsoltes/Dock"),
     ];
 
     // ReSharper disable once MemberCanBeProtected.Global
-    public AboutViewModel(ISystemInfo systemInfo, IDispatcher dispatcher, IOsDependent osDependent): base(dispatcher)
+    public AboutViewModel(ISystemInfo systemInfo, IDispatcher dispatcher, IOSDependent osDependent): base(dispatcher)
     {
         _systemInfo = systemInfo;
         _osDependent = osDependent;

@@ -11,6 +11,11 @@ public class Settings : NotifiableObject
     public const int DefaultViceAddressPort = 6802;
 
     /// <summary>
+    /// Defines process start for C64. 
+    /// </summary>
+    public ViceStartType StartType { get; set; } = ViceStartType.File;
+    
+    /// <summary>
     /// User selected path to VICE files.
     /// </summary>
     public string? VicePath { get; set; }

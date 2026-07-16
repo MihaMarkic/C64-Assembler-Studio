@@ -1,11 +1,8 @@
-﻿using System;
-using Cake.Common;
-using Cake.Common.IO;
-using Cake.Core;
+﻿using Cake.Common.IO;
 using Cake.Core.IO;
-using Cake.Frosting;
 
 namespace Build;
+// ReSharper disable once ClassNeverInstantiated.Global
 public class BuildContext : FrostingContext
 {
     public TargetArchitecture Architecture { get; }
@@ -18,6 +15,11 @@ public class BuildContext : FrostingContext
     public DirectoryPath PublishRootDirectory { get; }
     public DirectoryPath PublishDirectory { get; }
     public DirectoryPath SolutionScriptsDirectory { get; }
+    public FilePath FlatpakConfiguration { get; }
+    public FilePath FlatpakManifest { get; }
+    public FilePath FlatpakDesktop { get; }
+    public bool InstallFlatpak { get; }
+    public const string FlatpakId = "eu.rthand.C64AssemblerStudio";
     public BuildContext(ICakeContext context)
         : base(context)
     {
@@ -32,13 +34,20 @@ public class BuildContext : FrostingContext
         Architecture = context.Argument("architecture", TargetArchitecture.WinX64);
         PublishDirectory = PublishRootDirectory + this.Directory(Architecture switch
         {
-            TargetArchitecture.WinX64 => "win_x64",
-            TargetArchitecture.LinuxX64 => "linux_x64",
-            TargetArchitecture.OSXArm64 => "osx_arm64",
-            TargetArchitecture.Dependent => "dependent",
-            _ => throw new Exception($"Unknown architecture {Architecture}")
+	        TargetArchitecture.WinX64 => "win_x64",
+	        TargetArchitecture.LinuxX64 => "linux_x64",
+	        TargetArchitecture.OSXArm64 => "osx_arm64",
+	        TargetArchitecture.Dependent => "dependent",
+	        _ => throw new Exception($"Unknown architecture {Architecture}")
         });
         BuildType = context.Argument("buildType", BuildType.Scoop);
+        FlatpakConfiguration = context.Argument("flatpak_config",
+	        SolutionDirectory + context.File($"Configurations/{FlatpakId}.yml"));
+        FlatpakManifest = context.Argument("flatpak_manifest",
+	        SolutionDirectory + context.File($"Configurations/{FlatpakId}.metainfo.xml"));
+        FlatpakDesktop = context.Argument("flatpak_desktop",
+	        SolutionDirectory + context.File($"Configurations/{FlatpakId}.desktop"));
+        InstallFlatpak = context.Argument("flatpak_install", false);
         // verify arguments validity
         switch (BuildType)
         {
@@ -83,5 +92,6 @@ public enum TargetArchitecture
 public enum BuildType
 {
     Scoop,
+    Flatpak,
     Archive,
 }

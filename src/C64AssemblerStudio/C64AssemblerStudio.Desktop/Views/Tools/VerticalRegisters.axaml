@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:C64AssemblerStudio.Desktop.Views.Tools"
+             xmlns:tools="clr-namespace:C64AssemblerStudio.Engine.ViewModels.Tools;assembly=C64AssemblerStudio.Engine"
+             xmlns:converters="clr-namespace:C64AssemblerStudio.Desktop.Converters"
+             x:DataType="tools:IRegistersViewModel"
+             mc:Ignorable="d" d:DesignWidth="150" d:DesignHeight="400"
+             x:Class="C64AssemblerStudio.Desktop.Views.Tools.VerticalRegisters">
+    <Design.DataContext>
+        <local:MockRegistersViewModel />
+    </Design.DataContext>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid
+            RowDefinitions="Auto, Auto, Auto, Auto, Auto,
+                Auto, Auto, Auto, Auto, Auto, Auto, Auto"
+            ColumnDefinitions="Auto,60">
+            <Grid.Styles>
+                <Style Selector="Label">
+                    <Setter Property="HorizontalContentAlignment" Value="Right" />
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                    <Setter Property="Foreground" Value="Gray" />
+                    <Setter Property="Margin" Value="0,0,4,0" />
+                </Style>
+                <Style Selector="TextBox">
+                    <Setter Property="Margin" Value="0,2" />
+                    <Setter Property="IsReadOnly" Value="{Binding !IsEditable}" />
+                    <Setter Property="TextAlignment" Value="Right" />
+                    <Setter Property="FontFamily" Value="{StaticResource CodeFont}" />
+                </Style>
+            </Grid.Styles>
+            <!-- Row 0 -->
+            <Label Grid.Column="0" Grid.Row="0" Content="PC" />
+            <TextBox Grid.Column="1" Grid.Row="0"
+                     Text="{Binding Current.PC, Mode=OneWay, Converter={x:Static converters:StudioConverters.UShortToHexAddress}}" />
+            <Label Grid.Column="0" Grid.Row="1" Content="A" />
+            <TextBox Grid.Column="1" Grid.Row="1"
+                     Text="{Binding Current.A, Mode=OneWay, Converter={x:Static converters:StudioConverters.ByteToHexAddress}}" />
+            <Label Grid.Column="0" Grid.Row="2" Content="X" />
+            <TextBox Grid.Column="1" Grid.Row="2"
+                     Text="{Binding Current.X, Mode=OneWay, Converter={x:Static converters:StudioConverters.ByteToHexAddress}}" />
+            <Label Grid.Column="0" Grid.Row="3" Content="Y" />
+            <TextBox Grid.Column="1" Grid.Row="3"
+                     Text="{Binding Current.Y, Mode=OneWay, Converter={x:Static converters:StudioConverters.ByteToHexAddress}}" />
+            <Label Grid.Column="0" Grid.Row="4" Content="SP" />
+            <TextBox Grid.Column="1" Grid.Row="4"
+                     Text="{Binding Current.SP, Mode=OneWay, Converter={x:Static converters:StudioConverters.ByteToHexAddress}}" />
+            <Label Grid.Column="0" Grid.Row="5" Content="Zero" />
+            <TextBox Grid.Column="1" Grid.Row="5"
+                     Text="{Binding Current.Zero, Mode=OneWay, Converter={x:Static converters:StudioConverters.ByteToHexAddress}}" />
+            <Label Grid.Column="0" Grid.Row="6" Content="One" />
+            <TextBox Grid.Column="1" Grid.Row="6"
+                     Text="{Binding Current.One, Mode=OneWay, Converter={x:Static converters:StudioConverters.ByteToHexAddress}}" />
+            <Label Grid.Column="0" Grid.Row="7" Content="Lin" />
+            <TextBox Grid.Column="1" Grid.Row="7"
+                     Text="{Binding Current.Lin, Mode=OneWay, Converter={x:Static converters:StudioConverters.UShortToHexAddress}}" />
+            <Label Grid.Column="0" Grid.Row="8" Content="Cyc" />
+            <TextBox Grid.Column="1" Grid.Row="8"
+                     Text="{Binding Current.Cyc, Mode=OneWay, Converter={x:Static converters:StudioConverters.UShortToHexAddress}}" />
+            <local:Flags Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="9" Margin="0,2" HorizontalAlignment="Center"
+                         Value="{Binding Current.Flags}" />
+            <!-- <TextBox Grid.Row="10" Text="{Binding Current.R3}" /> -->
+            <!-- <TextBox Grid.Row="11" Text="{Binding Current.R4}" /> -->
+            <!-- <TextBox Grid.Row="12" Text="{Binding Current.R5}" /> -->
+            <!-- <TextBox Grid.Row="13" Text="{Binding Current.R6}" /> -->
+            <!-- <TextBox Grid.Row="14" Text="{Binding Current.R7}" /> -->
+            <!-- <TextBox Grid.Row="15" Text="{Binding Current.R8}" /> -->
+            <!-- <TextBox Grid.Row="16" Text="{Binding Current.R9}" /> -->
+            <!-- <TextBox Grid.Row="17" Text="{Binding Current.R10}" /> -->
+            <!-- <TextBox Grid.Row="18" Text="{Binding Current.R11}" /> -->
+            <!-- <TextBox Grid.Row="19" Text="{Binding Current.R12}" /> -->
+            <!-- <TextBox Grid.Row="20" Text="{Binding Current.R13}" /> -->
+            <!-- <TextBox Grid.Row="21" Text="{Binding Current.R14}" /> -->
+            <!-- <TextBox Grid.Row="22" Text="{Binding Current.R15}" /> -->
+            <!-- <TextBox Grid.Row="23" Text="{Binding Current.Acm}" /> -->
+            <!-- <TextBox Grid.Row="24" Text="{Binding Current.Yxm}" /> -->
+        </Grid>
+    </ScrollViewer>
+</UserControl>

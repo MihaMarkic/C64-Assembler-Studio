@@ -1,0 +1,51 @@
+    app-id: eu.rthand.C64AssemblerStudio
+    runtime: org.freedesktop.Platform
+    runtime-version: '25.08'
+    sdk: org.freedesktop.Sdk
+    sdk-extensions:
+      - org.freedesktop.Sdk.Extension.openjdk21
+    build-options:
+      append-path: "/usr/lib/sdk/openjdk21/bin"
+    command: C64AssemblerStudio
+    finish-args:
+        - --device=dri
+        # TODO: Replace this with wayland and fallback-x11 once Wayland support
+        #       becomes available:
+        #       https://github.com/AvaloniaUI/Avalonia/pull/8003
+        - --socket=x11
+        - --share=ipc
+        - --filesystem=home
+        - --filesystem=host
+        - --share=network
+        - "--env=JAVA_HOME=/app/jre"
+        - "--env=JAVA_OPTS=--enable-native-access=ALL-UNNAMED"
+    modules:
+      - name: openjdk
+        buildsystem: simple
+        build-commands:
+          - /usr/lib/sdk/openjdk21/install.sh
+
+      - name: C64AssemblerStudio
+        buildsystem: simple
+        build-commands:
+          - cp -r . ${FLATPAK_DEST}/bin
+        sources:
+          - type: dir
+            path: ../../../src/C64AssemblerStudio/publish/linux_x64
+            
+      - name: C64AssemblerStudio_flatpak_config
+        buildsystem: simple
+        build-commands:
+          - mkdir -p /app/share/metainfo
+          - mkdir -p /app/share/applications
+          - mkdir -p /app/share/icons/hicolor/scalable/apps
+          - cp eu.rthand.C64AssemblerStudio.metainfo.xml /app/share/metainfo/
+          - cp eu.rthand.C64AssemblerStudio.desktop /app/share/applications/
+          - cp app_icon.svg /app/share/icons/hicolor/scalable/apps/eu.rthand.C64AssemblerStudio.svg
+        sources:
+          - type: file
+            path: ../../../src/C64AssemblerStudio/Configurations/eu.rthand.C64AssemblerStudio.metainfo.xml
+          - type: file
+            path: ../../../src/C64AssemblerStudio/Configurations/eu.rthand.C64AssemblerStudio.desktop
+          - type: file
+            path: ../../../art/app_icon.svg

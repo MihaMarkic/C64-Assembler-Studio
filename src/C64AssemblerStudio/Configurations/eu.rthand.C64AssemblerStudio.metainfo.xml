@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>eu.rthand.C64AssemblerStudio</id>
+
+    <name>C64 Assembler Studio</name>
+    <summary>An IDE for developing C64 applications in assembler</summary>
+
+    <metadata_license>MIT</metadata_license>
+    <project_license>MIT</project_license>
+    <url type="homepage">https://github.com/MihaMarkic/C64-Assembler-Studio/</url>
+    <developer id="eu.rthand">
+        <name>Miha Markič, Righthand s.p.</name>
+    </developer>
+    <description>
+        <p>
+            An IDE for developing C64 applications in assembler. For now KickAssembler is supported.
+        </p>
+    </description>
+    <content_rating type="oars-1.1" />
+
+    <releases>
+        <release version="0.4.0" date="2026-07-25">
+            <url type="details">https://eu.rthand/changelog.html#version_1.0.1</url>
+            <description>
+                <p>Initial release</p>
+<!--                <ul>-->
+<!--                    <li>List of changes</li>-->
+<!--                    <li>List of changes</li>-->
+<!--                </ul>-->
+            </description>
+        </release>
+    </releases>
+
+    <launchable type="desktop-id">eu.rthand.C64AssemblerStudio.desktop</launchable>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://github.com/MihaMarkic/C64-Assembler-Studio/blob/main/docs/paused_on_breakpoint.png</image>
+            <caption>Execution paused on a breakpoint</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://github.com/MihaMarkic/C64-Assembler-Studio/blob/main/docs/memory_dump.png</image>
+            <caption>Memory dump</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://github.com/MihaMarkic/C64-Assembler-Studio/blob/main/docs/syntax_error_list.png</image>
+            <caption>Error list displaying a syntax error</caption>
+        </screenshot>
+    </screenshots>
+</component>

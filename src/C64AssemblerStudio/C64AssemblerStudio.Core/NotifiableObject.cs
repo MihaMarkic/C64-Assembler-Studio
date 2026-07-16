@@ -9,7 +9,7 @@ namespace C64AssemblerStudio.Core;
 public abstract class NotifiableObject : DisposableObject, INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-    protected virtual void OnPropertyChanged([CallerMemberName]string name = null!)
+    protected virtual void OnPropertyChanged([CallerMemberName]string? name = null!)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }

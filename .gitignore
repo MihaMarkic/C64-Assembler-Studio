@@ -1,1 +1,4 @@
 binaries
+.flatpak-builder/
+# flatpak repo
+repo/

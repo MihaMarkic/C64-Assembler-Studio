@@ -10,9 +10,6 @@ public partial class ModalDialogWindow : Window
     public ModalDialogWindow()
     {
         InitializeComponent();
-#if !RELEASE
-        this.AttachDevTools();
-#endif
     }
 
     protected override void OnDataContextChanged(EventArgs e)

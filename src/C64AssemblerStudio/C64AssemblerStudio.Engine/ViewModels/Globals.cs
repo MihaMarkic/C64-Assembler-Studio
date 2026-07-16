@@ -5,8 +5,10 @@ using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
+using Dock.Model.Controls;
 using Microsoft.Extensions.Logging;
 using Righthand.RetroDbgDataProvider;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
@@ -59,11 +61,12 @@ public sealed class Globals: NotifiableObject
         _logger.LogDebug("Loaded settings");
     }
 
-    public void Save()
+    public void Save(IRootDock layout)
     {
         try
         {
             _settingsManager.Save(Settings);
+            _settingsManager.SaveTools(layout);
             _logger.LogDebug("Saved settings");
         }
         catch (Exception ex)

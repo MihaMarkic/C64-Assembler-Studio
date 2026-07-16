@@ -1,6 +1,6 @@
-﻿using System.IO;
-using C64AssemblerStudio.Core;
+﻿using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Desktop.Services.Implementation;
+using C64AssemblerStudio.Desktop.Views;
 using C64AssemblerStudio.Engine;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using Microsoft.Extensions.Configuration;
@@ -31,6 +31,8 @@ public static class ContainerConfiguration
         services.AddCore();
         services.AddSingleton<ISystemInfo, SystemInfo>();
         services.AddSingleton<ISystemDialogs, SystemDialogs>();
+        services.AddSingleton<IDockFactory, DockFactory>();
+        services.AddSingleton<IGuiServices, GuiServices>();
         //services.AddAcme();
         //services.AddOscar64();
         return services;

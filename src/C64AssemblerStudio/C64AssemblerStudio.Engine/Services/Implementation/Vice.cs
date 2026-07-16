@@ -4,12 +4,14 @@ using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
+using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 using Righthand.ViceMonitor.Bridge;
 using Righthand.ViceMonitor.Bridge.Commands;
 using Righthand.ViceMonitor.Bridge.Responses;
@@ -24,7 +26,9 @@ public class Vice : NotifiableObject, IVice
     private readonly Globals _globals;
     private readonly IDispatcher _dispatcher;
     private readonly TaskFactory _uiFactory;
-    private readonly IOsDependent _osDependent;
+    
+    
+    private readonly IOSDependent _osDependent;
     public RegistersViewModel Registers { get; }
     public ViceMemoryViewModel Memory { get; }
     public CallStackViewModel CallStack { get; }
@@ -50,7 +54,7 @@ public class Vice : NotifiableObject, IVice
 
     public Vice(ILogger<Vice> logger, IViceBridge bridge, Globals globals, IDispatcher dispatcher,
         RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack,
-        IOsDependent osDependent)
+        IOSDependent osDependent)
     {
         _logger = logger;
         _bridge = bridge;
@@ -307,16 +311,43 @@ public class Vice : NotifiableObject, IVice
         _process = null;
     }
 
+    private (string Command, string Arguments)? GetViceProcessStartupInfo(Settings settings)
+    {
+        string arguments;
+        switch (settings.StartType)
+        {
+            case ViceStartType.File:
+                string? realVicePath = settings.RealVicePath;
+                if (!string.IsNullOrWhiteSpace(realVicePath))
+                {
+                    string command = Path.Combine(realVicePath, _osDependent.ViceExeName);
+                    arguments = _globals.Settings.BinaryMonitorArgument;
+                    return (command, arguments);
+                }
+                else
+                {
+                    _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE",
+                        "VICE path is not set in settings"));
+                    return null;
+                }
+            case ViceStartType.Flatpak:
+                arguments = _globals.Settings.BinaryMonitorArgument;
+                return ("flatpak", $"run net.sf.VICE {arguments}");
+            default:
+                return null;
+        }
+    }
+
     private Process? StartVice()
     {
-        string? realVicePath = _globals.Settings.RealVicePath;
-        if (!string.IsNullOrWhiteSpace(realVicePath))
+        var settings = _globals.Settings;
+
+        var processStartupInfo = GetViceProcessStartupInfo(settings);
+        if (processStartupInfo is not null)
         {
-            string path = Path.Combine(realVicePath, _osDependent.ViceExeName);
             try
             {
-                string arguments = _globals.Settings.BinaryMonitorArgument;
-                var process = Process.Start(path, arguments);
+                var process = Process.Start(processStartupInfo.Value.Command, processStartupInfo.Value.Arguments);
                 process.EnableRaisingEvents = true;
                 return process;
             }
@@ -326,12 +357,8 @@ public class Vice : NotifiableObject, IVice
                 return null;
             }
         }
-        else
-        {
-            _dispatcher.Dispatch(new ErrorMessage(ErrorMessageLevel.Warning, "Starting VICE",
-                "VICE path is not set in settings"));
-            return null;
-        }
+
+        return null;
     }
 
     public async Task<bool> DeleteCheckpointAsync(uint checkpointNumber, CancellationToken ct = default)
@@ -410,7 +437,7 @@ public class Vice : NotifiableObject, IVice
         return await checkpointsListCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, checkpointsListCommand, ct: ct);
     }
 
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = null!)
     {
         switch (name)
         {

@@ -13,23 +13,31 @@ public class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+#if DEBUG
+        this.AttachDeveloperTools();
+#endif
     }
 
-    public override async void OnFrameworkInitializationCompleted()
+    public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
-            var globals = IoC.Host.Services.GetRequiredService<Globals>();
-            await globals.LoadAsync(CancellationToken.None);
-            var scope = IoC.Host.Services.CreateScope();
-            var viewModel = scope.ServiceProvider.GetRequiredService<MainViewModel>()!;
-            desktop.MainWindow.DataContext = viewModel;
-            desktop.ShutdownRequested += (sender, args) =>
-            {
-                globals.Save();
-            };
+            _ = RunApplicationAsync(desktop);
         }
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private async Task RunApplicationAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        desktop.MainWindow = new MainWindow();
+        var globals = IoC.Host.Services.GetRequiredService<Globals>();
+        await globals.LoadAsync(CancellationToken.None);
+        var scope = IoC.Host.Services.CreateScope();
+        var viewModel = scope.ServiceProvider.GetRequiredService<MainViewModel>()!;
+        desktop.MainWindow.DataContext = viewModel;
+        desktop.ShutdownRequested += (sender, args) =>
+        {
+            globals.Save(viewModel.Layout);
+        };
     }
 }

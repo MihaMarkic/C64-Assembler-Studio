@@ -1,7 +1,10 @@
-﻿using C64AssemblerStudio.Core.Common;
+﻿using System.Collections.Frozen;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Diagnostics;
+using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Common.Compiler;
 using C64AssemblerStudio.Core.Extensions;
-using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Messages;
 using C64AssemblerStudio.Engine.Models;
 using C64AssemblerStudio.Engine.Models.Projects;
@@ -11,6 +14,7 @@ using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using CommunityToolkit.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Services.CompletionOptionCollectors;
@@ -18,11 +22,6 @@ using Righthand.RetroDbgDataProvider.Models;
 using Righthand.RetroDbgDataProvider.Models.Parsing;
 using Righthand.RetroDbgDataProvider.Models.Program;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
-using System.Collections.Frozen;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
-using IFileService = C64AssemblerStudio.Core.Services.Abstract.IFileService;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Files;
 
@@ -33,7 +32,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     private readonly CallStackViewModel _callStack;
     private readonly IParserManager _parserManager;
     private readonly ProjectExplorerViewModel _projectExplorer;
-    private readonly IOsDependent _osDependent;
+    private readonly IOSDependent _osDependent;
     private readonly IProjectServices _projectServices;
     private Task? _reparseTask;
     public BreakpointsViewModel Breakpoints { get; }
@@ -112,7 +111,9 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     /// <param name="projectExplorer"></param>
     /// <param name="file"></param>
     /// <param name="osDependent"></param>
+    /// <param name="serviceScopeFactory"></param>
     /// <param name="selectedDefineSymbols">Preselected define symbols</param>
+    /// <param name="projectServices"></param>
     /// <remarks>
     /// Instance of <see cref="AssemblerFileViewModel"/> are created through
     /// <see cref="Activator.CreateInstance{T}"/> and manually injected arguments can not be
@@ -123,9 +124,10 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         IVice vice, CallStackViewModel callStack,
         Globals globals, ErrorsOutputViewModel errorsOutput,
         IParserManager parserManager, ProjectExplorerViewModel projectExplorer,
-        ProjectFile file, IOsDependent osDependent, IProjectServices projectServices,
+        ProjectFile file, IOSDependent osDependent, IProjectServices projectServices,
+        IServiceScopeFactory serviceScopeFactory,
         NullableArgument<FrozenSet<string>> selectedDefineSymbols) : base(
-        logger, fileService, dispatcher, statusInfo, globals, file)
+        logger, fileService, dispatcher, statusInfo, globals, file, serviceScopeFactory)
     {
         Breakpoints = breakpoints;
         _errorsOutput = errorsOutput;
@@ -299,7 +301,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
     private void ParserOnFilesChanged(object? sender, FilesChangedEventArgs e)
     {
-        if (e.Modified.TryGetValue(File.AbsolutePath, out var parsedSourceFile))
+        if (e.Modified.TryGetValue(File.AbsolutePath, out _))
         {
             _sourceFileWithSets = _parser.AllFiles.GetValueOrDefault(File.AbsolutePath);
             UpdateDefineSymbolsAndSelection();
@@ -341,7 +343,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
     private async Task UpdateSyntaxInfoAsync(CancellationToken ct)
     {
-        Debug.WriteLine("Updating syntax info");
+        Logger.LogDebug("Updating syntax info");
         if (_syntaxInfoUpdatesCts is not null)
         {
             await _syntaxInfoUpdatesCts.CancelAsync();
@@ -351,7 +353,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 
         _syntaxInfoUpdatesCts = new();
         var ctInternal = _syntaxInfoUpdatesCts.Token;
-        if (_sourceFileWithSets is not null && SelectedDefineSymbols is not null)
+	    if (_sourceFileWithSets is not null && SelectedDefineSymbols is not null)
         {
             HasParsingInfo = true;
             var singleFileSet = SelectedDefineSymbols;
@@ -360,7 +362,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             {
                 try
                 {
-                    Debug.WriteLine("Refreshing syntax info");
+	                Logger.LogDebug("Refreshing syntax info");
                     (Lines, var ignoredContent, Errors, _) = await _sourceFile.GetSyntaxInfoAsync(ctInternal);
                     var allErrors = Errors
                         .SelectMany(e => e.Value.Items)
@@ -392,7 +394,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
             DefineSymbols = ImmutableArray<FrozenSet<string>>.Empty;
             Logger.LogWarning("Opening {File} without parsed info", File.Name);
         }
-        Debug.WriteLine("Syntax updated");
+	    Logger.LogDebug("Syntax updated");
     }
 
     /// <summary>
@@ -550,7 +552,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
         return null;
     }
 
-    protected override void OnPropertyChanged(string name = default!)
+    protected override void OnPropertyChanged(string? name = null!)
     {
         // OnPropertyChanged has to happen before _parserManager is invoked
         // because it updates LastChangedTime has HasChanges

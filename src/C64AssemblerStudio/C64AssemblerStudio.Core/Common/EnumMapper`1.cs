@@ -6,7 +6,7 @@ namespace C64AssemblerStudio.Core.Common;
 
 public abstract class EnumMapper<T>
 {
-    ImmutableDictionary<Type, ImmutableDictionary<Enum, T>> _cache;
+    readonly ImmutableDictionary<Type, ImmutableDictionary<Enum, T>> _cache;
 
     protected EnumMapper()
     {
@@ -33,5 +33,14 @@ public abstract class EnumMapper<T>
                         select new { Key = v, Value = Map(enumType, v) };
             return query.ToImmutableDictionary(p => p.Key, p => p.Value);
         });
+    }
+    public ImmutableDictionary<TEnum, T> GetMapEnum<TEnum>()
+        where TEnum : struct, Enum
+    {
+        // TODO cache values
+        var query = from v in Enum.GetValues<TEnum>()
+            select new { Key = v, Value = Map(typeof(TEnum), v) };
+        var result = query.ToImmutableDictionary(p => p.Key, p => p.Value);
+        return result;
     }
 }

@@ -18,6 +18,7 @@ public class PublishTask: FrostingTask
 [IsDependentOn(typeof(ScoopPublishTask))]
 [IsDependentOn(typeof(SelfContainedPublishTask))]
 [IsDependentOn(typeof(FrameworkDependentPublishTask))]
+[IsDependentOn(typeof(FlatpakPublishTask))]
 public class CompressPublishTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)

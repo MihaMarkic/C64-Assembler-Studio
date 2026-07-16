@@ -86,7 +86,7 @@ public class MemoryViewerViewModel: ViewModel, IToolView
         _memoryViewModel.MemoryContentChanged -= MemoryViewModel_MemoryContentChanged;
     }
 
-    protected override void OnPropertyChanged([CallerMemberName] string name = default!)
+    protected override void OnPropertyChanged([CallerMemberName] string? name = null!)
     {
         base.OnPropertyChanged(name);
         switch (name)

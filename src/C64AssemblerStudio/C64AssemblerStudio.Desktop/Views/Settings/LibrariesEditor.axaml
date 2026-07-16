@@ -12,10 +12,10 @@
     </Design.DataContext>
     <DockPanel LastChildFill="True">
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
-            <TextBox Text="{Binding Name}" Watermark="Name" Width="200" />
+            <TextBox Text="{Binding Name}" PlaceholderText="Name" Width="200" />
             <DockPanel LastChildFill="True">
                 <Button x:Name="Open" DockPanel.Dock="Right" Command="{Binding SelectDirectoryCommand}">...</Button>
-                <TextBox Text="{Binding Path}" Watermark="Path" Width="380" Margin="4,0" />
+                <TextBox Text="{Binding Path}" PlaceholderText="Path" Width="380" Margin="4,0" />
             </DockPanel>
             <Button Command="{Binding AddCommand}" Margin="4,0,0,0">Add</Button>
             <Button Command="{Binding UpdateCommand}">Update</Button>

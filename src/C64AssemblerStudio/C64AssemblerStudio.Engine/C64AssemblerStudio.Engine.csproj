@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release;Local Debug</Configurations>
@@ -24,8 +24,8 @@
     <ProjectReference Include="..\..\..\..\vice-bridge-net\source\ViceMonitor.Bridge\Righthand.ViceMonitor.Bridge\Righthand.ViceMonitor.Bridge.csproj" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Configuration)' != 'Local Debug' ">
-    <PackageReference Include="Retro.Debug.Data.Provider" Version="0.3.0-alpha" />
-    <PackageReference Include="Righthand.Vice.Bridge" Version="1.0.4" />
+    <PackageReference Include="Retro.Debug.Data.Provider"/>
+    <PackageReference Include="Righthand.Vice.Bridge" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,14 +40,16 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
-    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.3.2" />
-    <PackageReference Include="FuzzySharp" Version="2.0.2" />
-    <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
-    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" PrivateAssets="All" />
-    <PackageReference Include="Righthand.MessageBus" Version="2.0.0-beta.8" />
-    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+    <PackageReference Include="Antlr4.Runtime.Standard" />
+    <PackageReference Include="CommunityToolkit.Diagnostics" />
+    <PackageReference Include="Dock.Model.Mvvm" />
+    <PackageReference Include="Dock.Serializer" />
+    <PackageReference Include="FuzzySharp" />
+    <PackageReference Include="Humanizer.Core" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="PropertyChanged.Fody" PrivateAssets="All" />
+    <PackageReference Include="Righthand.MessageBus" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\main.template" />
