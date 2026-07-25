@@ -1,4 +1,5 @@
-﻿using Avalonia.Media;
+﻿using System.Diagnostics;
+using Avalonia.Media;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
 using C64AssemblerStudio.Core;
@@ -113,6 +114,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
         if (_file.Lines.TryGetValue(line.LineNumber - 1, out var lineSyntax) &&
             !lineSyntax.Items.IsEmpty)
         {
+	        // Debug.WriteLine($"Coloring line {line.LineNumber}");
             foreach (var syntax in lineSyntax.Items)
             {
                 Action<VisualLineElement>? apply = syntax.TokenType switch
@@ -133,6 +135,7 @@ public class SyntaxColorizer : DocumentColorizingTransformer
                 {
                     int startOffset = Math.Min(line.EndOffset, Math.Max(line.Offset, syntax.Start + syntax.LeftMargin));
                     int endOffset = Math.Min(syntax.End + 1 - syntax.RightMargin, line.EndOffset);
+                    // Debug.WriteLine($"\t{syntax.TokenType} [{startOffset}..{endOffset}]");
                     ChangeLinePart(startOffset, endOffset, apply);
                 }
             }

@@ -48,24 +48,30 @@ public class ParserManager : DisposableObject, IParserManager
     {
         if (_reparseCts is not null)
         {
-            await _reparseCts.CancelAsync();
-            _reparseCts.Dispose();
+            _reparseCts.Cancel();
         }
-        _reparseCts = new();
+
+        _reparseCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var combinedToken = _reparseCts.Token;
         try
         {
-            await Task.Delay(200, ct);
-            var targetProject = Project;
-            ImmutableArray<string> librariesDirectories =
-                [..Settings.Libraries.Values.OrderBy(l => l.Order).Select(l => l.Path)];
-            var inMemoryFileContent = _filesViewModel.CollectAllOpenContent();
-            await targetProject.SourceCodeParser.ParseAsync(inMemoryFileContent,
-                targetProject.Configuration!.SymbolsDefineSet,
-                librariesDirectories, ct);
+	        await Task.Delay(200, combinedToken);
+	        var targetProject = Project;
+	        ImmutableArray<string> librariesDirectories =
+		        [.. Settings.Libraries.Values.OrderBy(l => l.Order).Select(l => l.Path)];
+	        var inMemoryFileContent = _filesViewModel.CollectAllOpenContent();
+	        await targetProject.SourceCodeParser.ParseAsync(inMemoryFileContent,
+		        targetProject.Configuration!.SymbolsDefineSet,
+		        librariesDirectories, combinedToken);
         }
         catch (OperationCanceledException)
         {
-            // do nothing
+	        // do nothing
+        }
+        finally
+        {
+	        _reparseCts.Dispose();
+	        _reparseCts = null;
         }
     }
 
