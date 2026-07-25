@@ -427,6 +427,7 @@ public class MainViewModel : ViewModel
 
             await _globals.SetProjectAsync(project, ct);
             _ = _parserManager.RunInitialParseAsync(CancellationToken.None);
+            _navigationManager.Navigate(Navigation.Home);
             ShowProjectSettings();
             return true;
         }
