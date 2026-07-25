@@ -58,7 +58,7 @@ public class ErrorsOutputViewModel : OutputViewModel<FileCompilerError>
            AddLines(errors);
     }
 
-    private void ClearErrorsForFile(string path)
+    public void ClearErrorsForFile(string path)
     {
         for (int i = Lines.Count - 1; i >= 0; i--)
         {

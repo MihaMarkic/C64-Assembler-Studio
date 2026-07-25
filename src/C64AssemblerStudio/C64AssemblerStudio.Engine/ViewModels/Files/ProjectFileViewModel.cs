@@ -123,4 +123,7 @@ public abstract class ProjectFileViewModel : FileViewModel
 
         return true;
     }
+
+    public virtual void ClearErrorsOutput()
+    { }
 }

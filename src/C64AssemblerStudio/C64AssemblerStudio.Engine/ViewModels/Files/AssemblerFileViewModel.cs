@@ -397,6 +397,15 @@ public class AssemblerFileViewModel : ProjectFileViewModel
 	    Logger.LogDebug("Syntax updated");
     }
 
+     /// <summary>
+     /// Removes all errors pushed to error output for this file.
+     /// </summary>
+     /// <remarks>Usually called when file is closed.</remarks>
+    public override void ClearErrorsOutput()
+    {
+	    _errorsOutput.ClearErrorsForFile(File.AbsolutePath);
+    }
+
     /// <summary>
     /// Converts multiline ranges to an array of grouped single line ranges per line.
     /// </summary>

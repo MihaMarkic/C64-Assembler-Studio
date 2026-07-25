@@ -36,6 +36,11 @@ public class FileDocumentViewModel : Document
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         {
             result = t is { IsCompletedSuccessfully: true, Result: true };
+            // when FileViewModel will actually close, clears its output
+            if (result)
+            {
+	            Context.ClearErrorsOutput();
+            }
             // ReSharper disable once AccessToDisposedClosure
             cts.Cancel();
         }, TaskScheduler.FromCurrentSynchronizationContext());
