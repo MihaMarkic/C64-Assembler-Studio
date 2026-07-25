@@ -14,11 +14,11 @@ namespace C64AssemblerStudio.Engine.Services.Implementation;
 public class ProjectServices : IProjectServices
 {
     private readonly ILogger<ProjectServices> _logger;
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly IFileService _fileService;
     private readonly IOSDependent _osDependent;
     private readonly IDirectoryService _directoryService;
-    public ProjectServices(ILogger<ProjectServices> logger, Globals globals, IFileService fileService, IOSDependent osDependent, IDirectoryService directoryService)
+    public ProjectServices(ILogger<ProjectServices> logger, IGlobals globals, IFileService fileService, IOSDependent osDependent, IDirectoryService directoryService)
     {
         _logger = logger;
         _globals = globals;

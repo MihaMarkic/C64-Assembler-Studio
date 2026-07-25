@@ -35,7 +35,7 @@ public record BreakpointConditionCompletionSuggestionModel(ConditionCompletionTy
 public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialogResult>, INotifyDataErrorInfo
 {
     private readonly ILogger<BreakpointDetailViewModel> _logger;
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly IVice _vice;
     private readonly BreakpointsViewModel _breakpoints;
     private readonly BreakpointViewModel _sourceBreakpoint;
@@ -92,7 +92,7 @@ public class BreakpointDetailViewModel : ViewModel, IDialogViewModel<SimpleDialo
     private readonly BreakpointConditionsValidator _breakpointConditionsValidator;
 
     public BreakpointDetailViewModel(ILogger<BreakpointDetailViewModel> logger, IServiceScope serviceScope,
-        Globals globals, IVice vice,
+        IGlobals globals, IVice vice,
         BreakpointsViewModel breakpoints, BreakpointViewModel breakpoint, BreakpointDetailDialogMode mode)
     {
         _logger = logger;

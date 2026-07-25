@@ -13,7 +13,7 @@ namespace C64AssemblerStudio.Engine.ViewModels.Files;
 public abstract class ProjectFileViewModel : FileViewModel
 {
     public ProjectFile File { get; }
-    protected Globals Globals { get; }
+    protected IGlobals Globals { get; }
     public BusyIndicator BusyIndicator { get; } = new();
     public string Content { get; set; } = string.Empty;
     public bool IsReadOnly => string.IsNullOrEmpty(Content);
@@ -26,7 +26,7 @@ public abstract class ProjectFileViewModel : FileViewModel
     protected bool IsContentLoaded { get; private set; }
 
     protected ProjectFileViewModel(ILogger<ProjectFileViewModel> logger, IFileService fileService,
-        IDispatcher dispatcher, StatusInfoViewModel statusInfo, Globals globals, ProjectFile file,
+        IDispatcher dispatcher, StatusInfoViewModel statusInfo, IGlobals globals, ProjectFile file,
         IServiceScopeFactory serviceScopeFactory) :
         base(logger, fileService, dispatcher, statusInfo, serviceScopeFactory)
     {

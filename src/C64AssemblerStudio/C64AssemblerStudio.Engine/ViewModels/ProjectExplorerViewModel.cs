@@ -23,7 +23,7 @@ public class ProjectExplorerViewModel : ViewModel
     private readonly ILogger<ProjectExplorerViewModel> _logger;
     private readonly IDispatcher _dispatcher;
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly ProjectFilesWatcherViewModel _projectFilesWatcher;
     private readonly IOSDependent _osDependent;
     private readonly IDirectoryService _directoryService;
@@ -44,7 +44,7 @@ public class ProjectExplorerViewModel : ViewModel
     public ObservableCollection<ProjectItem> Items => _projectFilesWatcher.Items;
 
     public ProjectExplorerViewModel(ILogger<ProjectExplorerViewModel> logger, IDispatcher dispatcher,
-        IServiceScopeFactory serviceScopeFactory, Globals globals, ProjectFilesWatcherViewModel projectFilesWatcher,
+        IServiceScopeFactory serviceScopeFactory, IGlobals globals, ProjectFilesWatcherViewModel projectFilesWatcher,
         IOSDependent osDependent, IDirectoryService directoryService, IFileService fileService)
     {
         _logger = logger;

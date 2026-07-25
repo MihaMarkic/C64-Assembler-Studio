@@ -25,7 +25,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
     /// Keeps tracks of file watchers.
     /// </summary>
     private readonly Dictionary<ProjectDirectory, IProjectFileWatcher> _projectFileWatchers = new();
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly Settings _settings;
     public bool IsRefreshing { get; private set; }
     public bool IsProjectChanging { get; private set; }
@@ -35,7 +35,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
     public ProjectRoot? Root { get; private set; }
     private readonly ISubscription _projectChangedSubscription;
     public ProjectFilesWatcherViewModel(ILogger<ProjectFilesWatcherViewModel> logger, IServiceFactory serviceFactory,
-        Globals globals, IDispatcher dispatcher, IOSDependent osDependent, IDirectoryService directoryService)
+        IGlobals globals, IDispatcher dispatcher, IOSDependent osDependent, IDirectoryService directoryService)
     {
         _logger = logger;
         _serviceFactory = serviceFactory;
@@ -58,7 +58,7 @@ public class ProjectFilesWatcherViewModel: ViewModel
     {
         switch (e.PropertyName)
         {
-            case nameof(Globals.Project):
+            case nameof(IGlobals.Project):
                 _ = ProjectChanged(_globals.Project);
                 break;
         }

@@ -54,7 +54,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             directoryService.GetFilteredFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<FrozenSet<string>>())
                 .Returns([..td.FoundFiles.Select(f => Path.Combine(td.StartDirectory, f))]);
             var logger = Fixture.Create<ILogger<ProjectServices>>();
-            var globals = Fixture.Create<Globals>();
+            var globals = Fixture.Create<IGlobals>();
             var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
             var fileServiceLogger = Fixture.Create<ILogger<FileService>>();
             var fileService = new FileService(fileServiceLogger, osDependent);
@@ -75,7 +75,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
         {
 	        IOSDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent() : new NonWindowsDependent();
             var logger = Fixture.Create<ILogger<ProjectServices>>();
-            var globals = Fixture.Create<Globals>();
+            var globals = Fixture.Create<IGlobals>();
             var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
             var directoryService = new DirectoryService(directoryServiceLogger, osDependent);
             var fileServiceLogger = Fixture.Create<ILogger<FileService>>();
@@ -118,7 +118,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             Assert.That(builder, Is.Empty);
         }
         [TestCase("", "Project", "", "", "Sub")]
-        [TestCase("s*", "Project", "", "", "Sub")]
+        [TestCase("S*", "Project", "", "", "Sub")]
         [TestCase("", "Libraries/One", "", "", "Sub")]
         [TestCase("", "Libraries/One", "Sub", "", "InnerSubOne")]
         [TestCase("", "Project", "", "Sub", "Sub/Nested")]
@@ -126,7 +126,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             string fileRelativeDirectory, string searchRelativeDirectory, string expectedText)
         {
             var logger = Fixture.Create<ILogger<ProjectServices>>();
-            var globals = Fixture.Create<Globals>();
+            var globals = Fixture.Create<IGlobals>();
             var directoryServiceLogger = Fixture.Create<ILogger<DirectoryService>>();
             IOSDependent osDependent = OperatingSystem.IsWindows() ? new WindowsDependent(): new NonWindowsDependent();
             var directoryService = new DirectoryService(directoryServiceLogger, osDependent);
@@ -134,7 +134,7 @@ public class ProjectServicesTest: BaseTest<ProjectServices>
             var fileService = new FileService(fileServiceLogger, osDependent);
             var target = new ProjectServices(logger, globals, fileService, osDependent, directoryService);
             Dictionary<ProjectFileKey, FrozenSet<string>> builder = new();
-            FrozenSet<string> expected = [.. expectedText.Split(',').Select(p => osDependent.NormalizePath(p))];
+            FrozenSet<string> expected = [.. expectedText.Split(',').Select(osDependent.NormalizePath)];
             var testDirectory = TestContext.CurrentContext.WorkDirectory;
             var fileSystemRoot = Path.Combine(testDirectory, "TestFileSystems", "Default");
             foreach (var segment in root.Split('/'))

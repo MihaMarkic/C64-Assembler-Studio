@@ -24,7 +24,7 @@ public class FilesViewModel : ViewModel
     private readonly IServiceProvider _serviceProvider;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IVice _vice;
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly ProjectExplorerViewModel _projectExplorer;
     private readonly StatusInfoViewModel _statusInfo;
     private readonly FilesDocumentDockViewModel _filesDocumentDockViewModel;
@@ -44,7 +44,7 @@ public class FilesViewModel : ViewModel
 
     public FilesViewModel(ILogger<FilesViewModel> logger, IDispatcher dispatcher, IServiceProvider serviceProvider,
         IServiceScopeFactory serviceScopeFactory,
-        IVice vice, Globals globals, ProjectExplorerViewModel projectExplorer, StatusInfoViewModel statusInfo,
+        IVice vice, IGlobals globals, ProjectExplorerViewModel projectExplorer, StatusInfoViewModel statusInfo,
         FilesDocumentDockViewModel filesDocumentDockViewModel)
     {
         _logger = logger;

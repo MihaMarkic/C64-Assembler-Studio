@@ -17,12 +17,12 @@ namespace C64AssemblerStudio.Engine.Services.Implementation;
 /// </remarks>
 public class ParserManager : DisposableObject, IParserManager
 {
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly FilesViewModel _filesViewModel;
     private readonly ISubscription _projectChangedSubscription;
     private Settings Settings => _globals.Settings;
     private IProjectViewModel<ParsedSourceFile> Project => (IProjectViewModel<ParsedSourceFile>)_globals.Project;
-    public ParserManager(Globals globals, FilesViewModel filesViewModel, IDispatcher dispatcher)
+    public ParserManager(IGlobals globals, FilesViewModel filesViewModel, IDispatcher dispatcher)
     {
         _globals = globals;
         _filesViewModel = filesViewModel;

@@ -26,7 +26,7 @@ namespace C64AssemblerStudio.Engine.ViewModels;
 public class MainViewModel : ViewModel
 {
     private readonly ILogger<MainViewModel> _logger;
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly IDispatcher _dispatcher;
     private readonly IServiceScope _scope;
     private readonly ISettingsManager _settingsManager;
@@ -103,7 +103,7 @@ public class MainViewModel : ViewModel
     public Action? CloseApp { get; set; }
     public ViewModel? OverlayContent { get; private set; }
 
-    public MainViewModel(ILogger<MainViewModel> logger, Globals globals, IDispatcher dispatcher, IServiceScope scope,
+    public MainViewModel(ILogger<MainViewModel> logger, IGlobals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
         ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput, DebugOutputViewModel debugOutput,
         ErrorsOutputViewModel errors, BreakpointsViewModel breakpoints,
@@ -621,7 +621,7 @@ public class MainViewModel : ViewModel
     {
         switch (e.PropertyName)
         {
-            case nameof(Globals.Project):
+            case nameof(IGlobals.Project):
                 if (_oldProjectConfiguration is not null)
                 {
                     _oldProjectConfiguration.PropertyChanged -= OnProjectConfigurationPropertyChanged;

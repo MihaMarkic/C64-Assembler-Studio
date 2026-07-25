@@ -17,7 +17,7 @@ public class DockFactory: Factory, IDockFactory
 {
     private readonly IServiceProvider _serviceProvider;
     public IRootDock? RootDock { get; private set; }
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly ErrorsOutputViewModel _errorsOutputViewModel;
     private readonly ErrorMessagesViewModel _errorMessagesViewModel;
     private readonly BuildOutputViewModel _buildOutputViewModel;
@@ -34,7 +34,7 @@ public class DockFactory: Factory, IDockFactory
         ErrorMessagesViewModel errorMessagesViewModel, BuildOutputViewModel buildOutputViewModel,
         DebugOutputViewModel debugOutputViewModel, RegistersViewModel registersViewModel,
         BreakpointsViewModel breakpointsViewModel, MemoryViewerViewModel memoryViewerViewModel,
-        CallStackViewModel callStackViewModel, ProjectExplorerViewModel projectExplorerViewModel, Globals globals,
+        CallStackViewModel callStackViewModel, ProjectExplorerViewModel projectExplorerViewModel, IGlobals globals,
         FilesDocumentDockViewModel filesDocumentDockViewModel)
     {
         _serviceProvider = serviceProvider;
@@ -159,9 +159,7 @@ public class DockFactory: Factory, IDockFactory
     private StartPageViewModel CreateStartPage()
     {
         var result = _serviceProvider.CreateScopedContent<StartPageViewModel>();
-        var mostRecent = _globals.Settings.RecentProjects.FirstOrDefault();
-        result.HasRecentProjects = mostRecent is not null;
-        result.FullPath = mostRecent;
+        result.RefreshContent();
         return result;
     }
     public override IDockWindow? CreateWindowFrom(IDockable dockable)

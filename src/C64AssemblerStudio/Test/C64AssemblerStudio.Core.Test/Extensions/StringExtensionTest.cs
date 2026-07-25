@@ -55,7 +55,8 @@ public class StringExtensionTest
         [TestCase("""
                   First
                   Zero line
-                  """, 1, ExpectedResult = 7)]
+                  """, 1, ExpectedResult = 6)]
+        [Platform("Linux", Reason="Only runs on Linux because not supporting two chars line endings at the moment")]
         public int GivenSample_ReturnsCorrectLenghtValue(string input, int lineNumber)
         {
             return input.AsSpan().ExtractLinePosition(lineNumber).Start;

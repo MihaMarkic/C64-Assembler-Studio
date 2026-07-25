@@ -30,7 +30,7 @@ public class App : Application
     private async Task RunApplicationAsync(IClassicDesktopStyleApplicationLifetime desktop)
     {
         desktop.MainWindow = new MainWindow();
-        var globals = IoC.Host.Services.GetRequiredService<Globals>();
+        var globals = IoC.Host.Services.GetRequiredService<IGlobals>();
         await globals.LoadAsync(CancellationToken.None);
         var scope = IoC.Host.Services.CreateScope();
         var viewModel = scope.ServiceProvider.GetRequiredService<MainViewModel>()!;

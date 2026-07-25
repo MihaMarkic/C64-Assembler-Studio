@@ -23,7 +23,7 @@ public class Vice : NotifiableObject, IVice
 {
     private readonly ILogger<Vice> _logger;
     private readonly IViceBridge _bridge;
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly IDispatcher _dispatcher;
     private readonly TaskFactory _uiFactory;
     
@@ -52,7 +52,7 @@ public class Vice : NotifiableObject, IVice
     public bool IsDebugging { get; private set; }
     public bool IsPaused { get; private set; }
 
-    public Vice(ILogger<Vice> logger, IViceBridge bridge, Globals globals, IDispatcher dispatcher,
+    public Vice(ILogger<Vice> logger, IViceBridge bridge, IGlobals globals, IDispatcher dispatcher,
         RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack,
         IOSDependent osDependent)
     {

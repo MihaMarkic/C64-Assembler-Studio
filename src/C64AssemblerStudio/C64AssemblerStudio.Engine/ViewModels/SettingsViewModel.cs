@@ -19,7 +19,7 @@ namespace C64AssemblerStudio.Engine.ViewModels;
 public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErrorInfo
 {
     private readonly ILogger<SettingsViewModel> _logger;
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly ISettingsManager _settingsManager;
     private readonly ISystemDialogs _systemDialogs;
     private readonly IOSDependent _osDependent;
@@ -48,7 +48,7 @@ public sealed class SettingsViewModel : OverlayContentViewModel, INotifyDataErro
     public LibrariesEditorViewModel LibrariesEditor { get; private set; }
     IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName) => _errorHandler.GetErrors(propertyName);
 
-    public SettingsViewModel(ILogger<SettingsViewModel> logger, Globals globals,
+    public SettingsViewModel(ILogger<SettingsViewModel> logger, IGlobals globals,
         LibrariesEditorViewModel librariesEditor, IDispatcher dispatcher,
         ISettingsManager settingsManager, ISystemDialogs systemDialogs, IServiceScope serviceScope,
         IOSDependent osDependent) : base(dispatcher)

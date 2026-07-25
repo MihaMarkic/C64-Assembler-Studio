@@ -27,7 +27,7 @@ public class BreakpointConditionsListener : BreakpointConditionsParserBaseListen
         public bool HasErrors => _errors.Count > 0;
         public ImmutableArray<SyntaxEditorError> Errors => [.._errors];
 
-        public BreakpointConditionsListener(ILogger<BreakpointConditionsListener> logger, Globals globals, IVice vice)
+        public BreakpointConditionsListener(ILogger<BreakpointConditionsListener> logger, IGlobals globals, IVice vice)
         {
             _logger = logger;
             if (globals.Project is KickAssProjectViewModel project)

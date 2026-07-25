@@ -22,7 +22,7 @@ public static class IoCRegistrar
     public static IServiceCollection AddEngine(this IServiceCollection services, bool messagesHistoryEnabled)
     {
         services
-            .AddSingleton<Globals>()
+            .AddSingleton<IGlobals, Globals>()
             .AddSingleton<ISettingsManager, SettingsManager>()
             .AddSingleton<StatusInfoViewModel>()
             .AddSingleton<IVice, Vice>()

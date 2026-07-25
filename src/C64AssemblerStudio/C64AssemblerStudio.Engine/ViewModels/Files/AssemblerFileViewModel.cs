@@ -122,7 +122,7 @@ public class AssemblerFileViewModel : ProjectFileViewModel
     public AssemblerFileViewModel(ILogger<AssemblerFileViewModel> logger, IFileService fileService,
         IDispatcher dispatcher, StatusInfoViewModel statusInfo, BreakpointsViewModel breakpoints,
         IVice vice, CallStackViewModel callStack,
-        Globals globals, ErrorsOutputViewModel errorsOutput,
+        IGlobals globals, ErrorsOutputViewModel errorsOutput,
         IParserManager parserManager, ProjectExplorerViewModel projectExplorer,
         ProjectFile file, IOSDependent osDependent, IProjectServices projectServices,
         IServiceScopeFactory serviceScopeFactory,

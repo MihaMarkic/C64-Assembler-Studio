@@ -15,14 +15,14 @@ public class CallStackViewModel : ViewModel, IToolView
 {
     private readonly ILogger<CallStackViewModel> _logger;
     private readonly IDispatcher _dispatcher;
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly ViceMemoryViewModel _memoryViewModel;
     private readonly RegistersViewModel _registersViewModel;
     private readonly ProjectExplorerViewModel _projectExplorer;
     public string Header => "Call stack";
     public RelayCommand<SourceCallStackItem> GoToLineCommand { get; }
     public ImmutableArray<CallStackItem> CallStack { get; private set; }
-    public CallStackViewModel(ILogger<CallStackViewModel> logger, IDispatcher dispatcher, Globals globals,
+    public CallStackViewModel(ILogger<CallStackViewModel> logger, IDispatcher dispatcher, IGlobals globals,
         ViceMemoryViewModel memoryViewModel, RegistersViewModel registersViewModel, ProjectExplorerViewModel projectExplorer)
     {
         _logger = logger;

@@ -52,7 +52,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
     private readonly ILogger<BreakpointsViewModel> _logger;
     private readonly IDispatcher _dispatcher;
-    private readonly Globals _globals;
+    private readonly IGlobals _globals;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IVice _vice;
     private readonly ISettingsManager _settingsManager;
@@ -88,7 +88,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     private LabelsNameMap? _labels;
 
     public BreakpointsViewModel(ILogger<BreakpointsViewModel> logger, IVice vice, IDispatcher dispatcher,
-        Globals globals,
+        IGlobals globals,
         IServiceScopeFactory serviceScopeFactory, ISettingsManager settingsManager, DebugOutputViewModel debugOutput,
         IAddressEntryGrammarService addressEntryGrammar, IOSDependent osDependent)
     {
@@ -176,7 +176,7 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
     {
         switch (e.PropertyName)
         {
-            case nameof(Globals.Project):
+            case nameof(IGlobals.Project):
                 _ = RemoveAllBreakpointsAsync(false);
                 OnPropertiesChanged(nameof(IsProjectOpen));
                 if (_globals.IsProjectOpen)

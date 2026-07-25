@@ -1,25 +1,31 @@
-﻿using System.Collections.Frozen;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using C64AssemblerStudio.Core;
-using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels.Projects;
 using Dock.Model.Controls;
 using Microsoft.Extensions.Logging;
-using Righthand.RetroDbgDataProvider;
-using Righthand.RetroDbgDataProvider.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.ViewModels;
 
-public sealed class Globals: NotifiableObject
+public interface IGlobals: INotifyPropertyChanged
+{
+	IProjectViewModel Project { get; }
+	Settings Settings { get; }
+	bool IsProjectOpen { get; }
+	Task SetProjectAsync(IProjectViewModel project, CancellationToken ct);
+	Task LoadAsync(CancellationToken ct);
+	void Save(IRootDock layout);
+	void ResetProject();
+}
+
+public sealed class Globals: NotifiableObject, IGlobals
 {
     public const string AppName = "C64 Assembler Studio";
     private readonly ILogger<Globals> _logger;
     private readonly EmptyProjectViewModel _emptyProject;
     private readonly ISettingsManager _settingsManager;
-    private readonly IFileService _fileService;
-    public event EventHandler? ProjectChanged;
 
     /// <summary>
     /// Holds active project, when no project is defined it contains <see cref="EmptyProjectViewModel"/>.
@@ -28,17 +34,13 @@ public sealed class Globals: NotifiableObject
     public Settings Settings { get; private set; } = new();
     public bool IsProjectOpen => Project is not EmptyProjectViewModel;
 
-    public Globals(ILogger<Globals> logger, EmptyProjectViewModel emptyProject, ISettingsManager settingsManager,
-        IFileService fileService)
+    public Globals(ILogger<Globals> logger, EmptyProjectViewModel emptyProject, ISettingsManager settingsManager)
     {
         _logger = logger;
         _emptyProject = emptyProject;
         _settingsManager = settingsManager;
         Project = emptyProject;
-        _fileService = fileService;
     }
-
-    private void RaiseProjectChanged(EventArgs e) => ProjectChanged?.Invoke(this, e);
 
     public async Task SetProjectAsync(IProjectViewModel project, CancellationToken ct)
     {
