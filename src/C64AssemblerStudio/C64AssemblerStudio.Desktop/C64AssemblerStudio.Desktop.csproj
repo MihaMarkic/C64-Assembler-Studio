@@ -109,6 +109,7 @@
     <PackageReference Include="Avalonia.Controls.ItemsRepeater" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Wayland" />
     <PackageReference Include="AvaloniaEdit.TextMate" />
     <PackageReference Condition="'$(Configuration)' != 'Release'"  Include="AvaloniaUI.DiagnosticsSupport" />
     <PackageReference Include="CommunityToolkit.Diagnostics" />
