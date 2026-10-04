@@ -9,6 +9,7 @@ public class Settings : NotifiableObject
     public const int MaxRecentProjects = 10;
     public const string DefaultViceAddress = "localhost:6802";
     public const int DefaultViceAddressPort = 6802;
+    public const int CpuHistoryLines = 8192;
 
     /// <summary>
     /// Defines process start for C64. 
@@ -56,7 +57,7 @@ public class Settings : NotifiableObject
             return null;
         }
     }
-    public string BinaryMonitorArgument => $"--binarymonitor --binarymonitoraddress ip4://127.0.0.1:{ViceMonitorPort}";
+    public string BinaryMonitorArgument => $"--binarymonitor --binarymonitoraddress ip4://127.0.0.1:{ViceMonitorPort} --monchislines {CpuHistoryLines}";
 
     public ushort ViceMonitorPort
     {

@@ -47,6 +47,7 @@ public static class IoCRegistrar
             .AddSingleton<ViceMemoryViewModel>()
             .AddSingleton<CallStackViewModel>()
             .AddSingleton<MemoryViewerViewModel>()
+            .AddSingleton<ProfilerViewModel>()
             .AddTransient<AboutViewModel>()
             .AddTransient<LibrariesEditorViewModel>()
             // Tools

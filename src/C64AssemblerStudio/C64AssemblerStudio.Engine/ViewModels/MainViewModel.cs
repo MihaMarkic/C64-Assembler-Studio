@@ -76,6 +76,7 @@ public class MainViewModel : ViewModel
     public RegistersViewModel Registers { get; }
     public BreakpointsViewModel Breakpoints { get; }
     public MemoryViewerViewModel MemoryViewer { get; }
+    public ProfilerViewModel Profiler { get; }
     
     public IRootDock Layout { get; private set; }
 
@@ -102,12 +103,16 @@ public class MainViewModel : ViewModel
     public Action<ShowModalDialogMessageCore>? ShowModalDialog { get; set; }
     public Action? CloseApp { get; set; }
     public ViewModel? OverlayContent { get; private set; }
+	/// <summary>
+	/// Flag signaling whether program should be profiled. Should be set before starting program.
+	/// </summary>
+    public bool ProfileProgram { get; set; } = true;
 
     public MainViewModel(ILogger<MainViewModel> logger, IGlobals globals, IDispatcher dispatcher, IServiceScope scope,
         ISettingsManager settingsManager, ProjectExplorerViewModel projectExplorer, FilesViewModel files,
         ErrorMessagesViewModel errorMessages, BuildOutputViewModel buildOutput, DebugOutputViewModel debugOutput,
         ErrorsOutputViewModel errors, BreakpointsViewModel breakpoints,
-        MemoryViewerViewModel memoryViewer,
+        MemoryViewerViewModel memoryViewer, ProfilerViewModel profiler,
         StatusInfoViewModel statusInfo, RegistersViewModel registers, IVice vice, IHostEnvironment hostEnvironment,
         CallStackViewModel callStack, IParserManager parserManager, IDirectoryService directoryService,
         IDockFactory dockFactory, INavigationManager navigationManager)
@@ -136,6 +141,7 @@ public class MainViewModel : ViewModel
         Breakpoints = breakpoints;
         MemoryViewer = memoryViewer;
         CallStack = callStack;
+        Profiler = profiler;
         BottomTools =
             [ErrorMessages, Errors, BuildOutput, DebugOutput, Registers, Breakpoints, MemoryViewer, CallStack];
         _dockFactory = dockFactory;

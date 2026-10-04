@@ -26,9 +26,8 @@ public class Vice : NotifiableObject, IVice
     private readonly IGlobals _globals;
     private readonly IDispatcher _dispatcher;
     private readonly TaskFactory _uiFactory;
-    
-    
     private readonly IOSDependent _osDependent;
+    
     public RegistersViewModel Registers { get; }
     public ViceMemoryViewModel Memory { get; }
     public CallStackViewModel CallStack { get; }
@@ -48,9 +47,27 @@ public class Vice : NotifiableObject, IVice
     public event EventHandler<RegistersEventArgs>? RegistersUpdated;
     public event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated;
     public event EventHandler<MemoryGetEventArgs>? MemoryUpdated;
+    /// <summary>
+    /// This event is raised when new batch of CpuHistory is available.
+    /// </summary>
+    /// <remarks>
+    /// Used when profiling only.
+    /// </remarks>
+    public event EventHandler<CpuHistoryEventArgs>? CpuHistoryUpdated;
     public bool IsConnected { get; private set; }
     public bool IsDebugging { get; private set; }
     public bool IsPaused { get; private set; }
+    /// <summary>
+    /// Sets whether program is profiled or not.
+    /// </summary>
+    /// <remarks>
+    /// Has only effect before starting debugging.
+    /// </remarks>
+    public bool IsProfiling { get; set; }
+	/// <summary>
+	/// When profiling this is the current CpuHistory command being executed.
+	/// </summary>
+    private AdvanceInstructionCommand? _currentProfileAdvanceCommand;
 
     public Vice(ILogger<Vice> logger, IViceBridge bridge, IGlobals globals, IDispatcher dispatcher,
         RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack,
@@ -74,6 +91,7 @@ public class Vice : NotifiableObject, IVice
     private void OnRegistersUpdated(RegistersEventArgs e) => RegistersUpdated?.Invoke(this, e);
     private void OnCheckpointInfoUpdated(CheckpointInfoEventArgs e) => CheckpointInfoUpdated?.Invoke(this, e);
     private void OnMemoryUpdated(MemoryGetEventArgs e) => MemoryUpdated?.Invoke(this, e);
+    private void OnCpuHistoryUpdated(CpuHistoryEventArgs e) => CpuHistoryUpdated?.Invoke(this, e);
     private bool _retrieveMemory;
     private async void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
     {
@@ -193,10 +211,52 @@ public class Vice : NotifiableObject, IVice
         }
 
         IsDebugging = true;
+        if (IsProfiling)
+        {
+	        _logger.LogInformation("Debugging with profiler enabled");
+        }
+
+        // first issues advance command for CpuHistoryLines count
+        _currentProfileAdvanceCommand = _bridge.EnqueueCommand(new AdvanceInstructionCommand(StepOverSubroutine: false, Settings.CpuHistoryLines), resumeOnStopped: false);
         var command = _bridge.EnqueueCommand(
             new AutoStartCommand(runAfterLoading: true, 0, _globals.Project.FullPrgPath!),
             resumeOnStopped: false);
         await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+        
+        await _currentProfileAdvanceCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, _currentProfileAdvanceCommand, ct: ct);
+        
+        bool isFound = true;
+        int cycle = 0;
+        while (!isFound)
+        {
+	        await _currentProfileAdvanceCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, _currentProfileAdvanceCommand, ct: ct);
+	        
+	        Debug.WriteLine($"Waiting in cycle {cycle}");
+	        var profilerCommand =
+		        _bridge.EnqueueCommand(new CpuHistoryCommand(MemSpace.MainMemory, Settings.CpuHistoryLines),
+			        resumeOnStopped: false);
+	        await profilerCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, profilerCommand,
+		        ct: ct);
+	        ushort min = ushort.MaxValue, max = 0;
+	        foreach (var i in profilerCommand.Response.Result.Response.Items)
+	        {
+		        var registers = i.RegisterItems;
+		        var pc = registers.Single(r => r.RegisterId == 3);
+		        if (pc.RegisterValue == 0x0801 || pc.RegisterValue == 0x0813)
+		        {
+			        isFound = true;
+			        break;
+		        }
+		        min = Math.Min(min, pc.RegisterValue);
+		        max = Math.Max(max, pc.RegisterValue);
+	        }
+
+	        cycle++;
+	        _currentProfileAdvanceCommand = _bridge.EnqueueCommand(
+		        new AdvanceInstructionCommand(StepOverSubroutine: false, Settings.CpuHistoryLines),
+		        resumeOnStopped: false);
+	        await ContinueAsync(ct);
+        }
     }
 
     public async Task StepIntoAsync(CancellationToken ct = default)
