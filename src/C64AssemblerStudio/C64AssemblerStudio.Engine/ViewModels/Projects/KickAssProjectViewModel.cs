@@ -51,10 +51,14 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject, KickAsse
         string byteDumpFile = System.IO.Path.Combine(outDirectory, "bytedump.dmp");
                 
         var dbgDataTask = DbgParser.LoadFileAsync(dbgFile, ct);
+        var getStartAddressTask = GetStartingAddressAsync(FullPrgPath.ValueOrThrow(), ct);
         ByteDump = await ByteDumpParser.LoadFileAsync(byteDumpFile, ct);
         DbgData = await dbgDataTask;
         AppInfo = await ProgramInfoBuilder.BuildAppInfoAsync(Directory, DbgData, ct);
         ByteDumpLines = CreateByteDumpLines(ByteDump, AppInfo);
+        var entryAddress = await getStartAddressTask;
+        ProgramEntryAddress = entryAddress;
+
         // merges labels from all files into single dictionary
         var allLabels = AppInfo.SourceFiles.Values.SelectMany(f => f.Labels);
         var builder = new Dictionary<string, Label>();

@@ -28,6 +28,8 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
     public string SymbolsDefine { get; set; } = string.Empty;
     public string? Directory => Path is not null ? System.IO.Path.GetDirectoryName(Path) : null;
     public string? FullPrgPath => Directory is not null ? System.IO.Path.Combine(Directory, "build", "main.prg") : null;
+    /// <inheritdoc/>
+    public UInt16? ProgramEntryAddress { get; protected set; }
     public string? BreakpointsSettingsPath =>
         Directory is not null ? System.IO.Path.Combine(Directory, "breakpoints.json") : null;
 
@@ -60,6 +62,35 @@ public abstract class ProjectViewModel<TConfiguration, TParsedFileType> : Overla
         Caption = configuration.Caption;
         SymbolsDefine = configuration.SymbolsDefine;
     }
+    
+    /// <summary>
+    /// Retrieves starting address from assembled prg file. 
+    /// </summary>
+    /// <param name="prgFile"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    internal async ValueTask<UInt16?> GetStartingAddressAsync(string prgFile, CancellationToken ct)
+    {
+	    if (!File.Exists(prgFile))
+	    {
+		    Logger.LogError("Can't find prg file {PrgFile} to extract starting address from", prgFile);
+	    }
+
+	    try
+	    {
+		    await using var stream = File.OpenRead(prgFile);
+		    Span<byte> buffer = stackalloc byte[2];
+		    stream.ReadExactly(buffer);
+		    return BitConverter.ToUInt16(buffer);
+	    }
+	    catch (Exception ex)
+	    {
+		    Logger.LogError("Failed to read starting address from prg file {PrgFile}", prgFile);
+	    }
+
+	    return null;
+    }
+
 
     private void RaiseSettingsProjectChanged() => Dispatcher.Dispatch(new ProjectSettingsChangedMessage());
     public abstract Task LoadDebugDataAsync(CancellationToken ct = default);

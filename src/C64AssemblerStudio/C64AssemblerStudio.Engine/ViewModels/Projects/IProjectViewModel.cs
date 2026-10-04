@@ -16,7 +16,12 @@ public interface IProjectViewModel: IDisposable, IAsyncDisposable
     string? Directory { get; }
     Project? Configuration { get; }
     string? FullPrgPath { get; }
-    public string? BreakpointsSettingsPath { get; }
+    /// <summary>
+    /// Address of program start.
+    /// </summary>
+    /// <remarks>Set after compilation.</remarks>
+    UInt16? ProgramEntryAddress { get; }
+    string? BreakpointsSettingsPath { get; }
     Task LoadDebugDataAsync(CancellationToken ct = default);
 }
 
