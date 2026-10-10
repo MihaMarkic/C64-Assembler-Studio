@@ -42,8 +42,8 @@ public class EmptyProjectViewModel : ProjectViewModel<EmptyProject, ParsedSource
 
     public EmptyProjectViewModel(ILogger<ProjectViewModel<EmptyProject, ParsedSourceFile>> logger,
         ISettingsManager settingsManager,
-        ISystemDialogs systemDialogs, IDispatcher dispatcher)
-        : base(logger, settingsManager, systemDialogs, dispatcher, new EmptySourceCodeParser())
+        ISystemDialogs systemDialogs, IDispatcher dispatcher, IFileService fileService)
+        : base(logger, settingsManager, systemDialogs, dispatcher, fileService, new EmptySourceCodeParser())
     {
     }
 

@@ -56,6 +56,7 @@ public class MainViewModel : ViewModel
     public RelayCommand ExitCommand { get; }
     public RelayCommandAsync BuildCommand { get; }
     public RelayCommandAsync RunCommand { get; }
+    public RelayCommandAsync ProfileCommand { get; }
     public RelayCommandAsync PauseCommand { get; }
     public RelayCommandAsync StopCommand { get; }
     public RelayCommandAsync StepIntoCommand { get; }
@@ -165,6 +166,7 @@ public class MainViewModel : ViewModel
             _commandsManager.CreateRelayCommandAsync(BuildAsync, () => IsProjectOpen && !IsBuilding && !IsDebugging);
         RunCommand = _commandsManager.CreateRelayCommandAsync(StartDebuggingAsync,
             () => IsProjectOpen && !(IsDebuggingStarting || IsDebugging && !IsDebuggingPaused));
+        ProfileCommand = _commandsManager.CreateRelayCommandAsync(StartProfilingAsync, () => IsProjectOpen);
         StopCommand = _commandsManager.CreateRelayCommandAsync(StopDebuggingAsync, () => IsDebuggingStarting || IsDebugging);
         PauseCommand =
             _commandsManager.CreateRelayCommandAsync(PauseDebuggingAsync, () => IsDebugging && !IsDebuggingPaused);
@@ -245,14 +247,30 @@ public class MainViewModel : ViewModel
         }
         
         // the two cleaning guys below should work even when VICE is not connected anymore
-        await Breakpoints.DisarmAllBreakpointsAsync();
+        if (!Vice.IsProfiling)
+        {
+	        await Breakpoints.DisarmAllBreakpointsAsync();
+        }
+
         await Vice.StopDebuggingAsync();
         DebugOutput.AddLine("Stopped");
     }
 
     private CancellationTokenSource? _debuggingCts;
 
+    async Task StartProfilingAsync()
+    {
+	    Vice.IsProfiling = true;
+	    await StartExecutingAsync();
+    }
+
     async Task StartDebuggingAsync()
+    {
+	    Vice.IsProfiling = false;
+	    await StartExecutingAsync();
+    }
+    
+    async Task StartExecutingAsync()
     {
         try
         {
@@ -295,14 +313,18 @@ public class MainViewModel : ViewModel
                         return;
                     }
 
-                    DebugOutput.AddLine("Adding breakpoints from code");
-                    await Breakpoints.AddBreakpointsFromCodeAsync(ct);
-                    DebugOutput.AddLine("Arming breakpoints");
-                    _logger.LogDebug("Arming breakpoints");
-                    await Breakpoints.ArmBreakpointsAsync(ct);
                     DebugOutput.AddLine("Starting debugging");
                     _logger.LogDebug("Starting debugging");
                     await Vice.StartDebuggingAsync(ct);
+                    // no breakpoints for profiling
+                    if (!Vice.IsProfiling)
+                    {
+	                    DebugOutput.AddLine("Adding breakpoints from code");
+	                    await Breakpoints.AddBreakpointsFromCodeAsync(ct);
+	                    DebugOutput.AddLine("Arming breakpoints");
+	                    _logger.LogDebug("Arming breakpoints");
+	                    await Breakpoints.ArmBreakpointsAsync(ct);
+                    }
                     _logger.LogDebug("Debugging started");
                 }
             }

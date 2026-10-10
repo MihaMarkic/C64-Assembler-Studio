@@ -12,6 +12,7 @@ public interface IVice: INotifyPropertyChanged
     bool IsConnected { get; }
     bool IsPaused { get; }
     bool IsDebugging { get; }
+    bool IsProfiling { get; set; }
     RegistersViewModel Registers { get; }
     /// <summary>
     /// Contains <see cref="BankItem"/> banks grouped by name
@@ -24,7 +25,13 @@ public interface IVice: INotifyPropertyChanged
     Task StartDebuggingAsync(CancellationToken ct = default);
     Task StopDebuggingAsync(CancellationToken ct = default);
     Task PauseDebuggingAsync(CancellationToken ct = default);
-    Task ContinueAsync(CancellationToken ct = default);
+    /// <summary>
+    /// Continues execution.
+    /// </summary>
+    /// <param name="verifyState">Whether to verify that VICE is paused and only then execute Exit, or always when flag is false.</param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    Task ContinueAsync(bool verifyState = true, CancellationToken ct = default);
     Task StepIntoAsync(CancellationToken ct = default);
     Task StepOverAsync(CancellationToken ct = default);
     Task<bool> DeleteCheckpointAsync(uint checkpointNumber, CancellationToken ct = default);
@@ -32,4 +39,10 @@ public interface IVice: INotifyPropertyChanged
     Task<bool> ToggleCheckpointAsync(uint checkpointNumber, bool targetEnabledState, CancellationToken ct = default);
     Task<CheckpointListResponse?> GetCheckpointsListAsync(CancellationToken ct = default);
     Task DisconnectAsync(CancellationToken ct = default);
+    /// <summary>
+    /// Waits for stopped response.
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    Task WaitForStoppedAsync(CancellationToken ct);
 }

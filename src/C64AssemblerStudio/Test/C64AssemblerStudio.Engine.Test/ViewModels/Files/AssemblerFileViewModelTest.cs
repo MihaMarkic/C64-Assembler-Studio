@@ -1,13 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using System.Collections.Immutable;
-using Antlr4.Runtime;
-using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Files;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
 using NUnit.Framework;
-using Righthand.RetroDbgDataProvider.KickAssembler.Services.CompletionOptionCollectors;
 using Righthand.RetroDbgDataProvider.Models.Program;
 using TestsBase;
 

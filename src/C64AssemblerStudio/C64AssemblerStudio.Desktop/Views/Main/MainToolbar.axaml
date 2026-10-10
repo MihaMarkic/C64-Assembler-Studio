@@ -52,6 +52,11 @@
                 <TextBlock Margin="4,0,0,0" Text="{Binding StatusInfo.RunCommandTitle}" />
             </StackPanel>
         </Button>
+        <Button ToolTip.Tip="Starts profiling" Command="{Binding ProfileCommand}" DockPanel.Dock="Left">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Margin="4,0,0,0" Text="Profile" />
+            </StackPanel>
+        </Button>
         <Button ToolTip.Tip="Pauses debugging" Command="{Binding PauseCommand}" DockPanel.Dock="Left">
             <StackPanel Orientation="Horizontal">
                 <Image>

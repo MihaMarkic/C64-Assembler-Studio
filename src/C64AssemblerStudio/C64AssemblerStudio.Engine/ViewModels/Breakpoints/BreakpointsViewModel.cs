@@ -125,6 +125,11 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
     private void ViceOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+	    if (_vice.IsProfiling)
+	    {
+		    return;
+	    }
+	    
         switch (e.PropertyName)
         {
             case nameof(IVice.IsPaused):
@@ -138,6 +143,10 @@ public class BreakpointsViewModel : NotifiableObject, IToolView
 
     private void ViceOnCheckpointInfoUpdated(object? sender, CheckpointInfoEventArgs e)
     {
+	    if (_vice.IsProfiling)
+	    {
+		    return;
+	    }
         if (e.Response?.StopWhenHit == true)
         {
             UpdateBreakpointDataFromVice(e.Response);

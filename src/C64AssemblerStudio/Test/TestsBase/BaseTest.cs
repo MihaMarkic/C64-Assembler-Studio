@@ -8,8 +8,8 @@ namespace TestsBase;
 public abstract class BaseTest<T>
     where T : class
 {
-    protected Fixture Fixture = default!;
-    private T? _target = default!;
+    protected Fixture Fixture = null!;
+    private T? _target = null!;
 
     protected T Target
     {

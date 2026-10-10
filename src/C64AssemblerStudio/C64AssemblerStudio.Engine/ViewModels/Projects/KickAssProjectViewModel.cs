@@ -9,6 +9,7 @@ using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.KickAssembler.Models;
 using Righthand.RetroDbgDataProvider.KickAssembler.Services.Abstract;
 using Righthand.RetroDbgDataProvider.Models.Program;
+using Righthand.RetroDbgDataProvider.Services.Abstract;
 using Label = Righthand.RetroDbgDataProvider.Models.Program.Label;
 
 namespace C64AssemblerStudio.Engine.ViewModels.Projects;
@@ -27,11 +28,12 @@ public class KickAssProjectViewModel : ProjectViewModel<KickAssProject, KickAsse
     public KickAssProjectViewModel(ILogger<ProjectViewModel<KickAssProject, KickAssemblerParsedSourceFile>> logger,
         ISettingsManager settingsManager,
         ISystemDialogs systemDialogs, IDispatcher dispatcher,
+        IFileService fileService,
         IKickAssemblerCompiler compiler, IKickAssemblerDbgParser dbgParser,
         IKickAssemblerProgramInfoBuilder programInfoBuilder,
         IKickAssemblerByteDumpParser byteDumpParser,
         IKickAssemblerSourceCodeParser sourceCodeParser)
-        : base(logger, settingsManager, systemDialogs, dispatcher, sourceCodeParser)
+        : base(logger, settingsManager, systemDialogs, dispatcher, fileService, sourceCodeParser)
     {
         Compiler = compiler;
         DbgParser = dbgParser;
