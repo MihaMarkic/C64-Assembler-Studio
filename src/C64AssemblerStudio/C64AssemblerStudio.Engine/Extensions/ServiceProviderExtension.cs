@@ -2,6 +2,7 @@
 using C64AssemblerStudio.Core.Common.Compiler;
 using C64AssemblerStudio.Engine.BindingValidators;
 using C64AssemblerStudio.Engine.Models.Projects;
+using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Files;
@@ -83,5 +84,10 @@ public static class ServiceProviderExtension
     {
         return ActivatorUtilities.CreateInstance<IpAddressValidator>(serviceScope.ServiceProvider,
             sourcePropertyName);
+    }
+
+    public static IProfilerStorage GetProfilerStorage(this IServiceScope serviceScope, string projectPath)
+    {
+	    return ActivatorUtilities.CreateInstance<ProfilerStorage>(serviceScope.ServiceProvider, projectPath);
     }
 }

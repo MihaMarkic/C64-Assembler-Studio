@@ -12,7 +12,7 @@ public interface IVice: INotifyPropertyChanged
     bool IsConnected { get; }
     bool IsPaused { get; }
     bool IsDebugging { get; }
-    bool IsProfiling { get; set; }
+    bool IsProfiling { get; }
     RegistersViewModel Registers { get; }
     /// <summary>
     /// Contains <see cref="BankItem"/> banks grouped by name
@@ -40,9 +40,15 @@ public interface IVice: INotifyPropertyChanged
     Task<CheckpointListResponse?> GetCheckpointsListAsync(CancellationToken ct = default);
     Task DisconnectAsync(CancellationToken ct = default);
     /// <summary>
-    /// Waits for stopped response.
+    /// Starts profiling storage and sets <see cref="IsProfiling"/> flag.
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task WaitForStoppedAsync(CancellationToken ct);
+    Task StartProfilerAsync(CancellationToken ct);
+	/// <summary>
+	/// Starts without profiling and clears previous profiler storage if any.
+	/// </summary>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+    Task ClearProfilerAsync(CancellationToken ct);
 }

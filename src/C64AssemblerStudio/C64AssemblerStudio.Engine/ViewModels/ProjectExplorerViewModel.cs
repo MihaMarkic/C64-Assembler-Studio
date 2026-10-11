@@ -151,7 +151,7 @@ public class ProjectExplorerViewModel : ViewModel
     {
         try
         {
-            _fileService.Delete(file.AbsolutePath);
+            _fileService.DeleteFile(file.AbsolutePath);
         }
         catch (Exception ex)
         {

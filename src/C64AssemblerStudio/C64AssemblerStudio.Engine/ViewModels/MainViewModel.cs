@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Core.Common;
 using C64AssemblerStudio.Core.Services.Abstract;
@@ -253,6 +254,7 @@ public class MainViewModel : ViewModel
         }
 
         await Vice.StopDebuggingAsync();
+        Console.WriteLine("***Stopped");
         DebugOutput.AddLine("Stopped");
     }
 
@@ -260,13 +262,31 @@ public class MainViewModel : ViewModel
 
     async Task StartProfilingAsync()
     {
-	    Vice.IsProfiling = true;
+	    try
+	    {
+		    await Vice.StartProfilerAsync(CancellationToken.None);
+	    }
+	    catch (Exception ex)
+	    {
+		    DebugOutput.AddLine($"Starting profiler error: {ex.Message}");
+		    _logger.LogError(ex, "Failed profiling");
+		    return;
+	    }
 	    await StartExecutingAsync();
     }
 
     async Task StartDebuggingAsync()
     {
-	    Vice.IsProfiling = false;
+	    try
+	    {
+		    await Vice.ClearProfilerAsync(CancellationToken.None);
+	    }
+	    catch (Exception ex)
+	    {
+		    DebugOutput.AddLine($"Cleaning profiler error: {ex.Message}");
+		    _logger.LogError(ex, "Failed cleaning profiler storage");
+		    return;
+	    }
 	    await StartExecutingAsync();
     }
     

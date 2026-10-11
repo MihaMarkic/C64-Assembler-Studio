@@ -1,5 +1,6 @@
 ﻿using System.Collections.Frozen;
 using System.Diagnostics;
+using System.Runtime.InteropServices.Marshalling;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
@@ -8,6 +9,7 @@ using C64AssemblerStudio.Engine.Services.Abstract;
 using C64AssemblerStudio.Engine.ViewModels;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Righthand.MessageBus;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
@@ -18,6 +20,14 @@ using Righthand.ViceMonitor.Bridge.Services.Abstract;
 
 namespace C64AssemblerStudio.Engine.Services.Implementation;
 
+public enum ViceProfilerState
+{
+	None,
+	Initializing,
+	Collecting
+}
+
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Vice : NotifiableObject, IVice
 {
 	private readonly ILogger<Vice> _logger;
@@ -26,6 +36,7 @@ public class Vice : NotifiableObject, IVice
 	private readonly IDispatcher _dispatcher;
 	private readonly TaskFactory _uiFactory;
 	private readonly IOSDependent _osDependent;
+	private readonly IServiceScope _serviceScope;
 
 	public RegistersViewModel Registers { get; }
 	public ViceMemoryViewModel Memory { get; }
@@ -43,6 +54,7 @@ public class Vice : NotifiableObject, IVice
 		FrozenDictionary<ushort, FrozenSet<BankItem>>.Empty;
 
 	private Process? _process;
+	private IProfilerStorage? _profilerStorage;
 	public event EventHandler<RegistersEventArgs>? RegistersUpdated;
 	public event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated;
 	public event EventHandler<MemoryGetEventArgs>? MemoryUpdated;
@@ -65,7 +77,9 @@ public class Vice : NotifiableObject, IVice
 	/// <remarks>
 	/// Has only effect before starting debugging.
 	/// </remarks>
-	public bool IsProfiling { get; set; }
+	public bool IsProfiling { get; private set; }
+
+	public ViceProfilerState ProfilerState { get; private set; } = ViceProfilerState.None;
 
 	/// <summary>
 	/// When profiling this is the current CpuHistory command being executed.
@@ -74,13 +88,14 @@ public class Vice : NotifiableObject, IVice
 
 	public Vice(ILogger<Vice> logger, IViceBridge bridge, IGlobals globals, IDispatcher dispatcher,
 		RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack,
-		IOSDependent osDependent)
+		IOSDependent osDependent, IServiceScope serviceScope)
 	{
 		_logger = logger;
 		_bridge = bridge;
 		_globals = globals;
 		_dispatcher = dispatcher;
 		_osDependent = osDependent;
+		_serviceScope = serviceScope;
 		Registers = registers;
 		Memory = viceMemory;
 		CallStack = callStack;
@@ -97,6 +112,35 @@ public class Vice : NotifiableObject, IVice
 	private void OnCpuHistoryUpdated(CpuHistoryEventArgs e) => CpuHistoryUpdated?.Invoke(this, e);
 	private bool _retrieveMemory;
 
+	/// <inheritdoc/>
+	public async Task StartProfilerAsync(CancellationToken ct)
+	{
+		if (_profilerStorage is not null)
+		{
+			_logger.LogDebug("Previous profiler storage still running, waiting for flush");
+			await _profilerStorage.FlushAsync(ct);
+		}
+
+		// project has to exist at this point
+		_profilerStorage = _serviceScope.GetProfilerStorage(_globals.Project.Directory!);
+		await _profilerStorage.InitAsync(ct);
+		ProfilerState = ViceProfilerState.None;
+		IsProfiling = true;
+	}
+
+	/// <inheritdoc/>
+	public async Task ClearProfilerAsync(CancellationToken ct)
+	{
+		if (_profilerStorage is not null)
+		{
+			_logger.LogDebug("Previous profiler storage still running, waiting for flush");
+			await _profilerStorage.FlushAsync(ct);
+		}
+
+		_profilerStorage = null;
+		IsProfiling = false;
+	}
+
 	private async void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
 	{
 		try
@@ -108,19 +152,45 @@ public class Vice : NotifiableObject, IVice
 				{
 					switch (r)
 					{
+						// the only StoppedResponse should be the one happening after CheckpointInfoResponse
 						case StoppedResponse:
-							if (IsDebugging)
+							_logger.LogDebug("Got StoppedResponse");
+							switch (ProfilerState)
 							{
-								await ExitViceMonitorAsync(CancellationToken.None);
+								case ViceProfilerState.Collecting:
+									if (IsDebugging)
+									{
+										_logger.LogDebug("Collecting CPU history");
+										var cpuHistoryCommand = new CpuHistoryCommand(MemSpace.MainMemory,
+											Settings.CpuHistoryLines);
+										_bridge.EnqueueCommand(cpuHistoryCommand);
+										var result = await cpuHistoryCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, cpuHistoryCommand);
+										if (result is not null)
+										{
+											await _profilerStorage!.StoreChunkAsync(result);
+										}
+										else
+										{
+											_logger.LogError("Could not get CPU history response");
+											// TODO stop profiling
+										}
+										AdvanceProfilingAsync();
+										await ExitViceMonitorAsync(CancellationToken.None);
+									}
+									
+									break;
 							}
 
 							break;
 						default:
-							_logger.LogDebug("Got {Response} but it will be ignored due profiling", e.Response.GetType().Name);
+							_logger.LogDebug("Got {Response} but it will be ignored due profiling",
+								e.Response.GetType().Name);
 							break;
 					}
+
 					return;
 				}
+
 				_logger.LogDebug("Got {Response}", e.Response.GetType().Name);
 				switch (r!)
 				{
@@ -259,42 +329,21 @@ public class Vice : NotifiableObject, IVice
 		await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
 
 		_logger.LogDebug("Waiting for start program checkpoint to be hit");
-		await WaitForUnboundResponseAsync<CheckpointInfoResponse>(
-			(r) => r.CheckpointNumber == programStartCheckpoint.CheckpointNumber, ct);
+		await _bridge.WaitForUnboundResponseAsync<CheckpointInfoResponse>(
+			_logger,
+			(r) => r.CheckpointNumber == programStartCheckpoint.CheckpointNumber,
+			waitForStop: true, ct);
 		_logger.LogDebug("Start program checkpoint hit");
+		ProfilerState = ViceProfilerState.Collecting;
+
+		AdvanceProfilingAsync();
+		await ExitViceMonitorAsync(ct);
 	}
 
-	/// <inheritdoc/>
-	public async Task WaitForStoppedAsync(CancellationToken ct)
+	private void AdvanceProfilingAsync()
 	{
-		await WaitForUnboundResponseAsync<StoppedResponse>(r => true, ct);
-	}
-
-	/// <summary>
-	/// Waits for an unbound response of given type
-	/// </summary>
-	/// <param name="isResponseValid"></param>
-	/// <param name="ct"></param>
-	/// <typeparam name="T"></typeparam>
-	/// <returns></returns>
-	internal Task<T> WaitForUnboundResponseAsync<T>(Func<T, bool> isResponseValid, CancellationToken ct)
-		where T : ViceResponse
-	{
-		TaskCompletionSource<T> tcs = new();
-		EventHandler<ViceResponseEventArgs>? handler = null;
-		handler = (_, e) =>
-		{
-			_logger.LogDebug("While waiting got reponse {ResponseType}", e.Response.GetType().Name);
-			if (e.Response is T response && isResponseValid(response))
-			{
-				tcs.TrySetResult(response);
-				_bridge.ViceResponse -= handler;
-			}
-		};
-		_logger.LogDebug("Waiting for reponse {ResponseType}", typeof(T).Name);
-		_bridge.ViceResponse += handler;
-		ct.Register(() => { _bridge.ViceResponse -= handler; });
-		return tcs.Task;
+		_currentProfileAdvanceCommand = new AdvanceInstructionCommand(StepOverSubroutine: false, Settings.CpuHistoryLines);
+		_bridge.EnqueueCommand(_currentProfileAdvanceCommand, resumeOnStopped: true);
 	}
 
 	private async Task<CheckpointInfoResponse?> InsertProgramStartCheckpointAsync(CancellationToken ct)
@@ -308,7 +357,7 @@ public class Vice : NotifiableObject, IVice
 
 		_logger.LogDebug("Inserting start program checkpoint at address {Address:X4}", address);
 		var checkpointSetCommand = _bridge.EnqueueCommand(
-			new CheckpointSetCommand(address.Value, address.Value, true, true, CpuOperation.Exec, true), 
+			new CheckpointSetCommand(address.Value, address.Value, true, true, CpuOperation.Exec, true),
 			resumeOnStopped: true);
 		var checkpointSetResponse = await checkpointSetCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher,
 			_logger,
@@ -411,6 +460,11 @@ public class Vice : NotifiableObject, IVice
 		}
 
 		IsDebugging = false;
+		if (IsProfiling)
+		{
+			await _profilerStorage!.FlushAsync(ct);
+		}
+
 	}
 
 	public async Task PauseDebuggingAsync(CancellationToken ct = default)
