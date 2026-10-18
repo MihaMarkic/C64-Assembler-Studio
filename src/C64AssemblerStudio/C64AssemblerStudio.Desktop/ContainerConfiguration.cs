@@ -1,4 +1,5 @@
 ﻿using C64AssemblerStudio.Core;
+using C64AssemblerStudio.Core.Services.Abstract;
 using C64AssemblerStudio.Desktop.Services.Implementation;
 using C64AssemblerStudio.Desktop.Views;
 using C64AssemblerStudio.Engine;
@@ -27,12 +28,14 @@ public static class ContainerConfiguration
             builder.SetMinimumLevel(LogLevel.Debug);
             builder.AddNLog(config);
         });
-        services.AddEngine(messagesHistory);
-        services.AddCore();
-        services.AddSingleton<ISystemInfo, SystemInfo>();
-        services.AddSingleton<ISystemDialogs, SystemDialogs>();
-        services.AddSingleton<IDockFactory, DockFactory>();
-        services.AddSingleton<IGuiServices, GuiServices>();
+        services
+	        .AddEngine(messagesHistory)
+	        .AddCore()
+	        .AddSingleton<ISystemInfo, SystemInfo>()
+	        .AddSingleton<ISystemDialogs, SystemDialogs>()
+	        .AddSingleton<IDockFactory, DockFactory>()
+	        .AddSingleton<IGuiServices, GuiServices>()
+	        .AddSingleton<IUiServices, UiServices>();
         //services.AddAcme();
         //services.AddOscar64();
         return services;

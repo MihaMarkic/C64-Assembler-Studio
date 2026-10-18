@@ -111,6 +111,12 @@
         <common:Spinner IsActive="{Binding IsBusy}" DockPanel.Dock="Right" Margin="4,0" />
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="4,0">
             <Image Source="{Binding StatusInfo.IsViceConnected, Converter={StaticResource IsConnectedToSvgImageConverter}}" />
+            <StackPanel Orientation="Horizontal" Margin="4,0,0,0" VerticalAlignment="Center" ToolTip.Tip="Profiler info">
+                <TextBlock Foreground="{Binding Profiler.IsCollecting, Converter={StaticResource IsConnectedToForegroundConverter}}">PROFILING</TextBlock>
+                <TextBlock IsVisible="{Binding Profiler.IsCollecting}">:</TextBlock>
+                <TextBlock IsVisible="{Binding Profiler.IsCollecting}" 
+                           Text="{Binding Profiler.CollectedData, Converter={x:Static converters:StudioConverters.NumberToMegabytes}}" />
+            </StackPanel>
             <TextBlock Margin="4,0,0,0" VerticalAlignment="Center" ToolTip.Tip="Connection status to VICE"
                        Foreground="{Binding StatusInfo.IsViceConnected, Converter={StaticResource IsConnectedToForegroundConverter}}">
                 VICE

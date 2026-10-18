@@ -86,6 +86,12 @@ public static class ServiceProviderExtension
             sourcePropertyName);
     }
 
+    /// <summary>
+    /// Creates transient instance of <see cref="IProfilerStorage"/>.
+    /// </summary>
+    /// <param name="serviceScope"></param>
+    /// <param name="projectPath"></param>
+    /// <returns></returns>
     public static IProfilerStorage GetProfilerStorage(this IServiceScope serviceScope, string projectPath)
     {
 	    return ActivatorUtilities.CreateInstance<ProfilerStorage>(serviceScope.ServiceProvider, projectPath);

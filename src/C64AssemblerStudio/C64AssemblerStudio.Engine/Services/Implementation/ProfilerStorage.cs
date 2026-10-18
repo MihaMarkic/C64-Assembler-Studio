@@ -9,6 +9,7 @@ namespace C64AssemblerStudio.Engine.Services.Implementation;
 // ReSharper disable once ClassNeverInstantiated.Global
 public sealed class ProfilerStorage : IProfilerStorage
 {
+	public event EventHandler<ProfilerCollectedDataEventArgs>? CollectedData;
 	public event EventHandler<ProfilerStorageErrorEventArgs>? Error;
 	
 	private readonly ILogger<ProfilerStorage> _logger;
@@ -27,7 +28,8 @@ public sealed class ProfilerStorage : IProfilerStorage
 		// _profilerPath = Path.Combine(projectPath, "_profiler");
 	}
 	
-	private void OnError(object sender, ProfilerStorageErrorEventArgs e) => Error?.Invoke(this, e);
+	private void OnError(ProfilerStorageErrorEventArgs e) => Error?.Invoke(this, e);
+	private void OnCollectedData(ProfilerCollectedDataEventArgs e) => CollectedData?.Invoke(this, e);
 
 	public Task InitAsync(CancellationToken ct)
 	{
@@ -66,9 +68,11 @@ public sealed class ProfilerStorage : IProfilerStorage
 					try
 					{
 						string filePath = GetChunkFilePath(currentIndex);
+						var data = response.Buffer!.Value.Data;
 						currentIndex++;
-						await _fileService.WriteAllBytesAsync(filePath, response.Buffer!.Value.Data.AsMemory(), ct)
+						await _fileService.WriteAllBytesAsync(filePath, data.AsMemory(), ct)
 							.ConfigureAwait(false);
+						OnCollectedData(new ProfilerCollectedDataEventArgs(data.Length));
 					}
 					finally
 					{

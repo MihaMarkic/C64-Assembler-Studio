@@ -168,7 +168,9 @@ public class MainViewModel : ViewModel
         RunCommand = _commandsManager.CreateRelayCommandAsync(StartDebuggingAsync,
             () => IsProjectOpen && !(IsDebuggingStarting || IsDebugging && !IsDebuggingPaused));
         ProfileCommand = _commandsManager.CreateRelayCommandAsync(StartProfilingAsync, () => IsProjectOpen);
-        StopCommand = _commandsManager.CreateRelayCommandAsync(StopDebuggingAsync, () => IsDebuggingStarting || IsDebugging);
+        StopCommand = _commandsManager.CreateRelayCommandAsync(StopDebuggingAsync, 
+	        () => (IsDebuggingStarting || IsDebugging) 
+	              && (!Vice.IsProfiling || Vice.ProfilerState == ViceProfilerState.Collecting));
         PauseCommand =
             _commandsManager.CreateRelayCommandAsync(PauseDebuggingAsync, () => IsDebugging && !IsDebuggingPaused);
         StepIntoCommand =
@@ -204,6 +206,12 @@ public class MainViewModel : ViewModel
                     _ = StopDebuggingAsync();
                 }
                 break;
+            case nameof(IVice.IsProfiling):
+	            if (!Vice.IsProfiling)
+	            {
+		            Profiler.StopProfiling();
+	            }
+	            break;
         }
     }
 
@@ -264,7 +272,8 @@ public class MainViewModel : ViewModel
     {
 	    try
 	    {
-		    await Vice.StartProfilerAsync(CancellationToken.None);
+		    var profilerStorage = await Vice.StartProfilerAsync(CancellationToken.None);
+		    Profiler.Init(profilerStorage);
 	    }
 	    catch (Exception ex)
 	    {

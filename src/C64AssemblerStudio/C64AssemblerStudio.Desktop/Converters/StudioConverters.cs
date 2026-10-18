@@ -94,4 +94,10 @@ public static class StudioConverters
         new FuncValueConverter<ViceStartType, bool>(st => st == ViceStartType.File);
     public static readonly IValueConverter IsFlatpakSelectorVisible = 
         new FuncValueConverter<ViceStartType, bool>(st => st == ViceStartType.Flatpak);
+    public static readonly IValueConverter NumberToMegabytes =
+	    new FuncValueConverter<int, string>(st =>
+	    {
+		    double kilobytes = st / (1024.0 * 1024);
+		    return $"{kilobytes:#,##0.0}MB";
+	    });
 }

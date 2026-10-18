@@ -1,6 +1,7 @@
 ﻿using System.Collections.Frozen;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.InteropServices.Marshalling;
+using System.Threading.Tasks.Dataflow;
 using C64AssemblerStudio.Core;
 using C64AssemblerStudio.Engine.Common;
 using C64AssemblerStudio.Engine.Messages;
@@ -24,7 +25,13 @@ public enum ViceProfilerState
 {
 	None,
 	Initializing,
-	Collecting
+	Collecting,
+
+	/// <summary>
+	/// When stop debugging is issued.
+	/// </summary>
+	Stopping,
+	Stopped,
 }
 
 // ReSharper disable once ClassNeverInstantiated.Global
@@ -86,6 +93,10 @@ public class Vice : NotifiableObject, IVice
 	/// </summary>
 	private AdvanceInstructionCommand? _currentProfileAdvanceCommand;
 
+	private readonly BufferBlock<ViceResponse> _responseBuffer = new();
+	private readonly Task _bridgeResponseProcessorTask;
+	private readonly CancellationTokenSource _bridgeResponseProcessorCts = new();
+
 	public Vice(ILogger<Vice> logger, IViceBridge bridge, IGlobals globals, IDispatcher dispatcher,
 		RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack,
 		IOSDependent osDependent, IServiceScope serviceScope)
@@ -101,6 +112,16 @@ public class Vice : NotifiableObject, IVice
 		CallStack = callStack;
 
 		_uiFactory = new TaskFactory(TaskScheduler.FromCurrentSynchronizationContext());
+
+		var token = _bridgeResponseProcessorCts!.Token;
+		// start unbound responses sequential processor
+		var task = Task.Factory.StartNew(
+			() => BridgeResponseProcessor(_responseBuffer, token),
+			cancellationToken: token,
+			creationOptions: TaskCreationOptions.LongRunning,
+			scheduler: TaskScheduler.Default);
+		_bridgeResponseProcessorTask = task.Unwrap();
+
 		_bridge.ConnectedChanged += BridgeOnConnectedChanged;
 		_bridge.ViceResponse += BridgeOnViceResponse;
 		_bridge.Start(_globals.Settings.ViceMonitorPort);
@@ -113,7 +134,7 @@ public class Vice : NotifiableObject, IVice
 	private bool _retrieveMemory;
 
 	/// <inheritdoc/>
-	public async Task StartProfilerAsync(CancellationToken ct)
+	public async Task<IProfilerStorage> StartProfilerAsync(CancellationToken ct)
 	{
 		if (_profilerStorage is not null)
 		{
@@ -126,6 +147,7 @@ public class Vice : NotifiableObject, IVice
 		await _profilerStorage.InitAsync(ct);
 		ProfilerState = ViceProfilerState.None;
 		IsProfiling = true;
+		return _profilerStorage;
 	}
 
 	/// <inheritdoc/>
@@ -141,92 +163,149 @@ public class Vice : NotifiableObject, IVice
 		IsProfiling = false;
 	}
 
-	private async void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
+	private int _cycle = 0;
+	private Lock _cycleLock = new();
+
+	private void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
 	{
-		try
+		_ = _responseBuffer.SendAsync(e.Response);
+	}
+
+	/// <summary>
+	/// Sequentially schedules unbound VICE responses.
+	/// </summary>
+	/// <param name="source"></param>
+	/// <param name="ct"></param>
+	private async Task BridgeResponseProcessor(IReceivableSourceBlock<ViceResponse> source, CancellationToken ct)
+	{
+		while (await source.OutputAvailableAsync(ct).ConfigureAwait(false))
 		{
-			// handle all responses in UI thread
-			await _uiFactory.StartNewTyped(async r =>
+			try
 			{
-				if (IsProfiling)
+				if (source.TryReceive(out var response))
 				{
-					switch (r)
+					int cycle;
+					lock (_cycleLock)
 					{
-						// the only StoppedResponse should be the one happening after CheckpointInfoResponse
-						case StoppedResponse:
-							_logger.LogDebug("Got StoppedResponse");
-							switch (ProfilerState)
+						cycle = _cycle;
+					}
+					_logger.LogInformation($"Firing {cycle}");
+					await _uiFactory.StartNewTyped(BridgeResponseProcessor, response, ct);
+					_logger.LogInformation($"Fired {cycle}");
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				_logger.LogDebug("Exiting loop because cancelled");
+			}
+		}
+
+		_logger.LogDebug("Loop done");
+	}
+
+	/// <summary>
+	/// Sequential processing of VICE unbound responses
+	/// </summary>
+	/// <param name="response"></param>
+	/// <param name="ct"></param>
+	private async Task BridgeResponseProcessor(ViceResponse response, CancellationToken ct)
+	{
+		int cycle;
+		lock (_cycleLock)
+		{
+			cycle = _cycle;
+		}
+		if (IsProfiling)
+		{
+			switch (response)
+			{
+				// the only StoppedResponse should be the one happening after CheckpointInfoResponse
+				case StoppedResponse:
+					// _logger.LogDebug("Got StoppedResponse");
+					switch (ProfilerState)
+					{
+						case ViceProfilerState.Collecting:
+						case ViceProfilerState.Stopping:
+							if (IsDebugging)
 							{
-								case ViceProfilerState.Collecting:
-									if (IsDebugging)
-									{
-										_logger.LogDebug("Collecting CPU history");
-										var cpuHistoryCommand = new CpuHistoryCommand(MemSpace.MainMemory,
-											Settings.CpuHistoryLines);
-										_bridge.EnqueueCommand(cpuHistoryCommand);
-										var result = await cpuHistoryCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, cpuHistoryCommand);
-										if (result is not null)
-										{
-											await _profilerStorage!.StoreChunkAsync(result);
-										}
-										else
-										{
-											_logger.LogError("Could not get CPU history response");
-											// TODO stop profiling
-										}
+								_logger.LogDebug($"Collecting CPU history {cycle}");
+								// var cpuHistoryCommand = new CpuHistoryCommand(MemSpace.MainMemory,
+								// 	Settings.CpuHistoryLines);
+								// _bridge.EnqueueCommand(cpuHistoryCommand);
+								// var result = await cpuHistoryCommand.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, cpuHistoryCommand);
+								// if (result is not null)
+								// {
+								// 	await _profilerStorage!.StoreChunkAsync(result);
+								// }
+								// else
+								// {
+								// 	_logger.LogError("Could not get CPU history response");
+								// 	// TODO stop profiling
+								// }
+								switch (ProfilerState)
+								{
+									case ViceProfilerState.Collecting:
+										_logger.LogDebug($"Advancing {cycle}");
 										AdvanceProfilingAsync();
-										await ExitViceMonitorAsync(CancellationToken.None);
-									}
-									
-									break;
+										var sw = Stopwatch.StartNew();
+										await ExitViceMonitorAsync(ct);
+										_logger.LogDebug($"Exited in {sw.ElapsedMilliseconds:#,##0}ms {cycle}");
+										break;
+									case ViceProfilerState.Stopping:
+										_logger.LogDebug($"Stopped {cycle}");
+										ProfilerState = ViceProfilerState.Stopped;
+										break;
+								}
+
 							}
 
-							break;
-						default:
-							_logger.LogDebug("Got {Response} but it will be ignored due profiling",
-								e.Response.GetType().Name);
 							break;
 					}
 
-					return;
-				}
+					break;
+				default:
+					// _logger.LogDebug("Got {Response} but it will be ignored due profiling",
+					// 	e.Response.GetType().Name);
+					break;
+			}
+			lock (_cycleLock)
+			{
+				_cycle++;
+			}
 
-				_logger.LogDebug("Got {Response}", e.Response.GetType().Name);
-				switch (r!)
-				{
-					case RegistersResponse registersResponse:
-						Registers.UpdateRegistersFromResponse(registersResponse);
-						OnRegistersUpdated(new RegistersEventArgs(registersResponse));
-						break;
-					case CheckpointInfoResponse checkpointInfoResponse:
-						OnCheckpointInfoUpdated(new CheckpointInfoEventArgs((checkpointInfoResponse)));
-						_retrieveMemory = true;
-						break;
-					case ResumedResponse:
-						IsPaused = false;
-						break;
-					case StoppedResponse:
-						if (_retrieveMemory)
-						{
-							try
-							{
-								await GetMemoryAsync(CancellationToken.None);
-								CallStack.Update();
-							}
-							finally
-							{
-								_retrieveMemory = false;
-							}
-						}
-
-						IsPaused = true;
-						break;
-				}
-			}, e.Response, CancellationToken.None);
+			return;
 		}
-		catch (Exception ex)
+
+		_logger.LogDebug("Got {Response}", response.GetType().Name);
+		switch (response!)
 		{
-			_logger.LogError(ex, "Failed processing ViceResponse");
+			case RegistersResponse registersResponse:
+				Registers.UpdateRegistersFromResponse(registersResponse);
+				OnRegistersUpdated(new RegistersEventArgs(registersResponse));
+				break;
+			case CheckpointInfoResponse checkpointInfoResponse:
+				OnCheckpointInfoUpdated(new CheckpointInfoEventArgs((checkpointInfoResponse)));
+				_retrieveMemory = true;
+				break;
+			case ResumedResponse:
+				IsPaused = false;
+				break;
+			case StoppedResponse:
+				if (_retrieveMemory)
+				{
+					try
+					{
+						await GetMemoryAsync(ct);
+						CallStack.Update();
+					}
+					finally
+					{
+						_retrieveMemory = false;
+					}
+				}
+
+				IsPaused = true;
+				break;
 		}
 	}
 
@@ -342,7 +421,8 @@ public class Vice : NotifiableObject, IVice
 
 	private void AdvanceProfilingAsync()
 	{
-		_currentProfileAdvanceCommand = new AdvanceInstructionCommand(StepOverSubroutine: false, Settings.CpuHistoryLines);
+		_currentProfileAdvanceCommand =
+			new AdvanceInstructionCommand(StepOverSubroutine: false, Settings.CpuHistoryLines);
 		_bridge.EnqueueCommand(_currentProfileAdvanceCommand, resumeOnStopped: true);
 	}
 
@@ -443,6 +523,15 @@ public class Vice : NotifiableObject, IVice
 	{
 		if (_bridge.IsConnected)
 		{
+			if (IsProfiling)
+			{
+				ProfilerState = ViceProfilerState.Stopping;
+				_logger.LogInformation($"Waiting for ViceProfilerState.Stopped on cycle {_cycle}");
+				await WaitForProfilerStateValueAsync(ViceProfilerState.Stopped, ct);
+				_logger.LogInformation("Flushing profiler");
+				await _profilerStorage!.FlushAsync(ct);
+			}
+
 			if (_globals.Settings.ResetOnStop)
 			{
 				_logger.LogInformation("Stopping debugging with reset on stop");
@@ -460,11 +549,41 @@ public class Vice : NotifiableObject, IVice
 		}
 
 		IsDebugging = false;
-		if (IsProfiling)
+	}
+
+	/// <summary>
+	/// Awaits desired <see cref="ProfilerState"/>.
+	/// </summary>
+	/// <param name="state"></param>
+	/// <param name="ct"></param>
+	/// <returns></returns>
+	internal Task WaitForProfilerStateValueAsync(ViceProfilerState state, CancellationToken ct = default)
+	{
+		if (ProfilerState == state)
 		{
-			await _profilerStorage!.FlushAsync(ct);
+			return Task.CompletedTask;
 		}
 
+		var cts = new TaskCompletionSource();
+		PropertyChangedEventHandler? handler = null;
+		handler = (sender, args) =>
+		{
+			if (args.PropertyName == nameof(ProfilerState))
+			{
+				if (ProfilerState == state)
+				{
+					PropertyChanged -= handler;
+					cts.TrySetResult();
+				}
+			}
+		};
+		PropertyChanged += handler;
+		ct.Register(() =>
+		{
+			PropertyChanged -= handler;
+			cts.TrySetCanceled();
+		});
+		return cts.Task;
 	}
 
 	public async Task PauseDebuggingAsync(CancellationToken ct = default)
@@ -650,5 +769,11 @@ public class Vice : NotifiableObject, IVice
 		}
 
 		_logger.LogDebug("Disconnected");
+	}
+
+	protected override async Task DisposeAsyncCore()
+	{
+		await _bridgeResponseProcessorCts.CancelAsync();
+		await base.DisposeAsyncCore();
 	}
 }

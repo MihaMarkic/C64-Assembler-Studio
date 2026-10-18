@@ -12,7 +12,7 @@ public static class ViceBridgeExtension
     public static async Task<TResponse?> AwaitWithLogAndTimeoutAsync<TCommand, TResponse>(
         this Task<CommandResponse<TResponse>> task, IDispatcher dispatcher, ILogger logger, 
         TCommand command, Func<TResponse, Task> action, 
-        TimeSpan? timeout = default, CancellationToken ct = default)
+        TimeSpan? timeout = null, CancellationToken ct = default)
         where TCommand: ViceCommand<TResponse>
         where TResponse : ViceResponse
     {
@@ -75,8 +75,9 @@ public static class ViceBridgeExtension
         }
     }
 
-    public static async Task<TResponse?> AwaitWithLogAndTimeoutAsync<TCommand, TResponse>(this Task<CommandResponse<TResponse>> task, IDispatcher dispatcher, ILogger logger, TCommand command,
-        TimeSpan? timeout = default, CancellationToken ct = default)
+    public static async Task<TResponse?> AwaitWithLogAndTimeoutAsync<TCommand, TResponse>(
+	    this Task<CommandResponse<TResponse>> task, IDispatcher dispatcher, ILogger logger, TCommand command,
+        TimeSpan? timeout = null, CancellationToken ct = default)
         where TCommand: ViceCommand<TResponse>
         where TResponse: ViceResponse
     {

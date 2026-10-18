@@ -1,18 +1,20 @@
 ﻿using System.Collections.Frozen;
 using System.ComponentModel;
 using C64AssemblerStudio.Engine.Common;
+using C64AssemblerStudio.Engine.Services.Implementation;
 using C64AssemblerStudio.Engine.ViewModels.Breakpoints;
 using C64AssemblerStudio.Engine.ViewModels.Tools;
 using Righthand.ViceMonitor.Bridge.Responses;
 
 namespace C64AssemblerStudio.Engine.Services.Abstract;
 
-public interface IVice: INotifyPropertyChanged
+public interface IVice: INotifyPropertyChanged, IAsyncDisposable
 {
     bool IsConnected { get; }
     bool IsPaused { get; }
     bool IsDebugging { get; }
     bool IsProfiling { get; }
+    ViceProfilerState ProfilerState { get; }
     RegistersViewModel Registers { get; }
     /// <summary>
     /// Contains <see cref="BankItem"/> banks grouped by name
@@ -44,7 +46,7 @@ public interface IVice: INotifyPropertyChanged
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    Task StartProfilerAsync(CancellationToken ct);
+    Task<IProfilerStorage> StartProfilerAsync(CancellationToken ct);
 	/// <summary>
 	/// Starts without profiling and clears previous profiler storage if any.
 	/// </summary>

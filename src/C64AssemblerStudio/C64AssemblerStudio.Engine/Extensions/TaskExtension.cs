@@ -52,22 +52,22 @@ public static class TaskExtension
         }
     }
 
-    public static Task StartNewTyped<TArg>(this TaskFactory factory, Func<TArg?, Task> function,
+    public static Task StartNewTyped<TArg>(this TaskFactory factory, Func<TArg, CancellationToken, Task> function,
         TArg state,
         CancellationToken ct)
     {
-        return factory.StartNew(async o => await function((TArg?)o), state, ct);
+        return factory.StartNew(async o => await function((TArg)o.ValueOrThrow(), ct), state, ct);
     }
-    public static Task StartNewTyped<TArg>(this TaskFactory factory, Action<TArg?> action,
+    public static Task StartNewTyped<TArg>(this TaskFactory factory, Action<TArg> action,
         TArg state,
         CancellationToken ct)
     {
-        return factory.StartNew(o => action((TArg?)o), state, ct);
+        return factory.StartNew(o => action((TArg)o.ValueOrThrow()), state, ct);
     }
-    public static Task StartNewTyped<TResult, TArg>(this TaskFactory factory, Func<TArg?, Task<TResult>> function,
+    public static Task StartNewTyped<TResult, TArg>(this TaskFactory factory, Func<TArg, Task<TResult>> function,
         TArg state,
         CancellationToken ct)
     {
-        return factory.StartNew(o => function((TArg?)o), state, ct);
+        return factory.StartNew(o => function((TArg)o.ValueOrThrow()), state, ct);
     }
 }
