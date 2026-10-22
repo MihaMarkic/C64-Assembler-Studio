@@ -25,6 +25,12 @@ public interface IVice: INotifyPropertyChanged, IAsyncDisposable
     event EventHandler<MemoryGetEventArgs>? MemoryUpdated;
     Task ConnectAsync(CancellationToken ct = default);
     Task StartDebuggingAsync(CancellationToken ct = default);
+    /// <summary>
+    /// Starts execution for profiler.
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    Task StartProfilingAsync(CancellationToken ct = default);
     Task StopDebuggingAsync(CancellationToken ct = default);
     Task PauseDebuggingAsync(CancellationToken ct = default);
     /// <summary>
@@ -53,4 +59,6 @@ public interface IVice: INotifyPropertyChanged, IAsyncDisposable
 	/// <param name="ct"></param>
 	/// <returns></returns>
     Task ClearProfilerAsync(CancellationToken ct);
+
+	Task ExitViceMonitorAsync(CancellationToken ct = default);
 }

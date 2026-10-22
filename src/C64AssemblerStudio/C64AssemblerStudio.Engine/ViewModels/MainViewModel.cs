@@ -26,6 +26,12 @@ namespace C64AssemblerStudio.Engine.ViewModels;
 
 public class MainViewModel : ViewModel
 {
+    public enum StartMode
+    {
+        Debug,
+        Profile
+    }
+    
     private readonly ILogger<MainViewModel> _logger;
     private readonly IGlobals _globals;
     private readonly IDispatcher _dispatcher;
@@ -281,7 +287,7 @@ public class MainViewModel : ViewModel
 		    _logger.LogError(ex, "Failed profiling");
 		    return;
 	    }
-	    await StartExecutingAsync();
+	    await StartExecutingAsync(StartMode.Profile);
     }
 
     async Task StartDebuggingAsync()
@@ -296,10 +302,10 @@ public class MainViewModel : ViewModel
 		    _logger.LogError(ex, "Failed cleaning profiler storage");
 		    return;
 	    }
-	    await StartExecutingAsync();
+	    await StartExecutingAsync(StartMode.Debug);
     }
     
-    async Task StartExecutingAsync()
+    async Task StartExecutingAsync(StartMode startMode)
     {
         try
         {
@@ -330,7 +336,7 @@ public class MainViewModel : ViewModel
                     catch (TimeoutException ex)
                     {
                         DebugOutput.AddLine("Timeout while waiting for connection");
-                        _logger.LogError(ex, "Failed debugging");
+                        _logger.LogError(ex, "Failed {StartMode}", startMode);
                         StatusInfo.BuildingStatus = BuildStatus.Failure;
                         return;
                     }
@@ -342,26 +348,33 @@ public class MainViewModel : ViewModel
                         return;
                     }
 
-                    DebugOutput.AddLine("Starting debugging");
-                    _logger.LogDebug("Starting debugging");
-                    await Vice.StartDebuggingAsync(ct);
-                    // no breakpoints for profiling
-                    if (!Vice.IsProfiling)
+                    DebugOutput.AddLine($"Starting {startMode}");
+                    _logger.LogDebug("Starting {StartMode}", startMode);
+                    switch (startMode)
                     {
-	                    DebugOutput.AddLine("Adding breakpoints from code");
-	                    await Breakpoints.AddBreakpointsFromCodeAsync(ct);
-	                    DebugOutput.AddLine("Arming breakpoints");
-	                    _logger.LogDebug("Arming breakpoints");
-	                    await Breakpoints.ArmBreakpointsAsync(ct);
+                        case StartMode.Debug:
+                            await Vice.StartDebuggingAsync(ct);
+                            DebugOutput.AddLine("Adding breakpoints from code");
+                            await Breakpoints.AddBreakpointsFromCodeAsync(ct);
+                            DebugOutput.AddLine("Arming breakpoints");
+                            _logger.LogDebug("Arming breakpoints");
+                            await Breakpoints.ArmBreakpointsAsync(ct);
+                            await Vice.ExitViceMonitorAsync(ct);
+                            break;
+                        case StartMode.Profile:
+                            await Vice.StartProfilingAsync(ct);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(startMode), startMode, null);
                     }
-                    _logger.LogDebug("Debugging started");
+                    _logger.LogDebug("{StartMode} started", startMode);
                 }
             }
         }
         catch (Exception ex)
         {
-            DebugOutput.AddLine($"Debugging error: {ex.Message}");
-            _logger.LogError(ex, "Failed debugging");
+            DebugOutput.AddLine($"{startMode} error: {ex.Message}");
+            _logger.LogError(ex, "Failed {StartMode}", startMode);
             StatusInfo.DebuggingStatus = DebuggingStatus.Idle;
         }
         finally

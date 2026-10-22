@@ -163,9 +163,6 @@ public class Vice : NotifiableObject, IVice
 		IsProfiling = false;
 	}
 
-	private int _cycle = 0;
-	private Lock _cycleLock = new();
-
 	private void BridgeOnViceResponse(object? sender, ViceResponseEventArgs e)
 	{
 		_ = _responseBuffer.SendAsync(e.Response);
@@ -184,14 +181,7 @@ public class Vice : NotifiableObject, IVice
 			{
 				if (source.TryReceive(out var response))
 				{
-					int cycle;
-					lock (_cycleLock)
-					{
-						cycle = _cycle;
-					}
-					_logger.LogInformation($"Firing {cycle}");
 					await _uiFactory.StartNewTyped(BridgeResponseProcessor, response, ct);
-					_logger.LogInformation($"Fired {cycle}");
 				}
 			}
 			catch (OperationCanceledException)
@@ -210,11 +200,6 @@ public class Vice : NotifiableObject, IVice
 	/// <param name="ct"></param>
 	private async Task BridgeResponseProcessor(ViceResponse response, CancellationToken ct)
 	{
-		int cycle;
-		lock (_cycleLock)
-		{
-			cycle = _cycle;
-		}
 		if (IsProfiling)
 		{
 			switch (response)
@@ -228,7 +213,7 @@ public class Vice : NotifiableObject, IVice
 						case ViceProfilerState.Stopping:
 							if (IsDebugging)
 							{
-								_logger.LogDebug($"Collecting CPU history {cycle}");
+								_logger.LogDebug($"Collecting CPU history");
 								// var cpuHistoryCommand = new CpuHistoryCommand(MemSpace.MainMemory,
 								// 	Settings.CpuHistoryLines);
 								// _bridge.EnqueueCommand(cpuHistoryCommand);
@@ -245,14 +230,14 @@ public class Vice : NotifiableObject, IVice
 								switch (ProfilerState)
 								{
 									case ViceProfilerState.Collecting:
-										_logger.LogDebug($"Advancing {cycle}");
+										_logger.LogDebug($"Advancing");
 										AdvanceProfilingAsync();
 										var sw = Stopwatch.StartNew();
 										await ExitViceMonitorAsync(ct);
-										_logger.LogDebug($"Exited in {sw.ElapsedMilliseconds:#,##0}ms {cycle}");
+										_logger.LogDebug("Exited in {SwElapsedMilliseconds:#,##0}ms", sw.ElapsedMilliseconds);
 										break;
 									case ViceProfilerState.Stopping:
-										_logger.LogDebug($"Stopped {cycle}");
+										_logger.LogDebug($"Stopped");
 										ProfilerState = ViceProfilerState.Stopped;
 										break;
 								}
@@ -267,10 +252,6 @@ public class Vice : NotifiableObject, IVice
 					// _logger.LogDebug("Got {Response} but it will be ignored due profiling",
 					// 	e.Response.GetType().Name);
 					break;
-			}
-			lock (_cycleLock)
-			{
-				_cycle++;
 			}
 
 			return;
@@ -415,8 +396,37 @@ public class Vice : NotifiableObject, IVice
 		_logger.LogDebug("Start program checkpoint hit");
 		ProfilerState = ViceProfilerState.Collecting;
 
-		AdvanceProfilingAsync();
 		await ExitViceMonitorAsync(ct);
+	}
+
+	/// <inheritdoc/>
+	public async Task StartProfilingAsync(CancellationToken ct = default)
+	{
+		if (IsDebugging)
+		{
+			_logger.LogWarning("Can't start debugging - already debugging");
+			return;
+		}
+
+		IsDebugging = true;
+
+		var programStartCheckpoint = await InsertProgramStartCheckpointAsync(ct);
+		if (programStartCheckpoint is null)
+		{
+			return;
+		}
+
+		var command = _bridge.EnqueueCommand(
+			new AutoStartCommand(runAfterLoading: true, 0, _globals.Project.FullPrgPath!),
+			resumeOnStopped: false);
+		await command.Response.AwaitWithLogAndTimeoutAsync(_dispatcher, _logger, command, ct: ct);
+
+		_logger.LogDebug("Waiting for start program checkpoint to be hit");
+		await _bridge.WaitForUnboundResponseAsync<CheckpointInfoResponse>(
+			_logger,
+			(r) => r.CheckpointNumber == programStartCheckpoint.CheckpointNumber,
+			waitForStop: true, ct);
+		_logger.LogDebug("Start program checkpoint hit");
 	}
 
 	private void AdvanceProfilingAsync()
@@ -526,7 +536,7 @@ public class Vice : NotifiableObject, IVice
 			if (IsProfiling)
 			{
 				ProfilerState = ViceProfilerState.Stopping;
-				_logger.LogInformation($"Waiting for ViceProfilerState.Stopped on cycle {_cycle}");
+				_logger.LogInformation($"Waiting for ViceProfilerState.Stopped");
 				await WaitForProfilerStateValueAsync(ViceProfilerState.Stopped, ct);
 				_logger.LogInformation("Flushing profiler");
 				await _profilerStorage!.FlushAsync(ct);
