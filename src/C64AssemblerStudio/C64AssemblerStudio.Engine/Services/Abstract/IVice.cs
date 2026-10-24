@@ -23,6 +23,11 @@ public interface IVice: INotifyPropertyChanged, IAsyncDisposable
     event EventHandler<RegistersEventArgs>? RegistersUpdated;
     event EventHandler<CheckpointInfoEventArgs>? CheckpointInfoUpdated;
     event EventHandler<MemoryGetEventArgs>? MemoryUpdated;
+    /// <summary>
+    /// Return address was hit.
+    /// </summary>
+    /// <remarks>Only supported when profiling for now.</remarks>
+    event EventHandler? ReturnAddressHit;
     Task ConnectAsync(CancellationToken ct = default);
     Task StartDebuggingAsync(CancellationToken ct = default);
     /// <summary>
@@ -59,6 +64,10 @@ public interface IVice: INotifyPropertyChanged, IAsyncDisposable
 	/// <param name="ct"></param>
 	/// <returns></returns>
     Task ClearProfilerAsync(CancellationToken ct);
-
+	/// <summary>
+	/// Exits (continues execution) VICE suspended state.
+	/// </summary>
+	/// <param name="ct"></param>
+	/// <returns></returns>
 	Task ExitViceMonitorAsync(CancellationToken ct = default);
 }

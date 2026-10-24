@@ -192,6 +192,7 @@ public class MainViewModel : ViewModel
         }
 
         Vice.PropertyChanged += ViceOnPropertyChanged;
+        Vice.ReturnAddressHit += ViceOnReturnAddressHit;
         globals.PropertyChanged += Globals_PropertyChanged;
     }
 
@@ -219,6 +220,10 @@ public class MainViewModel : ViewModel
 	            }
 	            break;
         }
+    }
+    private void ViceOnReturnAddressHit(object? sender, EventArgs e)
+    {
+	    _ = StopDebuggingAsync();
     }
 
     internal async Task PauseDebuggingAsync()
@@ -793,6 +798,9 @@ public class MainViewModel : ViewModel
             }
             _closeOverlaySubscription.Dispose();
             _showModalDialogMessageSubscription.Dispose();
+            Vice.PropertyChanged -= ViceOnPropertyChanged;
+            Vice.ReturnAddressHit -= ViceOnReturnAddressHit;
+            _globals.PropertyChanged -= Globals_PropertyChanged;
         }
 
         base.Dispose(disposing);

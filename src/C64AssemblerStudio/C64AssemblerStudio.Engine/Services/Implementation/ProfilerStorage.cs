@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Threading.Tasks.Dataflow;
 using C64AssemblerStudio.Engine.Models.Profiler;
 using Microsoft.Extensions.Logging;
@@ -59,6 +60,7 @@ public sealed class ProfilerStorage : IProfilerStorage
 	private async Task StartAsync(IReceivableSourceBlock<CpuHistoryBufferResponse> source, CancellationToken ct)
 	{
 		int currentIndex = 0;
+		
 		while (await source.OutputAvailableAsync(ct).ConfigureAwait(false))
 		{
 			try
@@ -70,9 +72,15 @@ public sealed class ProfilerStorage : IProfilerStorage
 						string filePath = GetChunkFilePath(currentIndex);
 						var data = response.Buffer!.Value.Data;
 						currentIndex++;
-						await _fileService.WriteAllBytesAsync(filePath, data.AsMemory(), ct)
-							.ConfigureAwait(false);
-						OnCollectedData(new ProfilerCollectedDataEventArgs(data.Length));
+						// await _fileService.WriteAllBytesAsync(filePath, data.AsMemory(), ct)
+						// 	.ConfigureAwait(false);
+						await using (var stream = _fileService.OpenWrite(filePath))
+						await using (var compressedStream = new GZipStream(stream, CompressionLevel.Optimal))
+						{
+							await compressedStream.WriteAsync(data.AsMemory(), ct);
+							await compressedStream.FlushAsync(ct);
+							OnCollectedData(new ProfilerCollectedDataEventArgs((int)stream.Length));
+						}
 					}
 					finally
 					{
@@ -88,7 +96,7 @@ public sealed class ProfilerStorage : IProfilerStorage
 		_logger.LogDebug("Loop done");
 	}
 
-	public string GetChunkFilePath(int index) => Path.Combine(_profilerPath, $"chunk{index}.prd"); 
+	public string GetChunkFilePath(int index) => Path.Combine(_profilerPath, $"chunk{index}.prd.gzip"); 
 	
 	public Task<bool> StoreChunkAsync(CpuHistoryBufferResponse response)
 	{

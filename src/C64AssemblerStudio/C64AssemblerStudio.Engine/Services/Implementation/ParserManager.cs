@@ -48,10 +48,11 @@ public class ParserManager : DisposableObject, IParserManager
     {
         if (_reparseCts is not null)
         {
-            _reparseCts.Cancel();
+            await _reparseCts.CancelAsync();
         }
 
         _reparseCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var currentReparse = _reparseCts;
         var combinedToken = _reparseCts.Token;
         try
         {
@@ -70,7 +71,7 @@ public class ParserManager : DisposableObject, IParserManager
         }
         finally
         {
-	        _reparseCts.Dispose();
+	        currentReparse.Dispose();
 	        _reparseCts = null;
         }
     }
