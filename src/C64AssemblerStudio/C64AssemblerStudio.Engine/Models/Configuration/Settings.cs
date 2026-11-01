@@ -10,6 +10,11 @@ public class Settings : NotifiableObject
     public const string DefaultViceAddress = "localhost:6802";
     public const int DefaultViceAddressPort = 6802;
     public const int CpuHistoryLines = 8192;
+    /// <summary>
+    /// The size of a single item within <see cref="CpuHistoryLines"/>.
+    /// NOTE: This value might change in future VICE implementation.
+    /// </summary>
+    public const int CpuHistoryLineSize = 64;
 
     /// <summary>
     /// Defines process start for C64. 

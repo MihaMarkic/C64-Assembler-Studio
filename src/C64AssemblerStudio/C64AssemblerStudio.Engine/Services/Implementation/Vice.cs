@@ -44,7 +44,6 @@ public sealed class Vice : NotifiableObject, IVice
 	private readonly TaskFactory _uiFactory;
 	private readonly IOSDependent _osDependent;
 	private readonly IServiceScope _serviceScope;
-	private readonly ResponseBuilder _responseBuilder;
 
 	public RegistersViewModel Registers { get; }
 	public ViceMemoryViewModel Memory { get; }
@@ -111,7 +110,7 @@ public sealed class Vice : NotifiableObject, IVice
 
 	public Vice(ILogger<Vice> logger, IViceBridge bridge, IGlobals globals, IDispatcher dispatcher,
 		RegistersViewModel registers, ViceMemoryViewModel viceMemory, CallStackViewModel callStack,
-		IOSDependent osDependent, IServiceScope serviceScope, ResponseBuilder responseBuilder)
+		IOSDependent osDependent, IServiceScope serviceScope)
 	{
 		_logger = logger;
 		_bridge = bridge;
@@ -119,7 +118,6 @@ public sealed class Vice : NotifiableObject, IVice
 		_dispatcher = dispatcher;
 		_osDependent = osDependent;
 		_serviceScope = serviceScope;
-		_responseBuilder = responseBuilder;
 		Registers = registers;
 		Memory = viceMemory;
 		CallStack = callStack;
@@ -278,7 +276,7 @@ public sealed class Vice : NotifiableObject, IVice
 									if (!_isFirstProfilerStop)
 									{
 										_logger.LogDebug("Collecting CPU history");
-										if (await CollectCpuHistoryAsync(ct))
+										if (await CollectCpuHistoryAndCheckForReturnInstructionAsync(ct))
 										{
 											_logger.LogDebug("Advancing");
 											_ = AdvanceProfilingAsync(ct);
@@ -307,10 +305,6 @@ public sealed class Vice : NotifiableObject, IVice
 				}
 
 				break;
-			default:
-				// _logger.LogDebug("Got {Response} but it will be ignored due profiling",
-				// 	e.Response.GetType().Name);
-				break;
 		}
 
 		return;
@@ -318,10 +312,11 @@ public sealed class Vice : NotifiableObject, IVice
 
 	/// <summary>
 	/// Collects CPU History data and sends it to storage processor.
+	/// Also checks whether it contains return to program caller instruction.
 	/// </summary>
 	/// <param name="ct"></param>
 	/// <returns>True when return address is not found, false when found and profiling can stop.</returns>
-	private async ValueTask<bool> CollectCpuHistoryAsync(CancellationToken ct)
+	private async ValueTask<bool> CollectCpuHistoryAndCheckForReturnInstructionAsync(CancellationToken ct)
 	{
 		var cpuHistoryCommand = new CpuHistoryCommand(MemSpace.MainMemory, Settings.CpuHistoryLines);
 		_bridge.EnqueueCommand(cpuHistoryCommand);
@@ -330,9 +325,10 @@ public sealed class Vice : NotifiableObject, IVice
 				ct: ct);
 		if (result is not null)
 		{
+			// TODO check for oversaturation in case store process is too slow
 			var storeTask = _profilerStorage!.StoreChunkAsync(result);
 			bool hasReturnAddress = false;
-			int? pcRegisterIndex = Registers.Current.PC;
+			byte? pcRegisterIndex = Registers.PcRegisterId;
 			// both return address must exist and PC register index has to be known to determine whether returnAddress 
 			// is contained in block
 			if (_returnAddress is not null && pcRegisterIndex is not null)
@@ -349,23 +345,20 @@ public sealed class Vice : NotifiableObject, IVice
 			throw new Exception("Failed retrieving  CPU history");
 			// TODO stop profiling
 		}
-
-		return true;
 	}
 
-	private async ValueTask<bool> HasReturnAddressAsync(CpuHistoryBufferResponse response, uint returnAddress,
-		int pcRegisterIndex, CancellationToken ct)
+	private async ValueTask<bool> HasReturnAddressAsync(CpuHistoryBufferResponse response, ushort returnAddress,
+		byte pcRegisterIndex, CancellationToken ct)
 	{
 		return await Task.Factory.StartNew(o =>
 		{
 			
 			var (r, ra, pcIndex) = (HasReturnAddressItem)o!;
-			var parsed = r.ParseContent(_responseBuilder);
-			var hasReturnAddress = parsed.Any(i => i.RegisterItems[pcIndex].RegisterValue == ra);
+			var hasReturnAddress = r.CheckForInstructionAtAddress(ra, pcIndex);
 			return hasReturnAddress;
 		}, new HasReturnAddressItem(response, returnAddress, pcRegisterIndex) , ct);
 	}
-	private record HasReturnAddressItem(CpuHistoryBufferResponse Response, uint ReturnAddress, int PcRegisterIndex);
+	private record HasReturnAddressItem(CpuHistoryBufferResponse Response, ushort ReturnAddress, byte PcRegisterIndex);
 
 	private async Task GetMemoryAsync(CancellationToken ct)
 	{

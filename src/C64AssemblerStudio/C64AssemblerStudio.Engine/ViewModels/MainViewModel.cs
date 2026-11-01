@@ -216,7 +216,7 @@ public class MainViewModel : ViewModel
             case nameof(IVice.IsProfiling):
 	            if (!Vice.IsProfiling)
 	            {
-		            Profiler.StopProfiling();
+		            _ = Profiler.StopProfilingAsync();
 	            }
 	            break;
         }

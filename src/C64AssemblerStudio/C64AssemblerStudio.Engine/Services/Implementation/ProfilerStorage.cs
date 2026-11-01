@@ -1,9 +1,14 @@
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Dataflow;
+using C64AssemblerStudio.Engine.Models.Configuration;
 using C64AssemblerStudio.Engine.Models.Profiler;
 using Microsoft.Extensions.Logging;
 using Righthand.RetroDbgDataProvider.Services.Abstract;
+using Righthand.ViceMonitor.Bridge;
+using Righthand.ViceMonitor.Bridge.Commands;
 using Righthand.ViceMonitor.Bridge.Responses;
+using Righthand.ViceMonitor.Bridge.Shared;
 
 namespace C64AssemblerStudio.Engine.Services.Implementation;
 
@@ -72,8 +77,6 @@ public sealed class ProfilerStorage : IProfilerStorage
 						string filePath = GetChunkFilePath(currentIndex);
 						var data = response.Buffer!.Value.Data;
 						currentIndex++;
-						// await _fileService.WriteAllBytesAsync(filePath, data.AsMemory(), ct)
-						// 	.ConfigureAwait(false);
 						await using (var stream = _fileService.OpenWrite(filePath))
 						await using (var compressedStream = new GZipStream(stream, CompressionLevel.Optimal))
 						{
@@ -123,6 +126,55 @@ public sealed class ProfilerStorage : IProfilerStorage
 		_loop = null;
 		_logger.LogDebug("Flush complete");
 	}
+
+	/// <inheritdoc/>
+	public async IAsyncEnumerable<ImmutableArray<CpuHistoryItem>> GetHistoryItemsChunksAsync([EnumeratorCancellation]CancellationToken ct)
+	{
+		int index = 0;
+		ImmutableArray<CpuHistoryItem> chunk;
+		Task<ImmutableArray<CpuHistoryItem>>? nextChunkTask = null;
+		do
+		{
+			if (nextChunkTask is not null)
+			{
+				chunk = await nextChunkTask;
+			}
+			else
+			{
+				chunk = await GetHistoryItemsChunkAsync(index, ct);
+			}
+			nextChunkTask = GetHistoryItemsChunkAsync(index + 1, ct);
+
+			if (chunk.IsDefaultOrEmpty)
+			{
+				yield break;
+			}
+			yield return chunk;
+			index++;
+		} while (!chunk.IsDefaultOrEmpty);
+	}
+
+	internal async Task<ImmutableArray<CpuHistoryItem>> GetHistoryItemsChunkAsync(int index, CancellationToken ct)
+	{
+		const int fileLength = Settings.CpuHistoryLines * Settings.CpuHistoryLineSize;
+
+		var filePath = GetChunkFilePath(index);
+		if (!_fileService.FileExists(filePath))
+		{
+			return [];
+		}
+		
+		await using (var stream = _fileService.OpenRead(filePath))
+		await using (var compressedStream = new GZipStream(stream, CompressionLevel.Optimal))
+		// using ViceBridge's BufferManager as it deals with responses already
+		using (var buffer = BufferManager.GetBuffer(fileLength))
+		{
+			await compressedStream.ReadExactlyAsync(buffer.Data, 0, fileLength, ct);
+			var response = new CpuHistoryBufferResponse(0, ErrorCode.OK, buffer);
+			return response.ParseContent();
+		}
+	}
+	
 	public async Task CancelAsync(CancellationToken ct)
 	{
 		if (_cts is not null && _loop is not null)
