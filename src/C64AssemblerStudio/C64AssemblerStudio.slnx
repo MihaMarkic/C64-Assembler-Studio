@@ -17,6 +17,7 @@
     <File Path="../../README.md" />
     <File Path=".gitignore" />
     <File Path="Configurations/eu.rthand.C64AssemblerStudio.yml" />
+    <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/Solution Items/Flatpak/">
